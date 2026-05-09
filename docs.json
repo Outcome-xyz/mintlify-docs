@@ -9,15 +9,10 @@
   },
   "navbar": {
     "primary": {
-      "type": "github",
-      "href": "https://github.com/Infinite-Code-Org/outcome-app-monorepo"
-    },
-    "links": [
-      {
-        "href": "https://outcome.xyz",
-        "label": "App"
-      }
-    ]
+      "type": "button",
+      "label": "Open App",
+      "href": "https://outcome.xyz"
+    }
   },
   "navigation": {
     "tabs": [
@@ -95,10 +90,6 @@
   },
   "favicon": "/images/favicon-32x32.png",
   "logo": "/images/lockup-dark-gray.svg",
-  "background": {
-    "image": "/images/lockup-dark-gray.svg",
-    "decoration": "gradient"
-  },
   "appearance": {
     "default": "dark",
     "strict": true
