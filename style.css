@@ -85,3 +85,176 @@ html.dark #navigation-items li[data-active="true"] > a {
   background-color: rgba(111, 46, 228, 0.22);
   color: rgb(156, 163, 175) !important;
 }
+
+/* ─── Root font-size scaling — desktop 125%, tablet 110%, mobile 100%
+   Bumps the root font-size so every rem-based size (text, padding,
+   spacing, gap, line-height) scales together. Pixel-defined widths
+   (sidebar, content max-width) stay put — that's intentional, since
+   resizing them breaks Mintlify's vw-based centering math. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  html { font-size: 15.8px; }
+}
+
+@media (min-width: 1024px) {
+  html { font-size: 18px; }
+}
+
+/* ─── Sidebar + TOC: small font-size bump (desktop only)
+   A subtle uptick so the side rails don't feel undersized next to
+   the bumped root font-size. */
+@media (min-width: 1024px) {
+  #sidebar-content,
+  #table-of-contents-layout {
+    font-size: 1.0625em;
+  }
+}
+
+/* ─── Align tops of the three columns (mint theme) + extra breathing room
+   Shift all three columns down by ~1rem from where the navbar ends so
+   there's clear space between the tabs row and the first label. */
+@media (min-width: 1024px) {
+  div:has(> #content-side-layout) {
+    padding-top: 1rem !important;
+  }
+  #sidebar {
+    top: calc(6rem + var(--banner-height, 2.5rem)) !important;
+  }
+  #content-side-layout {
+    top: calc(6rem + var(--banner-height, 2.5rem)) !important;
+  }
+}
+
+/* ─── Page header: move copy button onto the eyebrow (breadcrumb) row,
+   shrink it, drop the word "page" so it just reads "Copy". */
+@media (min-width: 640px) {
+  #header {
+    position: relative;
+  }
+  /* Strip position:relative from the flex div around <h1> so the
+     absolute-positioned context-menu anchors to #header instead. */
+  #header > div > div:has(> #page-title) {
+    position: static !important;
+  }
+  #page-context-menu {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    margin: 0 !important;
+    min-width: 0 !important;
+  }
+  #page-context-menu-button {
+    padding: 0.2rem 0.45rem !important;
+  }
+  /* Tighten the inner row's gap and force a small text size */
+  #page-context-menu-button > div {
+    gap: 0.3rem !important;
+    font-size: 0.7rem !important;
+  }
+  /* Override Tailwind's `size-4` (1rem) and the SVG width/height
+     attributes — selectors with [width] / .size-4 raise specificity
+     past the utility class, !important wins over the HTML attrs. */
+  #page-context-menu-button svg,
+  #page-context-menu-button svg.size-4,
+  #page-context-menu-button svg[width],
+  #page-context-menu-button svg[height] {
+    width: 0.7rem !important;
+    height: 0.7rem !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+  /* Hide the "Copy page" text node and substitute "Copy" via ::before */
+  #page-context-menu-button span {
+    font-size: 0 !important;
+    line-height: 0 !important;
+  }
+  #page-context-menu-button span::before {
+    content: "Copy";
+    font-size: 0.7rem !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+  }
+  /* Shrink the chevron (second button) — kill aspect-square, match
+     the left button's vertical padding so heights line up. */
+  #page-context-menu > button:nth-of-type(2) {
+    padding: 0.2rem 0.45rem !important;
+    aspect-ratio: auto !important;
+    align-self: stretch !important;
+    min-width: 0 !important;
+  }
+  #page-context-menu > button:nth-of-type(2) svg,
+  #page-context-menu > button:nth-of-type(2) svg[width],
+  #page-context-menu > button:nth-of-type(2) svg[height] {
+    width: 0.5rem !important;
+    height: 0.75rem !important;
+  }
+}
+
+/* ─── Dark-mode page background: oil-paint texture + top glow
+   Mintlify renders a fixed-position #background-color span behind
+   the layout. Layering three things on top of the brand near-black:
+   (1) a subtle white radial glow at the very top (the "touch lighter"
+       band), (2) a faint brand-purple wash at the same spot, and
+   (3) a low-frequency Perlin noise pattern as the painterly grain. */
+html.dark #background-color {
+  background-color: #0a0a0a !important;
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255, 255, 255, 0.055), transparent 60%),
+    radial-gradient(ellipse 60% 30% at 50% -15%, rgba(111, 46, 228, 0.07), transparent 70%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='480'><filter id='o'><feTurbulence type='fractalNoise' baseFrequency='0.35' numOctaves='2' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23o)'/></svg>") !important;
+  background-size: auto, auto, 480px 480px !important;
+  background-repeat: no-repeat, no-repeat, repeat !important;
+  background-position: center top, center top, 0 0 !important;
+  background-attachment: fixed, fixed, fixed !important;
+}
+
+/* ─── Brand purple accents ──────────────────────────────────────────
+   Applied to: the breadcrumb/eyebrow above the page title, the
+   theme-toggle icon in the navbar right side, sidebar group icons,
+   and the TOC heading icon. The H1 page title stays in default text
+   colour. */
+
+/* Breadcrumb eyebrow ("Guides", "Adapters", etc.) above page title:
+   light purple text with a dark-purple underline sitting a touch
+   below the baseline. */
+.breadcrumb-item,
+.breadcrumb-item a,
+.breadcrumb-item a:hover {
+  color: var(--outcome-purple-soft) !important;
+  text-decoration: underline !important;
+  text-decoration-color: var(--outcome-purple) !important;
+  text-decoration-thickness: 1px !important;
+  text-underline-offset: 4px !important;
+}
+
+/* Theme toggle (sun/moon) icon in the top-right of the navbar */
+[data-component-name="theme-toggle"] svg {
+  color: var(--outcome-purple) !important;
+  stroke: var(--outcome-purple) !important;
+}
+
+/* Sidebar group icons use a CSS-mask trick with `bg-current` —
+   override the background colour to brand purple. */
+.sidebar-group-icon {
+  background-color: var(--outcome-purple) !important;
+}
+
+/* TOC heading icon (the small list icon next to "On this page") */
+#table-of-contents-layout > button svg,
+#table-of-contents-layout button svg[class*="h-3"] {
+  color: var(--outcome-purple) !important;
+  stroke: var(--outcome-purple) !important;
+}
+
+/* Active tab underline (mint theme uses bg-primary on a child div).
+   Forces brand purple regardless of theme primary mapping. */
+.nav-tabs-item[data-active="true"] > div {
+  background-color: var(--outcome-purple) !important;
+}
+
+/* Link underlines in body content */
+article a,
+main a,
+.prose a {
+  text-decoration-color: var(--outcome-purple) !important;
+}
+
