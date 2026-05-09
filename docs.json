@@ -31,7 +31,8 @@
             "pages": [
               "platform/trading/placing-orders",
               "platform/trading/order-types",
-              "platform/trading/positions"
+              "platform/trading/positions",
+              "platform/trading/converting"
             ]
           },
           {
@@ -67,6 +68,7 @@
             "pages": [
               "sdk/guides/fetch-markets",
               "sdk/guides/trading",
+              "sdk/guides/conversions",
               "sdk/guides/real-time-data",
               "sdk/guides/wallet-funding"
             ]
@@ -111,5 +113,16 @@
   },
   "styling": {
     "eyebrows": "breadcrumbs"
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "chatgpt",
+      "claude",
+      "cursor",
+      "vscode",
+      "mcp",
+      "add-mcp"
+    ]
   }
 }

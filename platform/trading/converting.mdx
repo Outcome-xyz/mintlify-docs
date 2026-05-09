@@ -1,0 +1,74 @@
+---
+title: "Convert outcome tokens: split, merge, and negate"
+sidebarTitle: "Converting tokens"
+description: "HIP-4 lets you convert between economically-equivalent share bundles directly — no orderbook, no slippage, no price impact. Split USDH into paired Yes+No, merge them back, redeem a full Yes bundle, or negate a No into Yes across the question."
+---
+
+HIP-4 ships four protocol-level conversion primitives that move value between outcome tokens and USDH without touching the orderbook. They're not orders. They're identities the protocol enforces directly against your spot balances. No spread paid, no slippage taken, no liquidity required.
+
+The four operations: **split**, **merge outcome**, **merge question**, and **negate**. Together they let you mint paired shares from collateral, redeem them back, and rotate between economically-equivalent bundles inside the same question.
+
+## Why these conversions exist
+
+Two conservation identities hold for every HIP-4 question by construction:
+
+1. **Within an outcome** — `Yes + No = 1 USDH`. One Yes share and one No share of the same outcome always settle to exactly $1 combined, regardless of which side wins.
+2. **Across a question** — `Σ Yes(outcome) = 1 USDH`. The sum of one Yes share from every outcome of a question — including the fallback — settles to exactly $1, because exactly one outcome resolves true.
+
+The protocol can mint, burn, and rotate share bundles whenever those identities are preserved. That's all the conversion primitives are: trades the protocol can settle at the mint price by definition, with no counterparty needed.
+
+<Note>
+  The fallback outcome ("Other") exists so identity (2) holds for every question. It absorbs any scenario the named outcomes don't cover, guaranteeing the Yes-bundle across a question always sums to exactly $1.
+</Note>
+
+## The four primitives
+
+### Split
+
+Burn `X` USDH → mint `X` Yes shares **and** `X` No shares of one outcome.
+
+Useful when you want exposure to both sides of an outcome (for example, to seed both halves of an orderbook), or when you want to mint paired shares to immediately redirect via a negate.
+
+### Merge outcome
+
+Burn `X` Yes + `X` No of one outcome → mint `X` USDH.
+
+The inverse of split. Use it to recover collateral from a paired position you no longer want.
+
+### Merge question
+
+Burn `X` Yes shares from every outcome of a question (including the fallback) → mint `X` USDH.
+
+If you hold the full Yes-bundle across a question, you can redeem it for collateral immediately. You don't need to wait for the question to resolve — the bundle is already worth exactly $1 by identity (2).
+
+### Negate
+
+Burn `X` No shares of one outcome → mint `X` Yes shares of every **other** outcome in the same question (including the fallback).
+
+The most subtle of the four. "I don't think this outcome wins" is mathematically the same as "I think one of the other outcomes wins." Negate converts the first position into the second directly, without ever touching the orderbook.
+
+## What this means in practice
+
+- **No spread paid.** Conversions settle at the conservation identity, not at the best bid/ask. The orderbook spread is irrelevant.
+- **No slippage.** The conversion price is fixed by the protocol — `X` shares in, `X` shares out, every time.
+- **No liquidity required.** A conversion always succeeds (given balance) even when the orderbook is empty or one-sided.
+- **Same authentication as orders.** Conversions use L1 agent signing, the same authority as `placeOrder` and `cancelOrder`, so an active agent key is required.
+
+## When to use the orderbook instead
+
+The orderbook still wins when you want exposure to a single side at a price the market is offering — buying Yes for $0.30 from a counterparty is cheaper than splitting at $1.00 and selling the No leg back into the book if the No is bidding above $0.70.
+
+Use conversions when you already hold one of the bundles the identities cover, or when the orderbook can't fill you at all.
+
+## In the SDK
+
+The four methods live on the trading adapter:
+
+```typescript
+await hip4.trading.splitOutcome({ outcome: 5160, amount: "100" });
+await hip4.trading.mergeOutcome({ outcome: 5160, amount: "100" });
+await hip4.trading.mergeQuestion({ question: 42, amount: "10" });
+await hip4.trading.negateOutcome({ question: 42, outcome: 5160, amount: "5" });
+```
+
+See the [Token conversions guide](/sdk/guides/conversions) for full code examples and the [Trading adapter reference](/sdk/reference/trading-adapter#splitoutcome-params) for parameter and return-type details.

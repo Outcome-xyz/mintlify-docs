@@ -1,6 +1,7 @@
 ---
-title: "Trading Adapter Reference — Place and Cancel Orders"
-description: "Reference for PredictionTradingAdapter: place limit and market orders on HIP-4 outcomes with tick alignment and builder fees, then cancel resting orders by ID."
+title: "Trading Adapter Reference — Orders and Conversions"
+sidebarTitle: "Trading"
+description: "Reference for PredictionTradingAdapter: place limit and market orders on HIP-4 outcomes, cancel resting orders, and run share-conversion primitives — split, merge, and negate."
 ---
 
 The Trading Adapter (`adapter.trading`) lets you submit and cancel orders on HIP-4 prediction market outcomes. Before you can place any orders you must authenticate using `adapter.auth.initAuth()` — the trading adapter returns an error result (rather than throwing) if you attempt to place an order without a valid signer. Order placement performs local validation for tick alignment, notional size, and minimum shares before signing, so most errors are caught before hitting the exchange.
@@ -254,3 +255,148 @@ const cancels = openOrders.map((order) => ({
 }));
 await adapter.trading.cancelOrder(cancels);
 ```
+
+---
+
+## Token conversions
+
+Four protocol-level share-conversion primitives that move value between USDH and outcome tokens without touching the orderbook. They settle directly against your spot balances at the conservation-identity mint price — no spread paid, no slippage, no liquidity required. See the [Converting tokens concept](/platform/trading/converting) for the math, and the [Token conversions guide](/sdk/guides/conversions) for end-to-end code.
+
+All four methods use the same `userOutcome` action envelope, sign via L1 agent signing, and return a `WalletActionResult`. None of them throw.
+
+```typescript
+type WalletActionResult = {
+  success: boolean;
+  error?: string;
+  filledSz?: string;
+  avgPx?: string;
+  oid?: number;
+};
+```
+
+<Warning>
+  Conversions affect your spot balances immediately on `success: true`. The SDK does not preview or simulate. Validate inputs before calling.
+</Warning>
+
+---
+
+## `splitOutcome(params)`
+
+Burn `X` USDH and mint `X` Yes shares + `X` No shares of one outcome.
+
+```typescript
+await adapter.trading.splitOutcome({
+  outcome: 5160,
+  amount: "100",
+});
+```
+
+### Parameters
+
+<ParamField path="outcome" type="number" required>
+  Numeric outcome ID. Matches `market.outcomeId` on a fetched HIP-4 market.
+</ParamField>
+
+<ParamField path="amount" type="string" required>
+  USDH amount to split, as a decimal string (e.g. `"12.5"`). The SDK strips trailing zeros to match Hyperliquid's wire format. `X` USDH burned → `X` Yes + `X` No minted.
+</ParamField>
+
+### Return type
+
+`Promise<WalletActionResult>` — never throws.
+
+---
+
+## `mergeOutcome(params)`
+
+The inverse of `splitOutcome`. Burn `X` Yes + `X` No of one outcome and mint `X` USDH.
+
+```typescript
+await adapter.trading.mergeOutcome({
+  outcome: 5160,
+  amount: "100",
+});
+
+// Or burn the max available:
+await adapter.trading.mergeOutcome({ outcome: 5160, amount: null });
+```
+
+### Parameters
+
+<ParamField path="outcome" type="number" required>
+  Numeric outcome ID.
+</ParamField>
+
+<ParamField path="amount" type="string | null" required>
+  Paired-share count to merge, as a decimal string. Pass `null` to merge the maximum available — the protocol burns `min(yes_balance, no_balance)` shares.
+</ParamField>
+
+### Return type
+
+`Promise<WalletActionResult>` — never throws.
+
+---
+
+## `mergeQuestion(params)`
+
+Burn `X` Yes shares from every outcome of a question (including the fallback) and mint `X` USDH. Lets you redeem a full Yes-bundle for collateral before the question resolves.
+
+```typescript
+await adapter.trading.mergeQuestion({
+  question: 42,
+  amount: "10",
+});
+
+// Or redeem the max available:
+await adapter.trading.mergeQuestion({ question: 42, amount: null });
+```
+
+### Parameters
+
+<ParamField path="question" type="number" required>
+  Numeric question ID. For multi-outcome and price-bucket markets, this is `market.questionId`. Default-binary markets have no parent question — use `mergeOutcome` instead.
+</ParamField>
+
+<ParamField path="amount" type="string | null" required>
+  Yes-share count to redeem from each member outcome, as a decimal string. Pass `null` to redeem the maximum — `min(yes_balance)` across every outcome of the question.
+</ParamField>
+
+### Return type
+
+`Promise<WalletActionResult>` — never throws.
+
+---
+
+## `negateOutcome(params)`
+
+Burn `X` No shares of one outcome and mint `X` Yes shares of every **other** outcome in the same question (including the fallback). Converts "I don't think this wins" into "I think one of the others wins" without touching the orderbook.
+
+```typescript
+await adapter.trading.negateOutcome({
+  question: 42,
+  outcome: 5160,
+  amount: "5",
+});
+```
+
+### Parameters
+
+<ParamField path="question" type="number" required>
+  Numeric question ID containing the source outcome.
+</ParamField>
+
+<ParamField path="outcome" type="number" required>
+  Source outcome ID whose No shares are being converted. Must belong to `question`.
+</ParamField>
+
+<ParamField path="amount" type="string" required>
+  No-share count to convert, as a decimal string. After the call, your No balance on `outcome` drops by `amount`, and you hold `amount` additional Yes shares of every other outcome under `question`.
+</ParamField>
+
+### Return type
+
+`Promise<WalletActionResult>` — never throws.
+
+<Note>
+  The on-wire sub-action key is `negateOutcome`, matching Hyperliquid's testnet "Convert Outcomes" UI. Hyperliquid's docs body shows `negateQuestion` in places — that's a typo in their docs. The SDK sends `negateOutcome`.
+</Note>

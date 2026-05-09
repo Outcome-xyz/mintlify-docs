@@ -1,0 +1,152 @@
+---
+title: "Convert outcome tokens with split, merge, and negate"
+sidebarTitle: "Token conversions"
+description: "Use the HIP-4 SDK's four share-conversion primitives — splitOutcome, mergeOutcome, mergeQuestion, negateOutcome — to mint, redeem, and rotate outcome tokens without touching the orderbook."
+---
+
+The HIP-4 SDK exposes four share-conversion methods on the trading adapter. They settle directly against your spot balances at the protocol mint price — no orderbook, no slippage, no spread paid. See the [Converting tokens concept page](/platform/trading/converting) for the underlying conservation identities.
+
+All four methods use L1 agent signing, the same authority as `placeOrder`. Authenticate once with `auth.initAuth`, then call any conversion method.
+
+<Warning>
+  Conversions affect your spot balances directly. There is no "are you sure?" step — a successful call mints or burns shares immediately. Validate inputs before submitting, especially `amount` strings.
+</Warning>
+
+## Setup
+
+```typescript
+import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+import { privateKeyToAccount } from "viem/accounts";
+
+const hip4 = createHIP4Adapter({ testnet: true });
+await hip4.initialize();
+
+const agent = privateKeyToAccount(process.env.AGENT_PRIVATE_KEY as `0x${string}`);
+await hip4.auth.initAuth(userAddress, agent);
+```
+
+The four methods live at `hip4.trading.splitOutcome`, `hip4.trading.mergeOutcome`, `hip4.trading.mergeQuestion`, and `hip4.trading.negateOutcome`. Each returns a `WalletActionResult`:
+
+```typescript
+type WalletActionResult = {
+  success: boolean;
+  error?: string;
+  filledSz?: string;
+  avgPx?: string;
+  oid?: number;
+};
+```
+
+None of the conversion methods throw — branch on `result.success`.
+
+## Split: USDH → Yes + No
+
+`splitOutcome` burns `X` USDH and mints `X` Yes + `X` No of one outcome. Use it when you want exposure to both sides of an outcome, or to seed paired shares before a negate.
+
+```typescript
+const result = await hip4.trading.splitOutcome({
+  outcome: 5160,        // numeric outcome ID
+  amount: "100",        // 100 USDH burned, 100 Yes + 100 No minted
+});
+
+if (!result.success) {
+  console.error("Split failed:", result.error);
+}
+```
+
+The `outcome` field is the numeric outcome ID (matches `market.outcomeId` on a fetched market). The `amount` is a decimal string — the SDK strips trailing zeros to match Hyperliquid's wire format.
+
+## Merge outcome: Yes + No → USDH
+
+`mergeOutcome` is the inverse of split — burn `X` Yes + `X` No of one outcome and mint `X` USDH. Use it to recover collateral from a paired position.
+
+```typescript
+const result = await hip4.trading.mergeOutcome({
+  outcome: 5160,
+  amount: "100",         // 100 paired shares burned, 100 USDH minted
+});
+```
+
+Pass `amount: null` to merge the maximum available — the protocol will burn `min(yes_balance, no_balance)` shares automatically:
+
+```typescript
+await hip4.trading.mergeOutcome({ outcome: 5160, amount: null });
+```
+
+## Merge question: full Yes-bundle → USDH
+
+`mergeQuestion` burns `X` Yes shares from every outcome of a question (named outcomes plus the fallback) and mints `X` USDH. Useful when you hold the full bundle and want to redeem before settlement — the bundle is already worth exactly $1 by the conservation identity.
+
+```typescript
+const result = await hip4.trading.mergeQuestion({
+  question: 42,          // numeric question ID
+  amount: "10",          // 10 USDH minted; 10 Yes burned from each outcome
+});
+```
+
+Like `mergeOutcome`, `amount: null` redeems the maximum — `min(yes_balance)` across every outcome of the question:
+
+```typescript
+await hip4.trading.mergeQuestion({ question: 42, amount: null });
+```
+
+The `question` field is the question ID. For multi-outcome and price-bucket markets, this is `market.questionId`. For default-binary markets (which have no parent question), `mergeQuestion` doesn't apply — use `mergeOutcome` instead.
+
+## Negate: No → Yes of every other outcome
+
+`negateOutcome` burns `X` No shares of one outcome and mints `X` Yes shares of every **other** outcome in the same question (including the fallback). "I don't think this wins" becomes "I think one of the others wins" without touching the book.
+
+```typescript
+const result = await hip4.trading.negateOutcome({
+  question: 42,          // parent question ID
+  outcome: 5160,         // source outcome whose No shares are converted
+  amount: "5",
+});
+```
+
+After this call, your No-5160 balance drops by 5, and you hold 5 additional Yes shares of every other outcome (5161, 5162, …, including the fallback) in question 42.
+
+<Note>
+  The on-wire sub-key is `negateOutcome` (matching Hyperliquid's testnet "Convert Outcomes" UI). Hyperliquid's docs body shows `negateQuestion` in places — that's a typo. The SDK uses the correct key.
+</Note>
+
+## Error handling
+
+All four methods return a `WalletActionResult` and never throw. Common error cases:
+
+```typescript
+const result = await hip4.trading.splitOutcome({ outcome: 5160, amount: "100" });
+
+if (!result.success) {
+  // "Not authenticated. Call auth.initAuth() first." — no agent key
+  // "Insufficient USDH balance" — not enough collateral to split
+  // "Insufficient shares" — not enough Yes/No to merge or negate
+  // ...or any other exchange error message
+  console.error(result.error);
+}
+```
+
+If `success: true`, the conversion settled and your spot balances now reflect the new shares. There's no fill price to inspect — conversions don't fill against the book.
+
+## Putting it together: lock in profit on a Yes bundle
+
+You hold `100` Yes shares across every outcome of question 42 — a full bundle worth exactly $1 each by identity. Instead of waiting for settlement, redeem now:
+
+```typescript
+const redeem = await hip4.trading.mergeQuestion({
+  question: 42,
+  amount: null,           // burn the maximum — limited by the smallest leg
+});
+
+if (redeem.success) {
+  console.log("Redeemed full Yes-bundle for USDH");
+}
+```
+
+If one leg has 80 Yes and the rest have 100, `null` redeems 80 — the protocol enforces the bundle constraint automatically.
+
+## See also
+
+- [Trading adapter reference](/sdk/reference/trading-adapter) — full parameter and return-type specs
+- [Converting tokens concept](/platform/trading/converting) — the conservation identities behind these primitives
+- [Authentication](/sdk/concepts/authentication) — the agent key flow that conversions share with `placeOrder`
