@@ -5,3 +5,8 @@
 # Draft content
 drafts/
 *.draft.mdx
+
+# DBAK — frozen backup of the original Documentation tab content,
+# preserved for reference while the live Documentation tab is replaced
+# with new content. Hidden from build, nav, and search.
+dbak/

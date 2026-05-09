@@ -1,57 +1,26 @@
 ---
-title: "Outcome: HIP-4 outcomes on Hyperliquid"
+title: "Introduction"
 sidebarTitle: "Introduction"
-description: "Outcome is the venue and primitive composer for HIP-4 prediction markets on Hyperliquid. Trade outcome tokens on the orderbook or build on top with the SDK."
+description: "Outcome is a prediction market. Take a position on whether something will happen, see the implied probability in the price, and settle to 1 USDH if the event occurs or 0 if it doesn't."
 ---
 
-Outcome is the venue and primitive composer for **HIP-4** on **Hyperliquid L1**. At face value, prediction markets - every outcome token is a contract that pays exactly **$1.00 USDH** if its outcome wins. Underneath, a modular stack of financial primitives that compose into structured products and synthetic exposure that DeFi can't natively express elsewhere. Same on-chain orderbook that powers Hyperliquid perps, same fast finality, same agent-key auth model. No oracles between you and the price.
+**Outcome is a prediction market.** You take a position on whether something will happen. For example: *will Bitcoin be above \$80,000 at 06:00 UTC tomorrow?* The price you pay reflects the market's implied probability that it will. A price of 0.40 means the market is collectively pricing the event at 40% likely. Prices move continuously between 0.001 and 0.999 USDH while the market is open, then settle to exactly 1 if the event happened or 0 if it didn't.
 
-Two ways to use these docs depending on what you're here for:
+## A simple example
 
-<CardGroup cols={2}>
-  <Card title="Trade" icon="arrow-left-right" href="/markets/overview">
-    Understand markets, place your first order, and learn how the four
-    protocol-level conversion primitives compose into structured products.
-  </Card>
-  <Card title="Build" icon="code" href="/sdk/quickstart">
-    Integrate `@outcomexyz/hip4-sdk` - fetch markets, stream live data, place
-    orders, and run conversions, all from typed TypeScript with zero runtime
-    dependencies.
-  </Card>
-</CardGroup>
+You buy 100 YES tokens at 0.40 USDH each, paying 40 USDH in total. When the market resolves, one of two things happens:
 
-## What's on Outcome
+- The event occurs → your tokens settle at 1 USDH each → your 100 tokens are worth 100 USDH.
+- The event does not occur → your tokens settle at 0 → your 100 tokens are worth 0 USDH.
 
-- **Outcome tokens** - Yes and No shares of every outcome, priced 0–1 as the implied probability, settled in USDH.
-- **Four market types** - recurring price binary, labelled binary, multi-outcome, and price bucket. See [Market types](/markets/types).
-- **Four conversion primitives** - split, merge outcome, merge question, negate. The protocol mints, burns, and rotates bundles directly against your spot balance, with no orderbook spread paid. See [Composition stack](/concepts/composition-stack).
-- **Hyperliquid-native** - agent-key signing, L1 finality, no gas on trades, the same orderbook engine you already know.
+That's the whole payoff structure. There is no leverage, no liquidations, no margin calls. The most you can lose on any position is what you paid to open it.
 
-## Where to go next
+## Common use cases
 
-<CardGroup cols={2}>
-  <Card title="Hyperliquid" icon="lightbulb" href="/concepts/hyperliquid-hip4">
-    The two-layer foundation Outcome sits on - what HIP-4 adds to Hyperliquid L1
-    and why it matters.
-  </Card>
-  <Card
-    title="Composition stack"
-    icon="layers"
-    href="/concepts/composition-stack"
-  >
-    The bundle equivalences and the four primitives that compose into structured
-    products. The future home of the drag-and-drop builder.
-  </Card>
-  <Card
-    title="Trade tutorial"
-    icon="play"
-    href="/platform/trading/placing-orders"
-  >
-    Place your first order - connect a wallet, fund USDH, sign with an agent
-    key, and submit.
-  </Card>
-  <Card title="SDK quickstart" icon="rocket" href="/sdk/quickstart">
-    Install, authenticate, and fire your first programmatic order in five
-    minutes.
-  </Card>
-</CardGroup>
+**Express a view on a specific event.** Buy the outcome you think will happen. Your downside is capped at what you paid, with nothing to manage after the position is open.
+
+**Hedge an existing position.** If you own BTC, buying NO on a market like "will BTC be above \$80,000 by tomorrow" gives you protection against a short-term move down. The cost is capped at what you pay for the NO position, with no margin to maintain.
+
+## Get started
+
+Head to [Getting started](/getting-started) to connect a wallet, fund your account, and place your first trade. Or go directly to [outcome.xyz](https://outcome.xyz).

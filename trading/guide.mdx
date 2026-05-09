@@ -1,0 +1,35 @@
+---
+title: "Trading guide"
+sidebarTitle: "Trading guide"
+description: "Read the order book, choose between limit and market orders, and manage your positions on Outcome. The mechanics behind your first trade."
+---
+
+This page goes deeper into the mechanics: how to read the order book, choose between order types, and manage your positions. If you haven't placed your first trade yet, see [Getting started](/getting-started) first.
+
+## Reading the order book
+
+Every market on Outcome has an order book showing two sides: bids (orders to buy a specific outcome) and asks (orders to sell). The price on each side is how much per token someone is willing to pay or accept.
+
+The **best bid** is the highest current buy price. The **best ask** is the lowest current sell price. The difference between them is the **spread**, which is wider in less liquid markets and tighter in active ones.
+
+Your order interacts with the book based on the price you set:
+
+- A buy at or above the best ask → fills immediately at the best available price.
+- A sell at or below the best bid → fills immediately.
+- Otherwise → your order rests on the book until someone takes it or you cancel.
+
+## Order types
+
+**Limit orders** let you specify the price you want. A limit buy at 0.40 only fills if someone is willing to sell at 0.40 or lower. If no one matches your price, the order rests until they do, or until you cancel. Limit orders give precise price control but no guarantee of fill.
+
+**Market orders** take the best available price immediately. A market buy fills at whatever the lowest ask is right now, and at progressively higher prices if your size is large enough to walk through multiple levels of the book. Market orders prioritize execution over price.
+
+For most retail trading, limit orders are the cleaner choice because they let you control your entry. Market orders are useful when you need to fill quickly and the spread is tight.
+
+## Managing your positions
+
+Filled orders become positions, which appear in your positions tab. Each position shows your size, average entry price, current market price, and unrealized gain or loss.
+
+To exit, sell your tokens back to the order book at the price you want (limit) or take the best available bid (market). The proceeds return to your USDH balance.
+
+To hold to settlement, do nothing. The protocol settles your position automatically: tokens for the resolved outcome pay 1 USDH each, and tokens for any other outcome pay 0.

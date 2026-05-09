@@ -20,46 +20,34 @@
         "tab": "Documentation",
         "groups": [
           {
-            "group": "Welcome",
-            "icon": "hand",
+            "group": "Get started",
+            "icon": "rocket",
             "pages": [
-              "index"
+              "index",
+              "getting-started"
             ]
           },
           {
             "group": "Concepts",
             "icon": "lightbulb",
             "pages": [
-              "concepts/hyperliquid-hip4",
-              "concepts/hip4",
-              "concepts/composition-stack"
+              "concepts/prediction-markets",
+              "concepts/markets",
+              "concepts/hyperliquid"
             ]
           },
           {
-            "group": "Markets",
-            "icon": "trending-up",
-            "pages": [
-              "markets/overview",
-              "markets/types",
-              "markets/lifecycle"
-            ]
-          },
-          {
-            "group": "Trade",
+            "group": "Trading",
             "icon": "arrow-left-right",
             "pages": [
-              "platform/trading/placing-orders",
-              "platform/trading/order-types",
-              "platform/trading/positions",
-              "platform/trading/converting"
+              "trading/guide"
             ]
           },
           {
-            "group": "Funds",
-            "icon": "wallet",
+            "group": "Reference",
+            "icon": "receipt",
             "pages": [
-              "platform/funds/depositing",
-              "platform/funds/withdrawing"
+              "reference/fees"
             ]
           }
         ]

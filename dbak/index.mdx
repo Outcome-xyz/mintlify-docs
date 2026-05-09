@@ -1,0 +1,57 @@
+---
+title: "Outcome: HIP-4 outcomes on Hyperliquid"
+sidebarTitle: "Introduction"
+description: "Outcome is the venue and primitive composer for HIP-4 prediction markets on Hyperliquid. Trade outcome tokens on the orderbook or build on top with the SDK."
+---
+
+Outcome is the venue and primitive composer for **HIP-4** on **Hyperliquid L1**. At face value, prediction markets - every outcome token is a contract that pays exactly **$1.00 USDH** if its outcome wins. Underneath, a modular stack of financial primitives that compose into structured products and synthetic exposure that DeFi can't natively express elsewhere. Same on-chain orderbook that powers Hyperliquid perps, same fast finality, same agent-key auth model. No oracles between you and the price.
+
+Two ways to use these docs depending on what you're here for:
+
+<CardGroup cols={2}>
+  <Card title="Trade" icon="arrow-left-right" href="/markets/overview">
+    Understand markets, place your first order, and learn how the four
+    protocol-level conversion primitives compose into structured products.
+  </Card>
+  <Card title="Build" icon="code" href="/sdk/quickstart">
+    Integrate `@outcomexyz/hip4-sdk` - fetch markets, stream live data, place
+    orders, and run conversions, all from typed TypeScript with zero runtime
+    dependencies.
+  </Card>
+</CardGroup>
+
+## What's on Outcome
+
+- **Outcome tokens** - Yes and No shares of every outcome, priced 0–1 as the implied probability, settled in USDH.
+- **Four market types** - recurring price binary, labelled binary, multi-outcome, and price bucket. See [Market types](/markets/types).
+- **Four conversion primitives** - split, merge outcome, merge question, negate. The protocol mints, burns, and rotates bundles directly against your spot balance, with no orderbook spread paid. See [Composition stack](/concepts/composition-stack).
+- **Hyperliquid-native** - agent-key signing, L1 finality, no gas on trades, the same orderbook engine you already know.
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Hyperliquid" icon="lightbulb" href="/concepts/hyperliquid-hip4">
+    The two-layer foundation Outcome sits on - what HIP-4 adds to Hyperliquid L1
+    and why it matters.
+  </Card>
+  <Card
+    title="Composition stack"
+    icon="layers"
+    href="/concepts/composition-stack"
+  >
+    The bundle equivalences and the four primitives that compose into structured
+    products. The future home of the drag-and-drop builder.
+  </Card>
+  <Card
+    title="Trade tutorial"
+    icon="play"
+    href="/platform/trading/placing-orders"
+  >
+    Place your first order - connect a wallet, fund USDH, sign with an agent
+    key, and submit.
+  </Card>
+  <Card title="SDK quickstart" icon="rocket" href="/sdk/quickstart">
+    Install, authenticate, and fire your first programmatic order in five
+    minutes.
+  </Card>
+</CardGroup>
