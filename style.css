@@ -1,0 +1,70 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Outcome docs — brand-aligned overrides
+   Light-first, ink-on-paper, square corners, hairline rules. Brand
+   purple is the only chromatic accent. Display headings use PP Neue
+   Corp Narrow; body stays Geist (loaded by Mintlify via fonts.family).
+   ───────────────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: "PP Neue Corp Narrow";
+  src: url("/fonts/PPNeueCorp-NarrowMedium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PP Neue Corp Narrow";
+  src: url("/fonts/PPNeueCorp-NarrowUltrabold.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --outcome-ink: #000000;
+  --outcome-paper: #ffffff;
+  --outcome-paper-soft: #f7f7f6;
+  --outcome-paper-tint: #ededed;
+  --outcome-ink-soft: #343330;
+  --outcome-ink-mute: #777777;
+  --outcome-rule-soft: #d4d4d4;
+  --outcome-purple: #6f2ee4;
+  --outcome-purple-soft: #ddccfe;
+  --outcome-display: "PP Neue Corp Narrow", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ─── Display headings — scoped to article body ──────────────────────
+   We only retypeset headings inside <main>/<article> so the nav,
+   sidebar, and chrome keep Mintlify's defaults and don't pick up
+   the condensed display face. Sentence case: brand reserves uppercase
+   for 48px+ posters; docs sit in the "subhead" register. */
+main h1,
+main h2,
+article h1,
+article h2 {
+  font-family: var(--outcome-display);
+  font-weight: 800;
+  letter-spacing: -0.012em;
+  line-height: 0.98;
+}
+
+main h3,
+main h4,
+article h3,
+article h4 {
+  font-family: var(--outcome-display);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+
+/* ─── Selection — print-style inversion ───────────────────────────── */
+::selection {
+  background: var(--outcome-ink);
+  color: var(--outcome-paper);
+}
+
+html.dark ::selection {
+  background: var(--outcome-paper);
+  color: var(--outcome-ink);
+}

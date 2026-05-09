@@ -3,9 +3,9 @@
   "name": "Outcome",
   "theme": "luma",
   "colors": {
-    "primary": "#2DD4BF",
-    "light": "#F0FDFA",
-    "dark": "#0D9488"
+    "primary": "#6f2ee4",
+    "light": "#ddccfe",
+    "dark": "#6f2ee4"
   },
   "navbar": {
     "primary": {
@@ -89,19 +89,22 @@
     ]
   },
   "favicon": "/images/favicon-32x32.png",
-  "logo": "/images/lockup-dark-gray.svg",
+  "logo": {
+    "light": "/images/lockup-light-gray.svg",
+    "dark": "/images/lockup-dark-gray.svg"
+  },
   "appearance": {
-    "default": "dark",
-    "strict": true
+    "default": "light",
+    "strict": false
   },
   "fonts": {
-    "family": "Inter"
+    "family": "Geist"
   },
   "banner": {
     "content": "Outcome V2 is live here: https://outcome.xyz"
   },
   "thumbnails": {
-    "appearance": "dark"
+    "appearance": "light"
   },
   "icons": {
     "library": "lucide"
