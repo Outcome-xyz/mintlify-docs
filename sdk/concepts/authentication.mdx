@@ -1,0 +1,175 @@
+---
+title: "HIP-4 Authentication: Agent Keys and EIP-712 Signing"
+description: "How the two-layer auth model works in HIP-4: approving an ephemeral agent key so your app can sign orders silently without prompting the user's wallet."
+---
+
+HIP-4 uses a two-layer authentication model. The outer layer is your user's wallet — an EOA (externally owned account) that holds funds and controls the account on-chain. The inner layer is an ephemeral **agent key**: a temporary keypair your application generates that the user authorizes once to sign orders on their behalf. After that one-time approval, all order placement and cancellation happens silently through the agent key without any wallet prompts. A separate signing path — standard EIP-712 with the user's actual wallet — still handles fund transfers, withdrawals, and sends, since those operations move real money and should always require explicit user approval.
+
+## Why an agent key?
+
+Every order on Hyperliquid's L1 requires a signature. Without an agent key, your app would need to prompt the user's wallet for each order — which is impractical for active trading. The agent key solves this: the user signs a single on-chain approval that says "this key may act on my behalf," and from then on your app can sign orders silently using the agent's private key, which you hold in memory.
+
+<Warning>
+  Never persist agent private keys to disk, localStorage, or any server-side store. Generate a fresh key each session and hold it only in memory. If the key is compromised, an attacker can place orders on behalf of the user until the agent approval is revoked.
+</Warning>
+
+## Auth setup
+
+<Steps>
+  <Step title="Generate an ephemeral agent private key">
+    Use viem's `generatePrivateKey` to create a fresh keypair. This key exists only in memory for the duration of the session.
+
+    ```typescript
+    import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+
+    const agentPrivateKey = generatePrivateKey();
+    const agentAccount = privateKeyToAccount(agentPrivateKey);
+    ```
+  </Step>
+  <Step title="Build the typed data for agent approval">
+    `getAgentApprovalTypedData` returns the EIP-712 typed data the user needs to sign. Pass the agent's address, a human-readable name for your app, the current timestamp as a nonce, and a boolean indicating whether you're targeting mainnet.
+
+    ```typescript
+    import { getAgentApprovalTypedData } from "@outcomexyz/hip4-sdk";
+
+    const nonce = Date.now();
+    const typedData = getAgentApprovalTypedData(
+      agentAccount.address,
+      "My Trading App",
+      nonce,
+      false, // false = testnet, true = mainnet
+    );
+    ```
+  </Step>
+  <Step title="User signs the typed data with their wallet">
+    Present the typed data to your user's wallet. This is the only wallet prompt in the auth flow.
+
+    ```typescript
+    import { createWalletClient, http } from "viem";
+    import { arbitrum } from "viem/chains";
+
+    const walletClient = createWalletClient({
+      account: userAccount,
+      chain: arbitrum,
+      transport: http(),
+    });
+
+    const signature = await walletClient.signTypedData({
+      domain: typedData.domain,
+      types: typedData.types,
+      primaryType: typedData.primaryType,
+      message: typedData.message,
+    });
+    ```
+  </Step>
+  <Step title="Submit the agent approval on-chain">
+    `submitAgentApproval` sends the signed approval to the Hyperliquid exchange. The same nonce you used to build the typed data must be passed here.
+
+    ```typescript
+    import { submitAgentApproval } from "@outcomexyz/hip4-sdk";
+
+    const result = await submitAgentApproval(
+      signature,
+      agentAccount.address,
+      "My Trading App",
+      nonce,
+      false, // must match the testnet flag used above
+    );
+
+    if (!result.success) {
+      throw new Error(`Agent approval failed: ${result.error}`);
+    }
+    ```
+  </Step>
+  <Step title="Initialize auth on the adapter">
+    Call `hip4.auth.initAuth` with the user's wallet address and the agent account. After this, the adapter is ready to sign and submit orders.
+
+    ```typescript
+    const hip4 = createHIP4Adapter({ testnet: true });
+    await hip4.initialize();
+
+    await hip4.auth.initAuth(userAccount.address, agentAccount);
+
+    const status = hip4.auth.getAuthStatus();
+    // status.status === "ready"
+    // status.address === userAccount.address
+    ```
+  </Step>
+</Steps>
+
+## Signing flows
+
+The SDK uses two distinct signing paths depending on the operation.
+
+### L1 agent signing
+
+Used for: order placement, order cancellation, USDH spot buy/sell.
+
+The agent key signs silently without any user interaction. The SDK serializes the action using MessagePack, hashes it with keccak-256, then produces an EIP-712 signature with the `Agent` type on the Hyperliquid phantom domain (`chainId: 1337`). This happens automatically whenever you call `hip4.trading.placeOrder`, `hip4.trading.cancelOrder`, or `hip4.wallet.buyUsdh` / `hip4.wallet.sellUsdh`.
+
+### User-signed EIP-712
+
+Used for: fund transfers (`transferToSpot`, `transferToPerps`), withdrawals, USD sends.
+
+These operations require the user's actual wallet because they move funds. Set the wallet signer separately using `hip4.wallet.setSigner`, and the adapter will prompt the user's wallet when needed.
+
+```typescript
+hip4.wallet.setSigner({
+  address: userAccount.address,
+  signTypedData: walletClient.signTypedData.bind(walletClient) as (
+    ...args: unknown[]
+  ) => Promise<string>,
+});
+
+// This will prompt the user's wallet:
+await hip4.wallet.transferToSpot("100");
+await hip4.wallet.buyUsdh("100");  // silent — uses agent key
+```
+
+## The HIP4Signer interface
+
+Any object that implements `HIP4Signer` can be passed to `hip4.auth.initAuth`. The interface requires two methods:
+
+```typescript
+interface HIP4Signer {
+  /** Returns the signer's Ethereum address. */
+  getAddress(): Promise<string>;
+
+  /** Produces an EIP-712 signature for the given domain, types, and value. */
+  signTypedData(
+    domain: TypedDataDomain,
+    types: Record<string, TypedDataField[]>,
+    value: Record<string, unknown>,
+  ): Promise<HLSignature | string>;
+}
+```
+
+`HIP4Signer` is compatible with viem's `PrivateKeyAccount` (returned by `privateKeyToAccount`) and with ethers `Wallet` objects. The SDK normalizes the return value, so either an `HLSignature` object (`{ r, s, v }`) or a hex string is accepted.
+
+## Checking auth status
+
+Call `hip4.auth.getAuthStatus()` at any time to inspect the current state.
+
+```typescript
+const status = hip4.auth.getAuthStatus();
+
+// status.status is one of:
+//   "disconnected"     — no auth initialized
+//   "pending_approval" — initAuth called but not yet confirmed
+//   "ready"            — agent key is active and orders can be placed
+
+if (status.status !== "ready") {
+  // prompt user to complete auth before placing orders
+}
+```
+
+## Clearing auth
+
+To reset the adapter to its unauthenticated state — for example, when the user disconnects their wallet — call `clearAuth`.
+
+```typescript
+hip4.auth.clearAuth();
+// status is now "disconnected"
+```
+
+This removes the agent signer reference from the adapter. It does not revoke the on-chain agent approval; to revoke that, the user must submit a separate transaction.

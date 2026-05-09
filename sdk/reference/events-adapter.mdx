@@ -1,0 +1,305 @@
+---
+title: "Events Adapter Reference — fetchEvents and fetchMarkets"
+description: "Reference for PredictionEventAdapter: list and filter prediction events, fetch categories, and discover typed HIP-4 markets with grouping and pagination."
+---
+
+The Events Adapter (`adapter.events`) is your entry point for discovering what is tradeable on HIP-4. It maps raw Hyperliquid outcome metadata into structured `PredictionEvent` objects and typed `HIP4Market` objects, enriching each with live midpoint prices. Results are cached for 30 seconds, so repeated calls within that window return immediately without hitting the API.
+
+---
+
+## `fetchEvents(params?)`
+
+Returns a paginated, optionally filtered list of prediction events. Internally, the adapter fetches `outcomeMeta` and `allMids` in parallel, builds events from the metadata, and enriches outcome prices from the mids response.
+
+```typescript
+const events = await adapter.events.fetchEvents({ active: true, limit: 20 });
+```
+
+### Parameters
+
+<ParamField path="params.category" type="string">
+  Filter events by category slug. Pass `"custom"` or `"recurring"`. Passing `"all"` is treated as no filter.
+</ParamField>
+
+<ParamField path="params.active" type="boolean">
+  When `true`, only events with `status === "active"` are returned.
+</ParamField>
+
+<ParamField path="params.limit" type="number" default="50">
+  Maximum number of events to return.
+</ParamField>
+
+<ParamField path="params.offset" type="number" default="0">
+  Pagination offset. Applied after category, active, and query filters.
+</ParamField>
+
+<ParamField path="params.query" type="string">
+  Case-insensitive search string matched against event `title` and `description`.
+</ParamField>
+
+### Return type
+
+`Promise<PredictionEvent[]>`
+
+<ResponseField name="id" type="string" required>
+  Event identifier. Prefix `q` for question-based events (e.g. `"q5"`); prefix `o` for standalone outcome events (e.g. `"o1338"`).
+</ResponseField>
+
+<ResponseField name="title" type="string" required>
+  Human-readable event title.
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Event description text.
+</ResponseField>
+
+<ResponseField name="category" type="string" required>
+  Category slug: `"custom"` or `"recurring"`.
+</ResponseField>
+
+<ResponseField name="markets" type="PredictionMarket[]" required>
+  Markets belonging to this event. Each market corresponds to one HIP-4 outcome.
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  `"active"` | `"pending_resolution"` | `"resolved"` | `"cancelled"`
+</ResponseField>
+
+<ResponseField name="endDate" type="string" required>
+  Expiry date string. Populated for recurring markets; empty string otherwise.
+</ResponseField>
+
+<ResponseField name="totalVolume" type="string" required>
+  Cumulative volume across all markets. Always `"0"` in the current implementation.
+</ResponseField>
+
+### Example
+
+```typescript
+import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+
+const adapter = createHIP4Adapter({ testnet: false });
+await adapter.initialize();
+
+// List active recurring markets, first page
+const events = await adapter.events.fetchEvents({
+  category: "recurring",
+  active: true,
+  limit: 10,
+  offset: 0,
+});
+
+for (const event of events) {
+  console.log(event.id, event.title, event.status);
+  // e.g. "o1338", "BTC > $69070 (1d)", "active"
+
+  for (const market of event.markets) {
+    for (const outcome of market.outcomes) {
+      console.log(outcome.name, outcome.tokenId, outcome.price);
+      // e.g. "Yes", "#13380", "0.62"
+    }
+  }
+}
+```
+
+---
+
+## `fetchEvent(eventId)`
+
+Fetches a single event by its ID. Loads the full event list via the cache and finds the match. Throws if the event is not found.
+
+```typescript
+const event = await adapter.events.fetchEvent("q5");
+```
+
+### Parameters
+
+<ParamField path="eventId" type="string" required>
+  The event ID to look up. Use `q{n}` for question-based events or `o{n}` for standalone outcome events.
+</ParamField>
+
+### Return type
+
+`Promise<PredictionEvent>` — same shape as each element returned by `fetchEvents`.
+
+Throws `"HIP-4 event not found: {eventId}"` if the ID does not match any event.
+
+### Example
+
+```typescript
+// Fetch a question-based event
+const questionEvent = await adapter.events.fetchEvent("q5");
+console.log(questionEvent.title);          // e.g. "Who will win the race?"
+console.log(questionEvent.markets.length); // number of competing outcomes
+
+// Fetch a standalone recurring outcome event
+const recurringEvent = await adapter.events.fetchEvent("o1338");
+console.log(recurringEvent.category);      // "recurring"
+console.log(recurringEvent.endDate);       // "20260311-0300"
+```
+
+---
+
+## `fetchCategories()`
+
+Returns the list of available event categories. This call is synchronous under the hood — no API request is made.
+
+```typescript
+const categories = await adapter.events.fetchCategories();
+```
+
+### Return type
+
+`Promise<PredictionCategory[]>`
+
+The response always contains exactly two entries:
+
+| `id`        | `name`      | `slug`      |
+|-------------|-------------|-------------|
+| `custom`    | `Custom`    | `custom`    |
+| `recurring` | `Recurring` | `recurring` |
+
+### Example
+
+```typescript
+const categories = await adapter.events.fetchCategories();
+// [
+//   { id: "custom", name: "Custom", slug: "custom" },
+//   { id: "recurring", name: "Recurring", slug: "recurring" }
+// ]
+```
+
+---
+
+## `fetchMarkets(params?)`
+
+Returns typed `HIP4Market` objects for all HIP-4 outcomes. Each market is classified into one of four types based on the outcome's metadata, and carries pre-computed side coin identifiers ready for order placement.
+
+The return type changes depending on whether you pass `groupBy`:
+
+| `groupBy` value | Return type         |
+|-----------------|---------------------|
+| _(none)_        | `HIP4Market[]`      |
+| `"type"`        | `MarketsByType`     |
+| `"question"`    | `MarketsByQuestion` |
+
+```typescript
+import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+
+const adapter = createHIP4Adapter({ testnet: false });
+await adapter.initialize();
+
+const markets = await adapter.events.fetchMarkets();
+```
+
+### Parameters
+
+<ParamField path="params.type" type="string">
+  Filter to a single market type. One of `"defaultBinary"`, `"labelledBinary"`, `"multiOutcome"`, `"priceBucket"`.
+</ParamField>
+
+<ParamField path="params.sortBy" type="string" default="newest">
+  Sort order. `"newest"` | `"volume"` | `"expiry"`.
+</ParamField>
+
+<ParamField path="params.groupBy" type="string">
+  Group the results. `"type"` returns a `MarketsByType` object keyed by market type. `"question"` returns a `MarketsByQuestion` object keyed by question ID (or `"standalone"` for unattached outcomes).
+</ParamField>
+
+<ParamField path="params.limit" type="number" default="100">
+  Maximum number of markets to return (applied after filtering).
+</ParamField>
+
+<ParamField path="params.offset" type="number" default="0">
+  Pagination offset.
+</ParamField>
+
+### Market types
+
+All four types extend a shared `BaseMarket` with these fields:
+
+| Field         | Type                       | Description                                          |
+|---------------|----------------------------|------------------------------------------------------|
+| `type`        | `MarketType`               | Discriminant: `"defaultBinary"` | `"labelledBinary"` | `"multiOutcome"` | `"priceBucket"` |
+| `outcomeId`   | `number`                   | Hyperliquid outcome ID                               |
+| `name`        | `string`                   | Human-readable name                                  |
+| `description` | `string`                   | Description text                                     |
+| `sides`       | `[MarketSide, MarketSide]` | Both tradeable sides with pre-computed identifiers   |
+| `raw`         | `HLOutcome`                | Raw Hyperliquid API response for escape-hatch access |
+
+Each `MarketSide` exposes:
+
+| Field     | Type     | Description                                      |
+|-----------|----------|--------------------------------------------------|
+| `name`    | `string` | Human-readable side name (e.g. `"Yes"`, `"No"`) |
+| `coinNum` | `number` | `outcomeId * 10 + sideIndex`                     |
+| `coin`    | `string` | Coin string for API calls (e.g. `"#5160"`)       |
+| `asset`   | `number` | Order asset ID (`100_000_000 + coinNum`)          |
+
+### Examples
+
+```typescript
+import type {
+  DefaultBinaryMarket,
+  LabelledBinaryMarket,
+  MultiOutcomeMarket,
+  PriceBucketMarket,
+} from "@outcomexyz/hip4-sdk";
+
+// --- Flat list of all markets ---
+const all = await adapter.events.fetchMarkets();
+
+// --- defaultBinary: recurring price binary (Yes/No sides) ---
+const recurring = await adapter.events.fetchMarkets({ type: "defaultBinary" });
+const m = recurring[0] as DefaultBinaryMarket;
+
+console.log(m.underlying);        // "BTC"
+console.log(m.targetPrice);       // 69070
+console.log(m.expiry);            // Date object (UTC)
+console.log(m.period);            // "1d"
+console.log(m.sides[0].coin);     // "#17580"  — coin string for side 0
+console.log(m.sides[0].asset);    // 100017580 — asset ID for order placement
+console.log(m.sides[1].name);     // "No"
+console.log(m.raw);               // original HLOutcome
+
+// --- labelledBinary: standalone with custom side labels ---
+const labelled = await adapter.events.fetchMarkets({ type: "labelledBinary" });
+const lb = labelled[0] as LabelledBinaryMarket;
+console.log(lb.sides[0].name);    // e.g. "Hypurr"
+console.log(lb.sides[1].name);    // e.g. "Usain Bolt"
+
+// --- multiOutcome: one of several outcomes under a parent question ---
+const multi = await adapter.events.fetchMarkets({ type: "multiOutcome" });
+const mo = multi[0] as MultiOutcomeMarket;
+console.log(mo.questionId);       // 5
+console.log(mo.questionName);     // "Who wins?"
+console.log(mo.isFallback);       // false
+
+// --- priceBucket: multi-bucket price range markets ---
+const buckets = await adapter.events.fetchMarkets({ type: "priceBucket" });
+const pb = buckets[0] as PriceBucketMarket;
+console.log(pb.underlying);       // "BTC"
+console.log(pb.priceThresholds);  // [81015.3, 81258.7]
+console.log(pb.lowerBound);       // null (unbounded) or a price number
+console.log(pb.upperBound);       // null (unbounded) or a price number
+console.log(pb.bucketIndex);      // 0, 1, 2 … or -1 for the fallback
+
+// --- Group all markets by type ---
+const byType = await adapter.events.fetchMarkets({ groupBy: "type" });
+console.log(byType.defaultBinary?.length);   // recurring market count
+console.log(byType.labelledBinary?.length);  // labelled binary count
+
+// --- Group multi-outcome markets by parent question ---
+const byQuestion = await adapter.events.fetchMarkets({
+  type: "multiOutcome",
+  groupBy: "question",
+});
+// byQuestion["5"] → all MultiOutcomeMarket objects under question 5
+
+// --- Pagination ---
+const page2 = await adapter.events.fetchMarkets({ limit: 10, offset: 10 });
+```
+
+<Note>
+  When using `groupBy`, `limit` and `offset` apply to the flat list before grouping. The resulting grouped object may therefore contain fewer items than `limit` if the outcomes span multiple groups.
+</Note>

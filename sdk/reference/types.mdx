@@ -1,0 +1,301 @@
+---
+title: "TypeScript Types Reference for @outcomexyz/hip4-sdk"
+description: "All exported TypeScript types from @outcomexyz/hip4-sdk: market shapes, event and outcome types, order params, account state, and market data interfaces."
+---
+
+This page documents all exported TypeScript types from `@outcomexyz/hip4-sdk`. Every type listed here is importable from the main entry point. If you only need types without pulling in any runtime code — for example in a shared type package — use the dedicated types entry point instead.
+
+<Note>
+  Import types without any runtime cost using `@outcomexyz/hip4-sdk/types`:
+
+  ```typescript
+  import type { HIP4Market, MarketType } from "@outcomexyz/hip4-sdk/types";
+  ```
+</Note>
+
+## Market types
+
+HIP-4 markets are represented as a discriminated union. Every market carries a `type` field you can use to narrow to the correct variant.
+
+### `MarketType`
+
+```typescript
+type MarketType = "defaultBinary" | "labelledBinary" | "multiOutcome" | "priceBucket";
+```
+
+### `HIP4Market`
+
+The top-level discriminated union covering all four market variants:
+
+```typescript
+type HIP4Market =
+  | DefaultBinaryMarket
+  | LabelledBinaryMarket
+  | MultiOutcomeMarket
+  | PriceBucketMarket;
+```
+
+### `BaseMarket`
+
+Fields shared across all market types:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `MarketType` | Discriminant for narrowing the union |
+| `outcomeId` | `number` | Hyperliquid outcome ID |
+| `name` | `string` | Human-readable market name |
+| `description` | `string` | Human-readable market description |
+| `sides` | `[MarketSide, MarketSide]` | Both tradeable sides with pre-computed identifiers |
+| `raw` | `HLOutcome` | Raw Hyperliquid API response, for escape-hatch access |
+
+### `MarketSide`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Side label (e.g. `"Yes"`, `"No"`, `"Hypurr"`) |
+| `coinNum` | `number` | Raw coin number: `outcomeId * 10 + sideIndex` |
+| `coin` | `string` | Coin string for API calls (e.g. `"#5160"`) |
+| `asset` | `number` | Order asset field: `100_000_000 + coinNum` |
+
+### `DefaultBinaryMarket`
+
+Recurring price binary markets with a structured pipe-delimited description. Extends `BaseMarket`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `"defaultBinary"` | Type discriminant |
+| `underlying` | `string` | Underlying asset symbol (e.g. `"BTC"`, `"ETH"`) |
+| `targetPrice` | `number` | Strike price |
+| `expiry` | `Date` | Expiry timestamp in UTC |
+| `period` | `string` | Market period (e.g. `"15m"`, `"1h"`, `"1d"`) |
+
+### `LabelledBinaryMarket`
+
+Standalone binary markets with custom side names. Extends `BaseMarket` with no additional fields.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `"labelledBinary"` | Type discriminant |
+
+### `MultiOutcomeMarket`
+
+Outcomes grouped under a parent question, with a fallback outcome representing "none of the above". Extends `BaseMarket`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `"multiOutcome"` | Type discriminant |
+| `questionId` | `number` | Parent question ID |
+| `questionName` | `string` | Parent question name |
+| `isFallback` | `boolean` | `true` if this is the fallback ("Other") outcome |
+
+### `PriceBucketMarket`
+
+Multi-bucket price range markets where each outcome covers a specific price band. Extends `BaseMarket`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `"priceBucket"` | Type discriminant |
+| `underlying` | `string` | Underlying asset symbol |
+| `expiry` | `Date` | Expiry timestamp in UTC |
+| `priceThresholds` | `number[]` | Sorted ascending price boundaries; N thresholds produce N+1 buckets |
+| `period` | `string` | Market period (e.g. `"15m"`) |
+| `questionId` | `number` | Parent question ID |
+| `questionName` | `string` | Parent question name |
+| `isFallback` | `boolean` | `true` if this is the settlement fallback outcome |
+| `bucketIndex` | `number` | Index within the question's named outcomes; `-1` for fallback |
+| `lowerBound` | `number \| null` | Inclusive lower bound; `null` = unbounded below |
+| `upperBound` | `number \| null` | Exclusive upper bound; `null` = unbounded above |
+
+## Event types
+
+Events are the top-level grouping for prediction markets.
+
+### `PredictionEvent`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Event ID (`"q<n>"` for questions, `"o<n>"` for standalone outcomes) |
+| `title` | `string` | Display title |
+| `description` | `string` | Full description |
+| `category` | `string` | Category slug (`"custom"` or `"recurring"`) |
+| `markets` | `PredictionMarket[]` | Markets belonging to this event |
+| `totalVolume` | `string` | Total trading volume across all markets |
+| `endDate` | `string` | Expiry date string; populated for recurring markets, empty otherwise |
+| `status` | `PredictionEventStatus` | Current lifecycle status |
+| `imageUrl?` | `string` | Optional cover image URL |
+| `resolutionSource?` | `string` | Optional link to resolution criteria |
+
+### `PredictionMarket`
+
+A single question within an event containing tradeable outcome tokens.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Market ID (the outcome ID as a string) |
+| `eventId` | `string` | Parent event ID |
+| `question` | `string` | Market question text |
+| `outcomes` | `PredictionOutcome[]` | Tradeable sides |
+| `volume` | `string` | Trading volume |
+| `liquidity` | `string` | Current liquidity |
+| `isNegRisk?` | `boolean` | Whether the market uses negative-risk (multi-outcome) pricing |
+
+### `PredictionOutcome`
+
+One tradeable side of a prediction market.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Side name (e.g. `"Yes"`, `"No"`) |
+| `tokenId` | `string` | Side coin identifier (e.g. `"#5160"`) |
+| `price` | `string` | Current mid-price (0–1 range) |
+
+### `PredictionCategory`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Category identifier |
+| `name` | `string` | Display name |
+| `slug` | `string` | URL-safe slug |
+
+The SDK defines two built-in categories: `"custom"` (manually created markets) and `"recurring"` (automated recurring markets).
+
+### `PredictionEventStatus`
+
+```typescript
+type PredictionEventStatus = "active" | "pending_resolution" | "resolved" | "cancelled";
+```
+
+## Trading types
+
+### `PredictionOrderParams`
+
+Parameters for placing an order via `hip4.trading.placeOrder`.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `marketId` | `string` | Yes | Outcome ID string (e.g. `"516"`) |
+| `outcome` | `string` | Yes | Side coin (e.g. `"#5160"`) |
+| `side` | `"buy" \| "sell"` | Yes | Trade direction |
+| `type` | `"market" \| "limit"` | Yes | Order type |
+| `price` | `string` | For limit | Limit price in 0–1 range (e.g. `"0.65"`) |
+| `amount` | `string` | Yes | Number of shares as a string |
+| `timeInForce` | `"GTC" \| "GTD" \| "FOK" \| "FAK" \| "ALO"` | No | Default: `"GTC"` for limit orders |
+| `expiration` | `string` | No | GTD expiry (currently maps to GTC behavior) |
+| `markPx` | `number` | No | Mark price; enables min-shares validation when provided |
+| `builderAddress` | `string` | No | Referral address for builder fees |
+| `builderFee` | `number` | No | Fee in tenths of a basis point (100 = 0.1%, max 1000) |
+| `skipMinNotionalCheck` | `boolean` | No | Skip the $10 minimum check; use for position-closing flows |
+
+### `PredictionOrderResult`
+
+Returned by `hip4.trading.placeOrder`. Never throws — always check `success`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | `boolean` | Whether the order was accepted |
+| `orderId?` | `string` | Order ID for resting orders |
+| `status?` | `string` | Exchange status string (`"filled"`, `"resting"`, `"error"`) |
+| `shares?` | `string` | Filled size (for filled orders) |
+| `error?` | `string` | Rejection reason (when `success` is `false`) |
+
+### `PredictionBatchOrderResult`
+
+Returned by `hip4.trading.placeOrders` (batch). Results are index-matched to the input params array.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | `boolean` | `true` only when every individual order succeeded |
+| `results` | `PredictionOrderResult[]` | Per-order results in input order |
+
+### `PredictionCancelParams`
+
+Parameters for cancelling a resting order via `hip4.trading.cancelOrder`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `marketId` | `string` | The outcome ID string |
+| `orderId` | `string` | The order ID to cancel |
+| `outcome?` | `string` | Side coin (e.g. `"#5160"`); used to resolve the correct asset ID. Defaults to side 0 if omitted |
+
+## Account types
+
+### `PredictionPosition`
+
+An open position in a prediction market outcome, derived from spot balances.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `marketId` | `string` | Outcome ID |
+| `eventTitle` | `string` | Title of the parent event |
+| `marketQuestion` | `string` | Question text of the parent market |
+| `outcome` | `string` | Coin identifier (e.g. `"#90"`) |
+| `outcomeName` | `string` | Resolved side name (e.g. `"Hypurr"`, `"Yes"`) |
+| `shares` | `string` | Number of shares held |
+| `avgCost` | `string` | Average entry cost per share (entry notional / shares) |
+| `currentPrice` | `string` | Current mid-price |
+| `unrealizedPnl` | `string` | Unrealized profit/loss in USDH |
+| `potentialPayout` | `string` | Maximum payout if the outcome resolves in your favor |
+| `eventStatus` | `"active" \| "pending_resolution" \| "resolved"` | Current event lifecycle state |
+
+### `PredictionActivity`
+
+A historical account activity record.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Activity record ID |
+| `type` | `"trade" \| "redeem" \| "deposit" \| "withdrawal"` | Activity type |
+| `marketId?` | `string` | Outcome ID (for trade and redeem entries) |
+| `outcome?` | `string` | Side coin (for trade entries) |
+| `side?` | `"buy" \| "sell"` | Trade direction (for trade entries) |
+| `price?` | `string` | Fill price (for trade entries) |
+| `size?` | `string` | Fill size (for trade entries) |
+| `amount?` | `string` | USDC amount (for deposit and withdrawal entries) |
+| `timestamp` | `number` | Unix timestamp in milliseconds |
+
+### `PredictionAuthState`
+
+The current authentication state of the trading adapter.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `"disconnected" \| "pending_approval" \| "ready"` | Auth lifecycle state |
+| `address?` | `string` | The user's wallet address, set after `initAuth` |
+
+## Market data types
+
+### `PredictionOrderBook`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `marketId` | `string` | Outcome ID |
+| `bids` | `PredictionOrderBookLevel[]` | Buy-side price levels, best bid first |
+| `asks` | `PredictionOrderBookLevel[]` | Sell-side price levels, best ask first |
+| `timestamp` | `number` | Snapshot timestamp in milliseconds |
+
+### `PredictionOrderBookLevel`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `price` | `string` | Price level |
+| `size` | `string` | Aggregate size at this level |
+
+### `PredictionPrice`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `marketId` | `string` | Outcome ID |
+| `outcomes` | `Array<{ name: string; price: string; midpoint: string }>` | Current prices for both sides |
+| `timestamp` | `number` | Price snapshot timestamp in milliseconds |
+
+### `PredictionTrade`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Trade ID |
+| `marketId` | `string` | Outcome ID |
+| `outcome` | `string` | Side coin name |
+| `side` | `"buy" \| "sell"` | Trade direction |
+| `price` | `string` | Fill price |
+| `size` | `string` | Fill size |
+| `timestamp` | `number` | Fill timestamp in milliseconds |

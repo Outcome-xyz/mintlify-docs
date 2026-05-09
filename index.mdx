@@ -1,0 +1,79 @@
+---
+title: "Outcome: TypeScript SDK for HIP-4 Prediction Markets"
+description: "Build on Hyperliquid HIP-4 prediction markets with zero dependencies. Fetch events, stream real-time data, place orders, and manage USDH funds from TypeScript."
+---
+
+Outcome provides the `@outcomexyz/hip4-sdk` — a fully typed TypeScript SDK for integrating with HIP-4 prediction markets on Hyperliquid. Whether you're building a trading interface, analytics dashboard, or automated strategy, the SDK gives you everything you need: market discovery, real-time WebSocket subscriptions, order placement with EIP-712 signing, and USDH fund management — all with zero runtime dependencies.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/sdk/quickstart">
+    Install the SDK and place your first order in minutes.
+  </Card>
+  <Card title="Core Concepts" icon="book-open" href="/sdk/concepts/markets">
+    Understand market types, authentication, and coin naming conventions.
+  </Card>
+  <Card title="API Reference" icon="code" href="/sdk/reference/events-adapter">
+    Full reference for every adapter method, parameter, and return type.
+  </Card>
+  <Card title="Platform Guide" icon="chart-line" href="/platform/overview">
+    Learn how the Outcome prediction market platform works end-to-end.
+  </Card>
+</CardGroup>
+
+## Get started in 4 steps
+
+<Steps>
+  <Step title="Install the SDK">
+    Add `@outcomexyz/hip4-sdk` to your project with your package manager of choice.
+    ```bash
+    pnpm add @outcomexyz/hip4-sdk
+    ```
+  </Step>
+  <Step title="Create an adapter">
+    Instantiate the HIP-4 adapter and initialize it to warm up the event cache.
+    ```typescript
+    import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+
+    const hip4 = createHIP4Adapter({ testnet: true });
+    await hip4.initialize();
+    ```
+  </Step>
+  <Step title="Fetch markets">
+    Query live prediction markets with filtering, grouping, and pagination.
+    ```typescript
+    const markets = await hip4.events.fetchMarkets({ type: "defaultBinary" });
+    console.log(markets[0].underlying); // "BTC"
+    ```
+  </Step>
+  <Step title="Authenticate and trade">
+    Approve an agent key, then place limit and market orders silently.
+    ```typescript
+    await hip4.auth.initAuth(userAddress, agentSigner);
+    const result = await hip4.trading.placeOrder({
+      marketId: "516",
+      outcome: "#5160",
+      side: "buy",
+      type: "limit",
+      price: "0.65",
+      amount: "100",
+    });
+    ```
+  </Step>
+</Steps>
+
+## What you can build
+
+<CardGroup cols={2}>
+  <Card title="Fetch markets" icon="magnifying-glass" href="/sdk/guides/fetch-markets">
+    Discover and filter prediction markets by type, category, and status.
+  </Card>
+  <Card title="Real-time data" icon="wave-pulse" href="/sdk/guides/real-time-data">
+    Subscribe to live order books, prices, and trade streams via WebSocket.
+  </Card>
+  <Card title="Trading" icon="arrows-left-right" href="/sdk/guides/trading">
+    Place limit and market orders with tick-aligned pricing and min-notional checks.
+  </Card>
+  <Card title="Wallet & funds" icon="wallet" href="/sdk/guides/wallet-funding">
+    Deposit USDC, buy USDH, and withdraw funds back to your wallet.
+  </Card>
+</CardGroup>

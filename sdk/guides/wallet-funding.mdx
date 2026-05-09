@@ -1,0 +1,152 @@
+---
+title: "Manage USDH funds: deposit, withdraw, and transfer"
+description: "Use the HIP-4 wallet adapter to bridge USDC to Hyperliquid, convert it to USDH for trading, and withdraw funds back to an external wallet."
+---
+
+USDH is the collateral token used for all HIP-4 prediction market activity on Hyperliquid. The wallet adapter handles every step of fund management—moving USDC between your perp account and spot account, converting to and from USDH, and withdrawing to an external address. Two different signers are involved: your wallet for EIP-712 transfer and withdrawal operations, and the agent key for USDH spot trades.
+
+<Warning>
+  EIP-712 transfer, withdrawal, and send operations must be signed by the user's actual wallet. These calls will fail if you pass an agent key to `setSigner`. Set up both signers before calling any wallet methods.
+</Warning>
+
+## Set up signers
+
+Before calling any wallet method, register the user's wallet signer. The agent key is registered separately via `hip4.auth.initAuth` and is used automatically for spot buy/sell orders.
+
+```typescript
+import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+
+const hip4 = createHIP4Adapter({ testnet: true });
+await hip4.initialize();
+
+// Register the user's wallet for EIP-712 operations
+hip4.wallet.setSigner({
+  address: userAddress,
+  signTypedData: walletClient.signTypedData.bind(walletClient),
+});
+
+// Register the agent key for spot trades (and order placement)
+await hip4.auth.initAuth(userAddress, agentAccount);
+```
+
+## Deposit USDH
+
+Depositing funds is a three-step process. The first step—bridging USDC to Hyperliquid—is external and handled by the Hyperliquid bridge. The SDK handles steps 2 and 3.
+
+<Steps>
+  <Step title="Bridge USDC to Hyperliquid (external)">
+    Move USDC from your external wallet to your Hyperliquid perp account using the Hyperliquid bridge. This step happens outside the SDK—refer to Hyperliquid's documentation for the bridge UI or API.
+  </Step>
+
+  <Step title="Transfer USDC from perp to spot">
+    Move USDC from your perp account to your spot account so it can be used to buy USDH. This operation is signed with EIP-712 by the user's wallet.
+
+    ```typescript
+    const result = await hip4.wallet.transferToSpot("100");
+
+    if (!result.success) {
+      console.error("Transfer failed:", result.error);
+    }
+    ```
+  </Step>
+
+  <Step title="Buy USDH">
+    Buy USDH on the spot market. The SDK prices the order at oracle × 1.1 with IOC time-in-force to ensure the order fills. This operation is signed by the agent key.
+
+    ```typescript
+    const result = await hip4.wallet.buyUsdh("100");
+
+    if (result.success) {
+      console.log(`Filled ${result.filledSz} USDH @ ${result.avgPx}`);
+    } else {
+      console.error("Buy failed:", result.error);
+    }
+    ```
+  </Step>
+</Steps>
+
+## Withdraw USDH
+
+Withdrawing is the reverse of depositing: sell USDH for USDC, move USDC back to your perp account, then withdraw to an external address.
+
+<Steps>
+  <Step title="Sell USDH">
+    Sell your USDH back to USDC on the spot market. The SDK prices the order at oracle × 0.9 with IOC time-in-force. Signed by the agent key.
+
+    ```typescript
+    const result = await hip4.wallet.sellUsdh("50");
+
+    if (result.success) {
+      console.log(`Sold: filled ${result.filledSz} @ ${result.avgPx}`);
+    } else {
+      console.error("Sell failed:", result.error);
+    }
+    ```
+  </Step>
+
+  <Step title="Transfer USDC from spot to perp">
+    Move USDC from the spot account back to the perp account. Signed with EIP-712 by the user's wallet.
+
+    ```typescript
+    const result = await hip4.wallet.transferToPerps("50");
+
+    if (!result.success) {
+      console.error("Transfer failed:", result.error);
+    }
+    ```
+  </Step>
+
+  <Step title="Withdraw to external wallet">
+    Withdraw USDC from your Hyperliquid perp account to an external address. Signed with EIP-712 by the user's wallet.
+
+    ```typescript
+    const result = await hip4.wallet.withdraw({
+      destination: "0xYourExternalWalletAddress",
+      amount: "50",
+    });
+
+    if (!result.success) {
+      console.error("Withdrawal failed:", result.error);
+    }
+    ```
+  </Step>
+</Steps>
+
+## Send USDC to another Hyperliquid address
+
+`usdSend` transfers USDC to another Hyperliquid account without going through an external bridge. Signed with EIP-712 by the user's wallet.
+
+```typescript
+const result = await hip4.wallet.usdSend({
+  destination: "0xRecipientHyperliquidAddress",
+  amount: "25",
+});
+
+if (!result.success) {
+  console.error("Send failed:", result.error);
+}
+```
+
+## WalletActionResult
+
+All wallet methods return a `WalletActionResult`. Spot buy/sell operations also include fill details.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | `boolean` | `true` if the operation completed without error |
+| `error` | `string` | Present when `success` is `false` |
+| `filledSz` | `string` | Filled size — only on `buyUsdh` and `sellUsdh` |
+| `avgPx` | `string` | Average fill price — only on `buyUsdh` and `sellUsdh` |
+
+## Signing summary
+
+Each wallet method uses a different signing mechanism. Make sure both signers are configured before calling any method.
+
+| Method | Signing type | Signer required |
+|--------|-------------|-----------------|
+| `buyUsdh` | L1 agent signing | Agent key (`auth.initAuth`) |
+| `sellUsdh` | L1 agent signing | Agent key (`auth.initAuth`) |
+| `transferToSpot` | EIP-712 | User's wallet (`wallet.setSigner`) |
+| `transferToPerps` | EIP-712 | User's wallet (`wallet.setSigner`) |
+| `withdraw` | EIP-712 | User's wallet (`wallet.setSigner`) |
+| `usdSend` | EIP-712 | User's wallet (`wallet.setSigner`) |

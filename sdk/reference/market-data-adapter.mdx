@@ -1,0 +1,346 @@
+---
+title: "Market Data Adapter Reference — Books and Prices"
+description: "Reference for PredictionMarketDataAdapter: fetch L2 order books, midpoint prices, recent trades, and OHLCV candles, or subscribe to live WebSocket streams."
+---
+
+The Market Data Adapter (`adapter.marketData`) gives you both snapshot and streaming access to HIP-4 market data. You can poll for order books, prices, trades, and OHLCV candles, or subscribe to live WebSocket feeds that deliver updates as they arrive. All methods accept a `marketId`, which is the outcome ID as a string (e.g. `"516"`). Order book and trade feeds target side 0 (the first side) by default.
+
+<Note>
+  `marketId` is always the **outcome ID as a string** — not the event ID and not the coin string. For example, if the coin is `"#5160"`, the market ID is `"516"`.
+</Note>
+
+---
+
+## `fetchOrderBook(marketId, sideIndex?)`
+
+Returns a full L2 order book snapshot for a given outcome side.
+
+```typescript
+const book = await adapter.marketData.fetchOrderBook("516", 0);
+```
+
+### Parameters
+
+<ParamField path="marketId" type="string" required>
+  The outcome ID as a string (e.g. `"516"`).
+</ParamField>
+
+<ParamField path="sideIndex" type="number" default="0">
+  Which side to fetch. `0` = first side (e.g. "Yes"), `1` = second side (e.g. "No"). Defaults to `0`.
+</ParamField>
+
+### Return type
+
+`Promise<PredictionOrderBook>`
+
+<ResponseField name="marketId" type="string" required>
+  The outcome ID echoed back.
+</ResponseField>
+
+<ResponseField name="bids" type="PredictionOrderBookLevel[]" required>
+  Buy-side price levels, each with `price` (string) and `size` (string).
+</ResponseField>
+
+<ResponseField name="asks" type="PredictionOrderBookLevel[]" required>
+  Sell-side price levels, each with `price` (string) and `size` (string).
+</ResponseField>
+
+<ResponseField name="timestamp" type="number" required>
+  Server-side timestamp of the snapshot.
+</ResponseField>
+
+### Example
+
+```typescript
+const book = await adapter.marketData.fetchOrderBook("516", 0);
+
+console.log("Top bid:", book.bids[0]?.price, "x", book.bids[0]?.size);
+console.log("Top ask:", book.asks[0]?.price, "x", book.asks[0]?.size);
+console.log("Snapshot at:", new Date(book.timestamp));
+```
+
+---
+
+## `fetchPrice(marketId)`
+
+Returns the current midpoint price for both sides of an outcome. Uses a 5-second cache backed by the `allMids` endpoint, so rapid successive calls avoid redundant network requests.
+
+```typescript
+const price = await adapter.marketData.fetchPrice("516");
+```
+
+### Parameters
+
+<ParamField path="marketId" type="string" required>
+  The outcome ID as a string.
+</ParamField>
+
+### Return type
+
+`Promise<PredictionPrice>`
+
+<ResponseField name="marketId" type="string" required>
+  The outcome ID echoed back.
+</ResponseField>
+
+<ResponseField name="outcomes" type="array" required>
+  One entry per side. Each entry contains:
+  - `name` — generic label (`"Side 0"` or `"Side 1"`). For real side names, cross-reference `event.markets[].outcomes[].name`.
+  - `price` — current midpoint as a decimal string (0–1). `"0"` when no mid is available.
+  - `midpoint` — same value as `price` (both fields are set identically).
+</ResponseField>
+
+<ResponseField name="timestamp" type="number" required>
+  Millisecond timestamp of the fetch.
+</ResponseField>
+
+<Note>
+  The `name` field returns generic labels (`"Side 0"`, `"Side 1"`). To display real side names such as `"Yes"` or `"Hypurr"`, fetch the event via `adapter.events.fetchEvent()` and cross-reference the outcome names by index.
+</Note>
+
+### Example
+
+```typescript
+const price = await adapter.marketData.fetchPrice("516");
+
+for (const side of price.outcomes) {
+  console.log(side.name, "→", side.midpoint);
+  // "Side 0" → "0.62"
+  // "Side 1" → "0.38"
+}
+```
+
+---
+
+## `fetchTrades(marketId, limit?)`
+
+Returns recent trades for a market outcome.
+
+```typescript
+const trades = await adapter.marketData.fetchTrades("516", 20);
+```
+
+### Parameters
+
+<ParamField path="marketId" type="string" required>
+  The outcome ID as a string.
+</ParamField>
+
+<ParamField path="limit" type="number" default="50">
+  Maximum number of trades to return.
+</ParamField>
+
+### Return type
+
+`Promise<PredictionTrade[]>`
+
+<ResponseField name="id" type="string" required>
+  Trade ID (from the Hyperliquid `tid` field).
+</ResponseField>
+
+<ResponseField name="marketId" type="string" required>
+  The outcome ID.
+</ResponseField>
+
+<ResponseField name="outcome" type="string" required>
+  Raw coin string (e.g. `"#5160"`).
+</ResponseField>
+
+<ResponseField name="side" type="string" required>
+  `"buy"` or `"sell"`.
+</ResponseField>
+
+<ResponseField name="price" type="string" required>
+  Execution price as a decimal string.
+</ResponseField>
+
+<ResponseField name="size" type="string" required>
+  Trade size.
+</ResponseField>
+
+<ResponseField name="timestamp" type="number" required>
+  Trade time in milliseconds.
+</ResponseField>
+
+### Example
+
+```typescript
+const trades = await adapter.marketData.fetchTrades("516", 10);
+
+for (const trade of trades) {
+  console.log(`${trade.side} ${trade.size} @ ${trade.price} (${new Date(trade.timestamp).toISOString()})`);
+  // "buy 5 @ 0.62 (2026-03-11T03:00:00.000Z)"
+}
+```
+
+---
+
+## `fetchCandles(marketId, interval?, start?, end?)`
+
+Returns OHLCV candle data for a market outcome.
+
+```typescript
+const candles = await adapter.marketData.fetchCandles("516", "1h");
+```
+
+### Parameters
+
+<ParamField path="marketId" type="string" required>
+  The outcome ID as a string.
+</ParamField>
+
+<ParamField path="interval" type="string" default="1h">
+  Candle interval. Common values: `"1m"`, `"5m"`, `"15m"`, `"1h"`, `"4h"`, `"1d"`.
+</ParamField>
+
+<ParamField path="start" type="number">
+  Start of the time range as a Unix millisecond timestamp. Defaults to 14 days before `end`.
+</ParamField>
+
+<ParamField path="end" type="number">
+  End of the time range as a Unix millisecond timestamp. Defaults to the current time.
+</ParamField>
+
+### Return type
+
+`Promise<HLCandle[]>` — each candle contains:
+
+| Field | Type     | Description      |
+|-------|----------|------------------|
+| `t`   | `number` | Open time (ms)   |
+| `T`   | `number` | Close time (ms)  |
+| `o`   | `string` | Open price       |
+| `c`   | `string` | Close price      |
+| `h`   | `string` | High price       |
+| `l`   | `string` | Low price        |
+| `v`   | `string` | Volume           |
+| `n`   | `number` | Number of trades |
+
+### Example
+
+```typescript
+const now = Date.now();
+const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
+
+const candles = await adapter.marketData.fetchCandles("516", "1h", oneWeekAgo, now);
+
+for (const candle of candles) {
+  console.log(`${new Date(candle.t).toISOString()} O:${candle.o} H:${candle.h} L:${candle.l} C:${candle.c}`);
+}
+```
+
+---
+
+## `subscribeOrderBook(marketId, cb)`
+
+Opens a real-time WebSocket subscription to the L2 order book for a market outcome. The callback receives a full book snapshot on each update.
+
+```typescript
+const unsubscribe = adapter.marketData.subscribeOrderBook("516", (book) => {
+  console.log("bids:", book.bids.length, "asks:", book.asks.length);
+});
+
+// Later, when you no longer need updates:
+unsubscribe();
+```
+
+### Parameters
+
+<ParamField path="marketId" type="string" required>
+  The outcome ID as a string.
+</ParamField>
+
+<ParamField path="cb" type="(book: PredictionOrderBook) => void" required>
+  Callback invoked on each book update. Receives a `PredictionOrderBook` snapshot.
+</ParamField>
+
+### Return type
+
+`Unsubscribe` — a `() => void` function. Call it to stop receiving updates and release the WebSocket subscription.
+
+<Tip>
+  The adapter shares a single WebSocket connection across all subscriptions. The connection opens lazily on the first subscription and closes automatically when the last subscriber unsubscribes.
+</Tip>
+
+---
+
+## `subscribePrice(marketId, cb)`
+
+Opens a real-time WebSocket subscription to midpoint prices for both sides of a market outcome. Updates are delivered whenever either side's mid changes in the `allMids` feed.
+
+```typescript
+const unsubscribe = adapter.marketData.subscribePrice("516", (price) => {
+  for (const side of price.outcomes) {
+    console.log(side.name, side.midpoint);
+  }
+});
+
+// Stop receiving updates:
+unsubscribe();
+```
+
+### Parameters
+
+<ParamField path="marketId" type="string" required>
+  The outcome ID as a string.
+</ParamField>
+
+<ParamField path="cb" type="(price: PredictionPrice) => void" required>
+  Callback invoked whenever an update includes a new mid for either side of this outcome.
+</ParamField>
+
+### Return type
+
+`Unsubscribe`
+
+---
+
+## `subscribeTrades(marketId, cb)`
+
+Opens a real-time WebSocket subscription to the trade stream for a market outcome. Each incoming trade is dispatched individually to your callback.
+
+```typescript
+const unsubscribe = adapter.marketData.subscribeTrades("516", (trade) => {
+  console.log(`${trade.side} ${trade.size} @ ${trade.price}`);
+});
+
+// Stop receiving updates:
+unsubscribe();
+```
+
+### Parameters
+
+<ParamField path="marketId" type="string" required>
+  The outcome ID as a string.
+</ParamField>
+
+<ParamField path="cb" type="(trade: PredictionTrade) => void" required>
+  Callback invoked for each individual trade.
+</ParamField>
+
+### Return type
+
+`Unsubscribe`
+
+---
+
+## Managing multiple subscriptions
+
+You can hold multiple `Unsubscribe` functions and clean them all up together:
+
+```typescript
+const subs = [
+  adapter.marketData.subscribeOrderBook("516", onBook),
+  adapter.marketData.subscribePrice("516", onPrice),
+  adapter.marketData.subscribeTrades("516", onTrade),
+];
+
+// Clean up all subscriptions at once
+function cleanup() {
+  subs.forEach((unsub) => unsub());
+}
+```
+
+<Warning>
+  Data received during a WebSocket disconnect is lost, even though the connection auto-reconnects with exponential backoff (up to 10 attempts). Design your application to tolerate brief gaps in the real-time stream.
+</Warning>

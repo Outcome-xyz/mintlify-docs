@@ -1,0 +1,142 @@
+---
+title: "Auth Adapter Reference — Agent Key and initAuth"
+description: "Approve an ephemeral agent keypair, initialize the auth adapter, and check authentication state before placing orders or executing USDH spot trades."
+---
+
+The auth adapter (`hip4.auth`) manages the agent key lifecycle for HIP-4 prediction trading. Rather than prompting the user to sign every individual order, HIP-4 uses an ephemeral agent keypair that you approve once via the user's wallet. After approval, the agent key signs all orders and USDH spot trades silently on the user's behalf. The adapter tracks the current auth state and exposes it synchronously so your UI can react to changes without awaiting async calls.
+
+## `HIP4Signer` interface
+
+The `signer` argument you pass to `initAuth` must implement `HIP4Signer`:
+
+```typescript
+interface HIP4Signer {
+  getAddress(): string | Promise<string>;
+  signTypedData(
+    domain: unknown,
+    types: unknown,
+    value: unknown
+  ): Promise<HLSignature | string>;
+}
+```
+
+This interface is compatible with:
+
+- **viem** `PrivateKeyAccount` (from `privateKeyToAccount`)
+- **ethers** `Signer` (v5 and v6)
+- Any other EIP-712-capable signer that returns a hex string or `{ r, s, v }` object
+
+Note that `signer` here is the **agent key**, not the user's wallet. The agent has a different address from the user's wallet by design.
+
+## Methods on `adapter.auth`
+
+### `initAuth(walletAddress, signer)`
+
+Sets the adapter to `"ready"` state and stores the agent signer for use by the trading and wallet adapters.
+
+```typescript
+const state = await hip4.auth.initAuth(walletAddress, agentSigner);
+// state.status === "ready"
+// state.address === walletAddress
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `walletAddress` | `string` | The user's wallet address (not the agent address) |
+| `signer` | `HIP4Signer` | The agent keypair signer that will sign orders |
+
+Returns `Promise<PredictionAuthState>`.
+
+### `getAuthStatus()`
+
+Returns the current auth state synchronously. Use this to gate UI elements or order flows.
+
+```typescript
+const status = hip4.auth.getAuthStatus();
+// { status: "disconnected" | "pending_approval" | "ready", address?: string }
+```
+
+| Status | Meaning |
+|--------|---------|
+| `"disconnected"` | No agent key configured; orders will fail |
+| `"pending_approval"` | Agent approval transaction submitted but not yet confirmed |
+| `"ready"` | Agent key approved and initialized; orders are ready |
+
+### `clearAuth()`
+
+Resets the auth adapter to `"disconnected"` state. Call this on user logout or when the agent key is rotated.
+
+```typescript
+hip4.auth.clearAuth();
+```
+
+## Standalone functions
+
+These functions are exported from `@outcomexyz/hip4-sdk` and are used to create and submit the one-time agent approval before calling `initAuth`.
+
+### `getAgentApprovalTypedData(agentAddress, name, nonce, testnet)`
+
+Builds the EIP-712 typed data object for the user to sign when approving an agent.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `agentAddress` | `string` | The agent keypair's public address |
+| `name` | `string` | A human-readable label shown in the approval prompt |
+| `nonce` | `number` | Timestamp (use `Date.now()`) to prevent replay |
+| `testnet` | `boolean` | `true` for testnet, `false` for mainnet |
+
+Returns the typed data object ready for `walletClient.signTypedData`.
+
+### `submitAgentApproval(sig, agentAddress, name, nonce, testnet)`
+
+Submits the signed agent approval to Hyperliquid. After this call succeeds, the agent can sign orders on the user's behalf.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sig` | `string` | The EIP-712 signature from the user's wallet |
+| `agentAddress` | `string` | The agent keypair's public address |
+| `name` | `string` | Must match the value used in `getAgentApprovalTypedData` |
+| `nonce` | `number` | Must match the value used in `getAgentApprovalTypedData` |
+| `testnet` | `boolean` | `true` for testnet, `false` for mainnet |
+
+Returns `Promise<{ success: boolean; error?: string }>`. Check `success` before proceeding to `initAuth`.
+
+## Full agent approval flow
+
+The following example shows the complete setup using viem. You run this flow once per user (or when rotating the agent key), then persist `agentKey` in secure storage.
+
+```typescript
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import {
+  createHIP4Adapter,
+  getAgentApprovalTypedData,
+  submitAgentApproval,
+} from "@outcomexyz/hip4-sdk";
+
+// 1. Generate an ephemeral agent keypair
+const agentKey = generatePrivateKey();
+const agent = privateKeyToAccount(agentKey);
+
+// 2. Build the typed data for the user to sign
+const nonce = Date.now();
+const typedData = getAgentApprovalTypedData(agent.address, "My App", nonce, false);
+
+// 3. Ask the user's wallet to sign it
+const sig = await walletClient.signTypedData(typedData);
+
+// 4. Submit the approval to Hyperliquid
+await submitAgentApproval(sig, agent.address, "My App", nonce, false);
+
+// 5. Initialize the auth adapter with the agent signer
+const hip4 = createHIP4Adapter({ testnet: false });
+await hip4.initialize();
+await hip4.auth.initAuth(userAddress, agent);
+
+// Auth is now ready — place orders without prompting the user
+console.log(hip4.auth.getAuthStatus());
+// { status: "ready", address: "0xUserWalletAddress" }
+```
+
+<Note>
+  The agent's address differs from the user's wallet address. The SDK does not validate that they match — this is intentional, since the agent signs on behalf of the user.
+</Note>

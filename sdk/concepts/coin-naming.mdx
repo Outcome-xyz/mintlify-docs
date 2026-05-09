@@ -1,0 +1,165 @@
+---
+title: "HIP-4 Coin Names, Asset IDs, and Side Conventions"
+description: "The two coin formats used in HIP-4, how asset IDs are computed, the coin helper functions, sideIndex conventions, and the USDH collateral token."
+---
+
+HIP-4 uses two distinct coin name formats to represent prediction market instruments. One format identifies an outcome at the AMM level and is used for price lookups. The other identifies a specific tradeable side within that outcome and is what you use when placing orders, reading order books, or querying fills. Understanding which format to use — and how the SDK's helper functions convert between them — is essential for working with market data and the trading API.
+
+## The two coin formats
+
+| Format | Example | Use case |
+|--------|---------|----------|
+| `@{outcomeId}` | `@516` | AMM-level price lookup (allMids, spot pair name) |
+| `#{outcomeId}{sideIndex}` | `#5160`, `#5161` | Tradeable side instrument (order books, trading, fills) |
+
+### Outcome coin (`@{outcomeId}`)
+
+The `@`-prefixed coin represents an outcome at the AMM level. You use this format when fetching mid-market prices via `allMids` or when referencing a spot pair name. You do **not** use it for order placement.
+
+```typescript
+// Internal use: price lookup via allMids
+// "@516" → current AMM price for outcome 516
+```
+
+### Side coin (`#{outcomeId}{sideIndex}`)
+
+The `#`-prefixed coin is the tradeable instrument for a specific side of an outcome. This is what you pass to order placement, order book queries, and what appears in fill records. The outcome ID and side index are concatenated with no separator — `#5160` means outcome 516, side 0.
+
+```typescript
+// Place an order on the "Yes" side of outcome 516
+await hip4.trading.placeOrder({
+  marketId: "516",
+  outcome: "#5160",  // side coin — outcome 516, side 0
+  side: "buy",
+  type: "limit",
+  price: "0.65",
+  amount: "100",
+});
+```
+
+<Note>
+  The `marketId` field is always the outcome ID as a plain string — for example, `"516"`. It is not a coin string. The `outcome` field is the side coin like `"#5160"`.
+</Note>
+
+## Asset IDs
+
+Hyperliquid's order wire format uses numeric asset IDs, not coin strings. The SDK computes these for you, but it's useful to understand the formulas.
+
+**HIP-4 outcome sides:**
+
+```
+assetId = 100_000_000 + outcomeId * 10 + sideIndex
+```
+
+For example, outcome 516, side 0:
+
+```
+100_000_000 + 516 * 10 + 0 = 100_005_160
+```
+
+**Spot tokens (including USDH):**
+
+```
+assetId = 10_000 + spotIndex
+```
+
+For example, USDH (spot index 1338):
+
+```
+10_000 + 1338 = 11_338
+```
+
+The two ranges don't overlap, so the format tells you what kind of token you're looking at.
+
+## Coin helper functions
+
+Import the coin helpers from `@outcomexyz/hip4-sdk`:
+
+```typescript
+import { sideCoin, sideAssetId, parseSideCoin, outcomeCoin } from "@outcomexyz/hip4-sdk";
+```
+
+### `sideCoin(outcomeId, sideIndex)`
+
+Builds a side coin string from an outcome ID and side index.
+
+```typescript
+sideCoin(516, 0)  // "#5160"
+sideCoin(516, 1)  // "#5161"
+sideCoin(9, 0)    // "#90"
+```
+
+### `sideAssetId(outcomeId, sideIndex)`
+
+Computes the numeric asset ID for use in order wire format.
+
+```typescript
+sideAssetId(516, 0)  // 100005160
+sideAssetId(516, 1)  // 100005161
+sideAssetId(9, 0)    // 100000090
+```
+
+### `parseSideCoin(coin)`
+
+Parses a side coin string back into its component parts.
+
+```typescript
+parseSideCoin("#5160")  // { outcomeId: 516, sideIndex: 0 }
+parseSideCoin("#5161")  // { outcomeId: 516, sideIndex: 1 }
+parseSideCoin("#90")    // { outcomeId: 9, sideIndex: 0 }
+```
+
+### `outcomeCoin(outcomeId)`
+
+Builds an outcome coin string for AMM-level price lookups.
+
+```typescript
+outcomeCoin(516)   // "@516"
+outcomeCoin(1338)  // "@1338"
+```
+
+## Side index conventions
+
+`sideIndex` is always 0 or 1. By convention:
+
+- **Side 0** is the first side — typically "Yes", or the first named alternative (e.g. "Hypurr")
+- **Side 1** is the second side — typically "No", or the second named alternative (e.g. "Usain Bolt")
+
+The actual side names come from `sideSpecs` in the outcome metadata and are resolved by the SDK automatically. You can read them from the typed market object:
+
+```typescript
+const market = markets[0] as DefaultBinaryMarket;
+
+market.sides[0].name;   // "Yes"   (sideIndex 0)
+market.sides[0].coin;   // "#5160"
+market.sides[1].name;   // "No"    (sideIndex 1)
+market.sides[1].coin;   // "#5161"
+```
+
+For labelled binary markets, the names can be anything:
+
+```typescript
+market.sides[0].name;   // "Hypurr"
+market.sides[1].name;   // "Usain Bolt"
+```
+
+## USDH: the collateral token
+
+USDH is the collateral token used for all HIP-4 prediction market trading. It is a spot token — not a HIP-4 outcome — traded on the USDH/USDC pair.
+
+| Property | Value |
+|----------|-------|
+| Spot index | `1338` |
+| Asset ID | `11338` (`10_000 + 1338`) |
+| Spot pair name | `@1338` |
+
+You don't trade USDH directly against outcomes; instead, you hold USDH as your account balance and the SDK uses it as the settlement currency when you buy or sell outcome sides. To acquire USDH, use `hip4.wallet.buyUsdh`. To convert it back, use `hip4.wallet.sellUsdh`.
+
+```typescript
+// Fund your account with 100 USDH
+await hip4.wallet.transferToSpot("100");  // USDC: Perp → Spot
+await hip4.wallet.buyUsdh("100");         // buy USDH with USDC
+
+// Check USDH balance
+const balances = await hip4.account.fetchBalance(address);
+```

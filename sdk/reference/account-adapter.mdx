@@ -1,0 +1,312 @@
+---
+title: "Account Adapter Reference — Positions and Activity"
+description: "Reference for PredictionAccountAdapter: read positions, 30-day trade history, balances, and open orders for any wallet, plus subscribe to updates via polling."
+---
+
+The Account Adapter (`adapter.account`) gives you read access to a wallet's state on HIP-4 prediction markets. You can fetch open positions (held outcome tokens), the last 30 days of trade activity, raw spot balances including USDH, and currently resting orders. You can also subscribe to live position updates, which the adapter delivers by polling every 10 seconds — there is no WebSocket channel for spot balances on Hyperliquid. All methods accept a wallet `address` parameter, so you can query any account without authentication.
+
+---
+
+## `fetchPositions(address)`
+
+Returns a wallet's open HIP-4 positions. Positions are derived from the spot clearinghouse state — each non-zero outcome token balance becomes a `PredictionPosition`. Midpoint prices are fetched in parallel to populate `currentPrice` and `unrealizedPnl`.
+
+```typescript
+const positions = await adapter.account.fetchPositions("0xYourAddress");
+```
+
+### Parameters
+
+<ParamField path="address" type="string" required>
+  The wallet address to query.
+</ParamField>
+
+### Return type
+
+`Promise<PredictionPosition[]>`
+
+<ResponseField name="marketId" type="string" required>
+  The outcome ID extracted from the token coin string.
+</ResponseField>
+
+<ResponseField name="outcome" type="string" required>
+  The coin string used for lookups (e.g. `"#5160"`).
+</ResponseField>
+
+<ResponseField name="outcomeName" type="string" required>
+  Human-readable side name resolved from `sideSpecs` (e.g. `"Yes"`, `"Hypurr"`). Use this for display.
+</ResponseField>
+
+<ResponseField name="shares" type="string" required>
+  Number of outcome tokens held, formatted to 6 decimal places.
+</ResponseField>
+
+<ResponseField name="avgCost" type="string" required>
+  Average cost per token (`entryNtl / totalShares`), formatted to 6 decimal places.
+</ResponseField>
+
+<ResponseField name="currentPrice" type="string" required>
+  Current midpoint price from `allMids`. `"0"` when no mid is available.
+</ResponseField>
+
+<ResponseField name="unrealizedPnl" type="string" required>
+  `(currentPrice − avgCost) × shares`, formatted to 6 decimal places.
+</ResponseField>
+
+<ResponseField name="potentialPayout" type="string" required>
+  Maximum payout if the outcome resolves in your favour. Equal to `shares` (each token pays out 1 USDH).
+</ResponseField>
+
+<ResponseField name="eventStatus" type="string" required>
+  Always `"active"` in the current implementation. No settlement status check is performed.
+</ResponseField>
+
+<ResponseField name="eventTitle" type="string" required>
+  Always `""`. Positions are not enriched with event metadata in the current implementation.
+</ResponseField>
+
+<ResponseField name="marketQuestion" type="string" required>
+  Always `""`. Same reason as `eventTitle`.
+</ResponseField>
+
+<Note>
+  `eventTitle` and `marketQuestion` are always empty strings. If you need these values, call `adapter.events.fetchEvent()` using the `marketId` and cross-reference the result.
+</Note>
+
+### Example
+
+```typescript
+const positions = await adapter.account.fetchPositions("0xYourAddress");
+
+for (const pos of positions) {
+  console.log(`Outcome: ${pos.outcomeName} (${pos.outcome})`);
+  console.log(`  Shares:         ${pos.shares}`);
+  console.log(`  Avg cost:       ${pos.avgCost}`);
+  console.log(`  Current price:  ${pos.currentPrice}`);
+  console.log(`  Unrealized PnL: ${pos.unrealizedPnl}`);
+  console.log(`  Max payout:     ${pos.potentialPayout}`);
+}
+```
+
+---
+
+## `fetchActivity(address)`
+
+Returns the last 30 days of trade fills for outcome coins held by the wallet. The response is sorted newest-first. Only fills for HIP-4 outcome coins are included — regular spot trades are filtered out.
+
+```typescript
+const activity = await adapter.account.fetchActivity("0xYourAddress");
+```
+
+### Parameters
+
+<ParamField path="address" type="string" required>
+  The wallet address to query.
+</ParamField>
+
+### Return type
+
+`Promise<PredictionActivity[]>`
+
+<ResponseField name="id" type="string" required>
+  Trade ID from the Hyperliquid `tid` field.
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Always `"trade"` in the current implementation.
+</ResponseField>
+
+<ResponseField name="marketId" type="string">
+  The outcome ID extracted from the fill's coin.
+</ResponseField>
+
+<ResponseField name="outcome" type="string">
+  Raw coin string (e.g. `"#5160"`).
+</ResponseField>
+
+<ResponseField name="side" type="string">
+  `"buy"` or `"sell"`.
+</ResponseField>
+
+<ResponseField name="price" type="string">
+  Execution price.
+</ResponseField>
+
+<ResponseField name="size" type="string">
+  Fill size.
+</ResponseField>
+
+<ResponseField name="amount" type="string">
+  Never populated in the current implementation.
+</ResponseField>
+
+<ResponseField name="timestamp" type="number" required>
+  Fill time in milliseconds.
+</ResponseField>
+
+### Example
+
+```typescript
+const activity = await adapter.account.fetchActivity("0xYourAddress");
+
+for (const entry of activity) {
+  console.log(
+    `${new Date(entry.timestamp).toISOString()} | ` +
+    `${entry.side} ${entry.size} @ ${entry.price} | ` +
+    `coin: ${entry.outcome}`
+  );
+}
+```
+
+---
+
+## `fetchBalance(address)`
+
+Returns the raw spot clearinghouse balances for a wallet, including USDH and all outcome tokens. Use this when you need the full picture of what the wallet holds, not just open prediction positions.
+
+```typescript
+const balances = await adapter.account.fetchBalance("0xYourAddress");
+```
+
+### Parameters
+
+<ParamField path="address" type="string" required>
+  The wallet address to query.
+</ParamField>
+
+### Return type
+
+`Promise<HLSpotClearinghouseState>` — an object with a `balances` array. Each balance entry contains:
+
+| Field      | Type     | Description                               |
+|------------|----------|-------------------------------------------|
+| `coin`     | `string` | Token coin string (e.g. `"USDH"`, `"#5160"`) |
+| `token`    | `number` | Internal token index                      |
+| `hold`     | `string` | Amount currently on hold (in open orders) |
+| `total`    | `string` | Total balance including held amount       |
+| `entryNtl` | `string` | Total entry notional (cost basis)         |
+
+### Example
+
+```typescript
+const state = await adapter.account.fetchBalance("0xYourAddress");
+
+for (const bal of state.balances) {
+  console.log(`${bal.coin}: total=${bal.total} hold=${bal.hold}`);
+  // "USDH: total=250.000000 hold=0.000000"
+  // "#5160: total=100.000000 hold=0.000000"
+}
+```
+
+---
+
+## `fetchOpenOrders(address)`
+
+Returns the currently resting (unfilled) orders for a wallet. Use the `oid` field to build cancel requests.
+
+```typescript
+const orders = await adapter.account.fetchOpenOrders("0xYourAddress");
+```
+
+### Parameters
+
+<ParamField path="address" type="string" required>
+  The wallet address to query.
+</ParamField>
+
+### Return type
+
+`Promise<HLFrontendOrder[]>` — each order contains:
+
+| Field       | Type            | Description                                        |
+|-------------|-----------------|----------------------------------------------------|
+| `coin`      | `string`        | Coin string (e.g. `"#5160"`)                       |
+| `side`      | `"B"` \| `"A"` | `"B"` = buy, `"A"` = sell (ask)                    |
+| `limitPx`   | `string`        | Limit price                                        |
+| `sz`        | `string`        | Remaining unfilled size                            |
+| `oid`       | `number`        | Order ID — use this in `cancelOrder`               |
+| `timestamp` | `number`        | Order creation time in milliseconds                |
+| `origSz`    | `string`        | Original order size                                |
+| `orderType` | `string`        | Order type label                                   |
+| `tif`       | `string \| null`| Time-in-force                                      |
+
+### Example
+
+```typescript
+const orders = await adapter.account.fetchOpenOrders("0xYourAddress");
+
+for (const order of orders) {
+  console.log(
+    `${order.coin} ${order.side === "B" ? "buy" : "sell"} ` +
+    `${order.sz} @ ${order.limitPx} (oid: ${order.oid})`
+  );
+}
+
+// Cancel all open orders
+import { parseSideCoin } from "@outcomexyz/hip4-sdk";
+
+const cancels = orders.map((o) => {
+  const parsed = parseSideCoin(o.coin);
+  return {
+    marketId: parsed ? String(parsed.outcomeId) : o.coin,
+    orderId: String(o.oid),
+    outcome: o.coin,
+  };
+});
+await adapter.trading.cancelOrder(cancels);
+```
+
+---
+
+## `subscribePositions(address, cb)`
+
+Starts polling the wallet's positions every 10 seconds and delivers updates to your callback. Each poll makes two API calls — `spotClearinghouseState` and `allMids`. Errors during a poll are silently swallowed and the polling continues.
+
+There is no WebSocket channel for spot balances on Hyperliquid, so polling is the only mechanism available.
+
+```typescript
+const unsubscribe = adapter.account.subscribePositions(
+  "0xYourAddress",
+  (positions) => {
+    for (const pos of positions) {
+      console.log(pos.outcomeName, pos.shares, pos.unrealizedPnl);
+    }
+  }
+);
+
+// Stop polling when done
+unsubscribe();
+```
+
+### Parameters
+
+<ParamField path="address" type="string" required>
+  The wallet address to poll.
+</ParamField>
+
+<ParamField path="cb" type="(positions: PredictionPosition[]) => void" required>
+  Callback invoked after each successful poll. Receives the current `PredictionPosition[]`.
+</ParamField>
+
+### Return type
+
+`Unsubscribe` — a `() => void` function. Call it to stop the polling loop.
+
+<Note>
+  The polling interval is fixed at 10 seconds. The first delivery occurs after the initial 10-second delay, not immediately on subscription. If you need the current positions right away, call `fetchPositions()` directly first, then subscribe.
+</Note>
+
+### Example
+
+```typescript
+// Get initial positions immediately, then subscribe for live updates
+const initial = await adapter.account.fetchPositions("0xYourAddress");
+renderPositions(initial);
+
+const unsubscribe = adapter.account.subscribePositions("0xYourAddress", (positions) => {
+  renderPositions(positions);
+});
+
+// Clean up when the component unmounts or session ends
+window.addEventListener("beforeunload", unsubscribe);
+```

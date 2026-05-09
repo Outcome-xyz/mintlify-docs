@@ -1,0 +1,128 @@
+---
+title: "Stream real-time HIP-4 market data with WebSocket"
+description: "Subscribe to live order book updates, price ticks, and trade streams over a shared WebSocket connection, with built-in auto-reconnect and easy teardown."
+---
+
+The SDK maintains a single shared WebSocket connection to Hyperliquid and multiplexes all subscriptions over it. You subscribe to a market, receive a callback on every update, and call the returned unsubscribe function when you're done. Reconnection and subscription restoration happen automatically in the background.
+
+<Note>
+  All subscriptions—order book, price, and trades—share one WebSocket connection. Opening multiple subscriptions does not open multiple connections.
+</Note>
+
+## Subscribe to the order book
+
+`subscribeOrderBook` delivers a Level 2 book snapshot (bids and asks) on every change.
+
+```typescript
+import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+
+const hip4 = createHIP4Adapter({ testnet: true });
+await hip4.initialize();
+
+const unsub = hip4.marketData.subscribeOrderBook("516", (book) => {
+  console.log("Bids:", book.bids.slice(0, 3));  // [{ price, size }, ...]
+  console.log("Asks:", book.asks.slice(0, 3));
+});
+
+// Later — stop receiving updates
+unsub();
+```
+
+## Subscribe to live prices
+
+`subscribePrice` delivers both sides of a market via Hyperliquid's `allMids` feed. Side names are resolved from the outcome's `sideSpecs` so you always get the real labels.
+
+```typescript
+const unsub = hip4.marketData.subscribePrice("516", (price) => {
+  const yes = price.outcomes[0]; // { name: "Yes", price: "0.6500", midpoint: "0.6500" }
+  const no  = price.outcomes[1]; // { name: "No",  price: "0.3500", midpoint: "0.3500" }
+
+  console.log(`${yes.name}: ${yes.price} | ${no.name}: ${no.price}`);
+});
+
+// Stop when done
+unsub();
+```
+
+## Subscribe to the trade stream
+
+`subscribeTrades` delivers each executed trade as it happens.
+
+```typescript
+const unsub = hip4.marketData.subscribeTrades("516", (trade) => {
+  console.log(`${trade.side} ${trade.size} @ ${trade.price} — ${new Date(trade.timestamp).toISOString()}`);
+});
+
+// Stop when done
+unsub();
+```
+
+<Tip>
+  Call your unsubscribe function when a component unmounts or a view is hidden to prevent memory leaks and avoid processing updates for stale data.
+</Tip>
+
+## Auto-reconnect
+
+The WebSocket reconnects automatically if the connection drops. The retry schedule uses exponential backoff starting at 1 second, capped at 30 seconds, with a maximum of 10 attempts. Once reconnected, all active subscriptions are restored without any action on your part.
+
+## Create a price feed for charting
+
+`createPriceFeed` merges historical candles with live price ticks into a single continuously-updating snapshot. It's designed to power live charts without you needing to stitch together the initial fetch and the real-time stream yourself.
+
+```typescript
+import { createPriceFeed } from "@outcomexyz/hip4-sdk";
+
+const unsub = createPriceFeed(
+  hip4.marketData,
+  "516",
+  (snap) => {
+    if (!snap.ready) return; // still loading historical candles
+
+    renderChart(snap.candles);      // full candle array (historical + live)
+    console.log("Current mid:", snap.currentMid);
+  },
+  {
+    interval:   "1h",              // candle interval — default: "1h"
+    lookbackMs: 7 * 24 * 60 * 60 * 1000, // 7 days of history — default: 14 days
+    sideIndex:  0,                 // 0 = Yes side, 1 = No side — default: 0
+  },
+);
+
+// Tear down the feed when no longer needed
+unsub();
+```
+
+### PriceFeedOptions
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `interval` | `string` | `"1h"` | Candle interval accepted by Hyperliquid (e.g. `"1m"`, `"5m"`, `"1h"`, `"1d"`) |
+| `lookbackMs` | `number` | 14 days | How far back to fetch historical candles, in milliseconds |
+| `sideIndex` | `number` | `0` | Which side to track — `0` for Yes, `1` for No |
+
+### PriceFeedSnapshot
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `marketId` | `string` | The market ID passed to `createPriceFeed` |
+| `candles` | `PriceFeedCandle[]` | Full OHLCV array: historical candles merged with live ticks |
+| `currentMid` | `number \| null` | Latest mid-price received (may be newer than the last candle close) |
+| `ready` | `boolean` | `false` until the initial candle fetch completes |
+
+## Subscribe to account positions
+
+`subscribePositions` delivers updated position data for a wallet address. Because Hyperliquid does not expose spot balance updates over WebSocket, this subscription polls at 10-second intervals.
+
+```typescript
+const unsub = hip4.account.subscribePositions(
+  "0xYourWalletAddress",
+  (positions) => {
+    for (const pos of positions) {
+      console.log(`${pos.outcomeName}: ${pos.shares} shares @ ${pos.avgCost}`);
+    }
+  },
+);
+
+// Stop polling when done
+unsub();
+```

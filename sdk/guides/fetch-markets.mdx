@@ -1,0 +1,155 @@
+---
+title: "How to fetch and filter HIP-4 prediction markets"
+description: "Query, filter, group, and paginate HIP-4 markets by type—defaultBinary, labelledBinary, multiOutcome, and priceBucket—using the events adapter."
+---
+
+The events adapter gives you structured access to every HIP-4 prediction market on Hyperliquid. Markets are returned as typed objects with pre-computed coin identifiers so you can go straight from discovery to trading without any manual ID mapping.
+
+## Fetch all markets
+
+`hip4.events.fetchMarkets()` returns a flat `HIP4Market[]` array covering all active outcomes.
+
+```typescript
+import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+import type { HIP4Market } from "@outcomexyz/hip4-sdk";
+
+const hip4 = createHIP4Adapter({ testnet: true });
+await hip4.initialize();
+
+const markets: HIP4Market[] = await hip4.events.fetchMarkets();
+console.log(`${markets.length} markets available`);
+```
+
+## Filter by type
+
+Pass a `type` filter to narrow results to a specific market category.
+
+```typescript
+// Recurring price binary markets (BTC > $69,000 in 1h, etc.)
+const recurring = await hip4.events.fetchMarkets({ type: "defaultBinary" });
+
+// Standalone binary markets with custom side names
+const labelled = await hip4.events.fetchMarkets({ type: "labelledBinary" });
+
+// Multi-outcome markets grouped under a parent question
+const multi = await hip4.events.fetchMarkets({ type: "multiOutcome" });
+
+// Multi-bucket price range markets
+const buckets = await hip4.events.fetchMarkets({ type: "priceBucket" });
+```
+
+## Group by type
+
+Use `groupBy: "type"` to receive a `MarketsByType` object with one key per market category.
+
+```typescript
+import type { MarketsByType, DefaultBinaryMarket, MultiOutcomeMarket } from "@outcomexyz/hip4-sdk";
+
+const grouped = await hip4.events.fetchMarkets({ groupBy: "type" }) as MarketsByType;
+
+const defaultBinaryMarkets = (grouped.defaultBinary ?? []) as DefaultBinaryMarket[];
+const multiOutcomeMarkets  = (grouped.multiOutcome ?? []) as MultiOutcomeMarket[];
+```
+
+## Group multi-outcome markets by question
+
+Multi-outcome markets share a parent question. Grouping by question returns a `MarketsByQuestion` object keyed by question ID (or `"standalone"` for unclaimed outcomes).
+
+```typescript
+import type { MultiOutcomeMarket } from "@outcomexyz/hip4-sdk";
+
+const byQuestion = await hip4.events.fetchMarkets({
+  type: "multiOutcome",
+  groupBy: "question",
+}) as Record<string, MultiOutcomeMarket[]>;
+
+for (const [questionId, options] of Object.entries(byQuestion)) {
+  if (questionId === "standalone") continue;
+
+  const first = options[0];
+  console.log(`Question #${questionId}: ${first.questionName}`);
+
+  for (const option of options) {
+    const tag = option.isFallback ? " (fallback)" : "";
+    console.log(`  [${option.outcomeId}] ${option.name}${tag}`);
+    console.log(`    Yes: ${option.sides[0].coin} | No: ${option.sides[1].coin}`);
+  }
+}
+```
+
+## Paginate results
+
+Use `limit` and `offset` to page through large result sets.
+
+```typescript
+// Second page of 10
+const page2 = await hip4.events.fetchMarkets({ limit: 10, offset: 10 });
+```
+
+## Sort results
+
+Control the order of returned markets with `sortBy`.
+
+```typescript
+// Highest volume first
+const byVolume = await hip4.events.fetchMarkets({ sortBy: "volume" });
+
+// Soonest expiry first
+const byExpiry = await hip4.events.fetchMarkets({ sortBy: "expiry" });
+
+// Most recently listed first (default)
+const byNewest = await hip4.events.fetchMarkets({ sortBy: "newest" });
+```
+
+## Access typed fields on DefaultBinaryMarket
+
+Each market type exposes fields specific to its category. `DefaultBinaryMarket` includes the parsed description fields you need for display and filtering.
+
+```typescript
+import type { DefaultBinaryMarket } from "@outcomexyz/hip4-sdk";
+
+const markets = await hip4.events.fetchMarkets({ type: "defaultBinary" }) as DefaultBinaryMarket[];
+const m = markets[0];
+
+m.underlying;        // "BTC"
+m.targetPrice;       // 69070
+m.expiry;            // Date (UTC)
+m.period;            // "1d"
+
+m.sides[0].name;     // "Yes"
+m.sides[0].coin;     // "#5160"  — use this in placeOrder
+m.sides[0].asset;    // 100005160
+m.sides[1].name;     // "No"
+m.sides[1].coin;     // "#5161"
+
+m.raw;               // original HLOutcome for direct API access
+```
+
+## Fetch events and categories
+
+Markets belong to events. You can query at the event level when you need the full context—title, description, volume, status, and the markets list together.
+
+```typescript
+// All events
+const events = await hip4.events.fetchEvents();
+
+// Active events only
+const active = await hip4.events.fetchEvents({ active: true });
+
+// Events in the "recurring" category
+const recurring = await hip4.events.fetchEvents({ category: "recurring" });
+
+// Full-text search
+const btcEvents = await hip4.events.fetchEvents({ query: "BTC" });
+
+// Single event by ID
+const event = await hip4.events.fetchEvent("q42");
+
+// Available categories
+const categories = await hip4.events.fetchCategories();
+// [{ id, name, slug }] — "custom" and "recurring"
+```
+
+<Note>
+  Event and outcome metadata is cached for 30 seconds. Subsequent calls within that window return the cached result without hitting the network.
+</Note>

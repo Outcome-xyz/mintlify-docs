@@ -1,0 +1,188 @@
+---
+title: "HIP-4 Prediction Market Types: Binary, Multi, Bucket"
+description: "How prediction markets are structured in HIP-4: the four market types, the event and outcome hierarchy, market status, and how prices work."
+---
+
+In HIP-4, a prediction market is a probability instrument priced between 0 and 1, where the price reflects the market's implied probability that a given outcome will occur. Each market has two tradeable sides — for example, "Yes" and "No" — and each side is a separate token. If you buy "Yes" at 0.65, you're paying 0.65 USDH per share and receiving a payout of 1 USDH per share if the outcome resolves in your favor. The SDK classifies every live outcome into one of four typed market structures, each carrying pre-computed side identifiers and metadata that makes it straightforward to display, filter, and trade.
+
+## Market types
+
+HIP-4 markets fall into four types, each with its own structure and set of fields.
+
+<Tabs>
+  <Tab title="defaultBinary">
+    Recurring price binary markets are auto-generated on a schedule and ask whether an asset's price will exceed a target by a given expiry. They always use "Yes" / "No" sides.
+
+    **Distinguishing fields:** `underlying`, `targetPrice`, `expiry`, `period`
+
+    ```typescript
+    import type { DefaultBinaryMarket } from "@outcomexyz/hip4-sdk";
+
+    const market = markets[0] as DefaultBinaryMarket;
+
+    market.type;           // "defaultBinary"
+    market.underlying;     // "BTC"
+    market.targetPrice;    // 69070
+    market.expiry;         // Date (UTC)
+    market.period;         // "1d"
+    market.sides[0].name;  // "Yes"
+    market.sides[0].coin;  // "#17580"
+    market.sides[0].asset; // 100017580
+    market.sides[1].name;  // "No"
+    market.sides[1].coin;  // "#17581"
+    ```
+
+    Fetch recurring markets specifically:
+
+    ```typescript
+    const recurring = await hip4.events.fetchMarkets({ type: "defaultBinary" });
+    ```
+  </Tab>
+  <Tab title="labelledBinary">
+    Standalone binary markets with custom side names. These are one-off markets not grouped under a parent question. The sides can be anything — "Hypurr" vs "Usain Bolt", "Pass" vs "Fail" — as defined by the market creator.
+
+    **Distinguishing fields:** custom `sides[n].name` values (not "Yes"/"No")
+
+    ```typescript
+    import type { LabelledBinaryMarket } from "@outcomexyz/hip4-sdk";
+
+    const market = markets[0] as LabelledBinaryMarket;
+
+    market.type;           // "labelledBinary"
+    market.sides[0].name;  // e.g. "Hypurr"
+    market.sides[1].name;  // e.g. "Usain Bolt"
+    market.sides[0].coin;  // "#900"
+    ```
+  </Tab>
+  <Tab title="multiOutcome">
+    Markets grouped under a parent question, where multiple outcomes compete. Each outcome is a separate `multiOutcome` market with two sides, and one outcome is designated as the fallback ("Other / None of the above"). The parent question is shared across all sibling markets.
+
+    **Distinguishing fields:** `questionId`, `questionName`, `questionDescription`, `isFallback`
+
+    ```typescript
+    import type { MultiOutcomeMarket } from "@outcomexyz/hip4-sdk";
+
+    const market = markets[0] as MultiOutcomeMarket;
+
+    market.type;                 // "multiOutcome"
+    market.questionId;           // 42
+    market.questionName;         // "Which team wins the championship?"
+    market.isFallback;           // false (true for the "Other" outcome)
+    market.sides[0].name;        // "Yes"
+    market.sides[1].name;        // "No"
+    ```
+
+    Group multi-outcome markets by their parent question:
+
+    ```typescript
+    const byQuestion = await hip4.events.fetchMarkets({
+      type: "multiOutcome",
+      groupBy: "question",
+    });
+    // byQuestion["42"] → MultiOutcomeMarket[]
+    ```
+  </Tab>
+  <Tab title="priceBucket">
+    Multi-bucket price range markets (introduced in v2). Instead of a single binary threshold, the parent question defines N price thresholds that create N+1 buckets. Each bucket is its own `priceBucket` market, representing whether the price will land in that range at expiry.
+
+    **Distinguishing fields:** `priceThresholds`, `lowerBound`, `upperBound`, `bucketIndex`, `isFallback`
+
+    The `class:priceBucket` tag appears on the parent question's description, not the individual outcome. N thresholds produce N+1 bucket outcomes plus one settlement fallback outcome.
+
+    ```typescript
+    import type { PriceBucketMarket } from "@outcomexyz/hip4-sdk";
+
+    const market = markets[0] as PriceBucketMarket;
+
+    market.type;             // "priceBucket"
+    market.underlying;       // "BTC"
+    market.expiry;           // Date (UTC)
+    market.period;           // "15m"
+    market.priceThresholds;  // [81015.3, 81258.7]
+    market.lowerBound;       // 81015.3  (null = unbounded below)
+    market.upperBound;       // 81258.7  (null = unbounded above)
+    market.bucketIndex;      // 1  (-1 for the fallback outcome)
+    market.isFallback;       // false
+    ```
+  </Tab>
+</Tabs>
+
+## Market type summary
+
+| Type | Description | Key fields |
+|------|-------------|------------|
+| `defaultBinary` | Recurring price binary (auto-generated) | `underlying`, `targetPrice`, `expiry`, `period` |
+| `labelledBinary` | Standalone binary with custom side names | Custom `sides[n].name` values |
+| `multiOutcome` | Grouped under a parent question | `questionId`, `questionName`, `isFallback` |
+| `priceBucket` | Multi-bucket price range (v2) | `priceThresholds`, `lowerBound`, `upperBound`, `bucketIndex` |
+
+## Data hierarchy
+
+HIP-4 structures data in three layers: **events**, **markets**, and **outcomes**.
+
+```
+PredictionEvent  (e.g. "Will BTC hit $69k?")
+└── PredictionMarket  (the tradeable question, id = outcome ID as string)
+    ├── PredictionOutcome  (side 0 — "Yes")
+    └── PredictionOutcome  (side 1 — "No")
+```
+
+A `PredictionEvent` groups one or more `PredictionMarket` objects. For question-based events (multi-outcome), each named outcome becomes its own `PredictionMarket`. For standalone outcomes, the event contains a single market.
+
+`PredictionOutcome` represents one side. It carries the side name, the `tokenId` (the side coin like `#5160`), and the current price as a decimal string between "0" and "1".
+
+```typescript
+import type { PredictionEvent, PredictionMarket, PredictionOutcome } from "@outcomexyz/hip4-sdk";
+
+const event: PredictionEvent = await hip4.events.fetchEvent("q1");
+
+event.id;          // "q1"
+event.title;       // "Which team wins the championship?"
+event.status;      // "active"
+event.markets;     // PredictionMarket[]
+
+const market: PredictionMarket = event.markets[0];
+market.id;         // "516"  (outcome ID as string)
+market.question;   // "Team A"
+market.outcomes;   // PredictionOutcome[]
+
+const outcome: PredictionOutcome = market.outcomes[0];
+outcome.name;      // "Yes"
+outcome.tokenId;   // "#5160"
+outcome.price;     // "0.65"
+```
+
+## Event IDs
+
+Event IDs follow two formats depending on how the market was created:
+
+- **`q{n}`** — a question-based event grouping multiple named outcomes (e.g. `"q42"`)
+- **`o{n}`** — a standalone outcome that forms its own single-market event (e.g. `"o516"`)
+
+Recurring markets and labelled binary markets are typically standalone and use the `o{n}` format. Multi-outcome and price bucket markets are always question-based and use `q{n}`.
+
+```typescript
+const questionEvent = await hip4.events.fetchEvent("q42");   // multi-outcome
+const standaloneEvent = await hip4.events.fetchEvent("o516"); // binary
+```
+
+## Market status
+
+Every `PredictionEvent` has a `status` field that reflects its current lifecycle state.
+
+| Status | Meaning |
+|--------|---------|
+| `"active"` | Trading is open |
+| `"pending_resolution"` | Market has closed; awaiting settlement |
+| `"resolved"` | Outcome has been determined |
+| `"cancelled"` | Market was voided |
+
+```typescript
+const events = await hip4.events.fetchEvents({ active: true });
+// Returns only events with status "active"
+
+const event = await hip4.events.fetchEvent("q1");
+if (event.status === "resolved") {
+  // Show resolution result
+}
+```

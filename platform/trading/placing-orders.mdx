@@ -1,0 +1,76 @@
+---
+title: "How to place your first HIP-4 prediction market trade"
+description: "Connect your wallet, fund your account with USDH, and walk through every step of placing a buy or sell order on an Outcome prediction market."
+---
+
+Placing a trade on Outcome means buying or selling outcome tokens on a specific market. You choose your side (Yes or No, or a named outcome), pick an order type, set your size, and submit. Your order goes directly to the Hyperliquid L1 orderbook — there's no intermediate step, and fills are near-instant.
+
+## Before you start
+
+Make sure you have:
+
+- A connected wallet (MetaMask, WalletConnect, or another supported wallet)
+- USDH in your account — see [Depositing funds](/platform/funds/depositing) if you haven't funded yet
+
+## Placing a trade
+
+<Steps>
+  <Step title="Connect your wallet">
+    Click **Connect Wallet** in the top right corner and follow the prompts for your wallet provider (MetaMask, WalletConnect, or another supported option). Once connected, your address and USDH balance will appear in the header.
+  </Step>
+  <Step title="Navigate to a market">
+    Browse the markets list and click the market you want to trade. You'll see the current token prices, orderbook depth, and recent trade history for that market.
+  </Step>
+  <Step title="Choose your side">
+    Select **Yes** or **No** (or the named outcome you want to back). The trading panel will update to show the current best price for that side.
+  </Step>
+  <Step title="Set your order type">
+    Choose between **Limit** and **Market**:
+    - **Limit** — you set the exact price you're willing to pay. Your order rests on the book until someone fills it.
+    - **Market** — your order executes immediately at the best available price.
+
+    See [Order types](/platform/trading/order-types) for a full comparison.
+  </Step>
+  <Step title="Enter your amount in shares">
+    Type the number of tokens (shares) you want to buy or sell. Each share represents one outcome token. If you win, each share pays $1.00 USDH.
+  </Step>
+  <Step title="Set your price (limit orders only)">
+    For limit orders, enter the price you want to pay per share, between **0.00** and **1.00**. This is also the probability you're implying for that outcome. For example, entering **0.60** means you're paying 60¢ per share and implying a 60% chance of winning.
+  </Step>
+  <Step title="Review your cost">
+    The platform shows your estimated cost before you submit:
+
+    **Cost = price × shares (in USDH)**
+
+    For example, 100 shares at $0.60 each = $60.00 USDH. Make sure your USDH balance covers this amount.
+  </Step>
+  <Step title="Submit and sign">
+    Click **Place Order** and approve the transaction in your wallet. Your wallet will prompt you to sign an EIP-712 message — this authorizes the trade without sending funds through a smart contract. The order is submitted to the Hyperliquid L1 orderbook immediately after signing.
+  </Step>
+</Steps>
+
+## Minimum order size
+
+The minimum order size is **$10 USDH notional**. This means your price × shares must equal at least $10.00. For example:
+
+- 100 shares at $0.10 each = $10.00 — meets the minimum
+- 50 shares at $0.10 each = $5.00 — below the minimum, order will be rejected
+
+The platform will show an error before submission if your order is below the minimum.
+
+## What happens after you submit
+
+Your order goes directly to the Hyperliquid L1 orderbook:
+
+- **Limit orders** rest on the book until someone fills them (or until you cancel).
+- **Market orders** execute immediately against the best available resting orders.
+
+Once filled, your tokens appear in the **Positions** tab. You can monitor your open positions, average entry price, current value, and potential payout there.
+
+<Tip>
+  Limit orders usually get better prices than market orders. Set your limit price close to the current mid-price for faster fills while still avoiding slippage.
+</Tip>
+
+<Warning>
+  Market orders fill at whatever price is available in the orderbook. In thin markets, this can mean significantly worse prices than the displayed mid-price. Check the orderbook depth before placing a large market order.
+</Warning>

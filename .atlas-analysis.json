@@ -1,0 +1,144 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "Outcome",
+  "projectDescription": "A TypeScript SDK for building on Hyperliquid HIP-4 binary prediction markets — fetch events, stream real-time orderbook data, place orders, and manage funds with zero dependencies.",
+  "theme": "luma",
+  "primaryColor": "#2DD4BF",
+  "lightColor": "#F0FDFA",
+  "darkColor": "#0D9488",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "SDK",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "sdk/introduction",
+              "sdk/installation",
+              "sdk/quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "sdk/concepts/markets",
+              "sdk/concepts/authentication",
+              "sdk/concepts/coin-naming"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "sdk/guides/fetch-markets",
+              "sdk/guides/trading",
+              "sdk/guides/real-time-data",
+              "sdk/guides/wallet-funding"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "sdk/reference/events-adapter",
+              "sdk/reference/market-data-adapter",
+              "sdk/reference/trading-adapter",
+              "sdk/reference/account-adapter",
+              "sdk/reference/wallet-adapter",
+              "sdk/reference/auth-adapter",
+              "sdk/reference/utilities",
+              "sdk/reference/types"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Platform",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "platform/overview",
+              "platform/how-it-works"
+            ]
+          },
+          {
+            "group": "Trading",
+            "pages": [
+              "platform/trading/placing-orders",
+              "platform/trading/order-types",
+              "platform/trading/positions"
+            ]
+          },
+          {
+            "group": "Funds",
+            "pages": [
+              "platform/funds/depositing",
+              "platform/funds/withdrawing"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Zero-dependency TypeScript SDK for HIP-4 prediction markets",
+    "Typed market discovery with defaultBinary, labelledBinary, multiOutcome, and priceBucket market types",
+    "Real-time WebSocket subscriptions for order books, prices, and trades",
+    "EIP-712 signing support for both L1 agent signing and user-signed operations",
+    "USDH fund management: deposit, withdraw, transfer between perp and spot",
+    "Tick-aligned pricing with min-notional validation before order submission",
+    "Price feed streaming with historical candle merging for live charts",
+    "Builder fee and referral address support on order placement",
+    "Mainnet and testnet support with configurable endpoints"
+  ],
+  "publicApiSurface": [
+    "createHIP4Adapter(config)",
+    "adapter.events.fetchEvents(params?)",
+    "adapter.events.fetchEvent(eventId)",
+    "adapter.events.fetchCategories()",
+    "adapter.events.fetchMarkets(params?)",
+    "adapter.marketData.fetchOrderBook(marketId, sideIndex?)",
+    "adapter.marketData.fetchPrice(marketId)",
+    "adapter.marketData.fetchTrades(marketId, limit?)",
+    "adapter.marketData.fetchCandles(marketId, interval?, start?, end?)",
+    "adapter.marketData.subscribeOrderBook(marketId, cb)",
+    "adapter.marketData.subscribePrice(marketId, cb)",
+    "adapter.marketData.subscribeTrades(marketId, cb)",
+    "adapter.account.fetchPositions(address)",
+    "adapter.account.fetchActivity(address)",
+    "adapter.account.fetchBalance(address)",
+    "adapter.account.fetchOpenOrders(address)",
+    "adapter.account.subscribePositions(address, cb)",
+    "adapter.trading.placeOrder(params)",
+    "adapter.trading.cancelOrder(params)",
+    "adapter.auth.initAuth(walletAddress, signer)",
+    "adapter.auth.getAuthStatus()",
+    "adapter.auth.clearAuth()",
+    "adapter.wallet.setSigner(signer)",
+    "adapter.wallet.buyUsdh(amount)",
+    "adapter.wallet.sellUsdh(amount)",
+    "adapter.wallet.transferToSpot(amount)",
+    "adapter.wallet.transferToPerps(amount)",
+    "adapter.wallet.withdraw(params)",
+    "adapter.wallet.usdSend(params)",
+    "getAgentApprovalTypedData(agentAddress, name, nonce, testnet)",
+    "submitAgentApproval(sig, agentAddress, name, nonce, testnet)",
+    "createPriceFeed(marketData, marketId, onSnapshot, options?)",
+    "createPerpPriceFeed(marketData, coin, onSnapshot, options?)",
+    "formatPrice(price)",
+    "computeTickSize(price)",
+    "roundToTick(price)",
+    "getMinShares(markPx)",
+    "MIN_NOTIONAL",
+    "parseDescription(description)",
+    "classifyOutcome(outcome, questions)",
+    "classifyAllOutcomes(meta)",
+    "sideCoin(outcomeId, sideIndex)",
+    "sideAssetId(outcomeId, sideIndex)",
+    "parseSideCoin(coin)",
+    "outcomeCoin(outcomeId)",
+    "computeEstimatedCost(tokenAmount, orderType, limitPriceCents, marketPriceCents?)",
+    "computeTradeCost(params)",
+    "computePotentialReturn(tokenAmount)"
+  ]
+}

@@ -1,0 +1,256 @@
+---
+title: "Trading Adapter Reference — Place and Cancel Orders"
+description: "Reference for PredictionTradingAdapter: place limit and market orders on HIP-4 outcomes with tick alignment and builder fees, then cancel resting orders by ID."
+---
+
+The Trading Adapter (`adapter.trading`) lets you submit and cancel orders on HIP-4 prediction market outcomes. Before you can place any orders you must authenticate using `adapter.auth.initAuth()` — the trading adapter returns an error result (rather than throwing) if you attempt to place an order without a valid signer. Order placement performs local validation for tick alignment, notional size, and minimum shares before signing, so most errors are caught before hitting the exchange.
+
+<Warning>
+  You must call `adapter.auth.initAuth(walletAddress, signer)` before using any trading methods. See the [Auth Adapter](/sdk/reference/auth-adapter) page for the full authentication flow, including agent key setup.
+</Warning>
+
+---
+
+## `placeOrder(params)`
+
+Places a single order on a HIP-4 outcome. This method **never throws** — check the `success` field and the `error` message on the returned result instead.
+
+For limit orders, the SDK performs these local checks before signing:
+- Tick-aligns the price to 5 significant figures.
+- Validates that the notional value (`price × amount`) meets the minimum (10 USDH) unless `skipMinNotionalCheck` is `true`.
+- When `markPx` is provided, validates that `amount` meets the minimum shares threshold.
+
+For market orders, the SDK fetches the current mid and applies 8% slippage (ceiling for buys, floor for sells), then clamps the result to `[0.0001, 0.9999]`.
+
+```typescript
+const result = await adapter.trading.placeOrder({
+  marketId: "516",
+  outcome: "#5160",
+  side: "buy",
+  type: "limit",
+  price: "0.65",
+  amount: "100",
+});
+
+if (!result.success) {
+  console.error(result.error);
+}
+```
+
+### Parameters
+
+<ParamField path="marketId" type="string" required>
+  The outcome ID as a string (e.g. `"516"`).
+</ParamField>
+
+<ParamField path="outcome" type="string" required>
+  The side identifier. Use the coin string (e.g. `"#5160"` for side 0, `"#5161"` for side 1). This determines which side of the outcome you are trading.
+</ParamField>
+
+<ParamField path="side" type="string" required>
+  `"buy"` or `"sell"`.
+</ParamField>
+
+<ParamField path="type" type="string" required>
+  `"market"` or `"limit"`.
+</ParamField>
+
+<ParamField path="price" type="string">
+  Limit price as a decimal string (0–1). Required for limit orders. Ignored for market orders (the SDK computes price from the mid with slippage).
+</ParamField>
+
+<ParamField path="amount" type="string" required>
+  Order size in shares.
+</ParamField>
+
+<ParamField path="timeInForce" type="string" default="GTC">
+  Time-in-force for limit orders. One of `"GTC"`, `"GTD"`, `"FOK"`, `"FAK"`. See the TIF mapping table below. Ignored for market orders.
+</ParamField>
+
+<ParamField path="markPx" type="number">
+  Current market price (0–1). When provided, the SDK enforces a minimum shares check: `amount >= getMinShares(markPx)`, which ensures the order meets the 10 USDH minimum notional.
+</ParamField>
+
+<ParamField path="builderAddress" type="string">
+  Optional referral address that receives builder fees. Checksummed addresses are accepted; the SDK lowercases the value before signing.
+</ParamField>
+
+<ParamField path="builderFee" type="number">
+  Builder fee in tenths of a basis point. `0` = no fee. `100` = 0.1%. Maximum is `1000` (1.0%).
+</ParamField>
+
+<ParamField path="skipMinNotionalCheck" type="boolean">
+  When `true`, skips the SDK's local minimum-notional and minimum-shares pre-checks. Use this for position-closing flows where the residual size may be below 10 USDH but the exchange still accepts the order.
+</ParamField>
+
+### TIF mapping
+
+The SDK maps SDK-level TIF values to Hyperliquid order types as follows:
+
+| SDK `timeInForce` | Order `type` | Hyperliquid TIF    | Notes                                        |
+|-------------------|--------------|--------------------|----------------------------------------------|
+| `"GTC"` (default) | `"limit"`    | `Gtc`              | Good-till-cancelled                          |
+| `"GTD"`           | `"limit"`    | `Gtc`              | No true GTD support; behaves as GTC          |
+| `"FOK"`           | `"limit"`    | `Ioc`              | True FOK semantics not enforced              |
+| `"FAK"`           | `"limit"`    | `Ioc`              | Immediate-or-cancel                          |
+| _(any)_           | `"market"`   | `FrontendMarket`   | Slippage-protected best-execution            |
+
+### Return type
+
+`Promise<PredictionOrderResult>` — never throws.
+
+<ResponseField name="success" type="boolean" required>
+  `true` if the order was accepted by the exchange.
+</ResponseField>
+
+<ResponseField name="orderId" type="string">
+  Hyperliquid order ID. Present when the order filled or is resting.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  `"filled"` — fully executed. `"resting"` — sitting in the book. `"error"` — exchange rejected the order. `"unknown"` — unrecognised response.
+</ResponseField>
+
+<ResponseField name="shares" type="string">
+  Filled size. Only present when `status === "filled"`.
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error message. Present when `success === false`.
+</ResponseField>
+
+### Examples
+
+```typescript
+import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import {
+  getAgentApprovalTypedData,
+  submitAgentApproval,
+} from "@outcomexyz/hip4-sdk";
+
+const adapter = createHIP4Adapter({ testnet: false });
+await adapter.initialize();
+
+// --- Authentication (agent key flow) ---
+const agentKey = generatePrivateKey();
+const agent = privateKeyToAccount(agentKey);
+const typedData = getAgentApprovalTypedData(agent.address, "My App", Date.now(), false);
+const sig = await walletClient.signTypedData(typedData);
+await submitAgentApproval(sig, agent.address, "My App", Date.now(), false);
+await adapter.auth.initAuth(userAddress, agent);
+
+// --- Place a limit buy order ---
+const limitResult = await adapter.trading.placeOrder({
+  marketId: "516",
+  outcome: "#5160",        // side 0 (e.g. "Yes")
+  side: "buy",
+  type: "limit",
+  price: "0.65",
+  amount: "100",
+  timeInForce: "GTC",
+  markPx: 0.65,            // enables minimum-shares validation
+});
+
+if (limitResult.success) {
+  console.log("Order status:", limitResult.status);
+  // "filled" or "resting"
+  if (limitResult.status === "filled") {
+    console.log("Filled shares:", limitResult.shares);
+  }
+} else {
+  console.error("Order failed:", limitResult.error);
+}
+
+// --- Place a market sell order ---
+const marketResult = await adapter.trading.placeOrder({
+  marketId: "516",
+  outcome: "#5161",        // side 1 (e.g. "No")
+  side: "sell",
+  type: "market",
+  amount: "50",
+});
+
+// --- Limit buy with builder fee ---
+const builderResult = await adapter.trading.placeOrder({
+  marketId: "516",
+  outcome: "#5160",
+  side: "buy",
+  type: "limit",
+  price: "0.70",
+  amount: "25",
+  builderAddress: "0xYourBuilderAddress",
+  builderFee: 100,         // 0.1%
+});
+
+// --- Close a small residual position, skipping notional check ---
+const closeResult = await adapter.trading.placeOrder({
+  marketId: "516",
+  outcome: "#5160",
+  side: "sell",
+  type: "limit",
+  price: "0.60",
+  amount: "3",
+  skipMinNotionalCheck: true,
+});
+```
+
+---
+
+## `cancelOrder(params[])`
+
+Cancels one or more resting orders. Unlike `placeOrder`, this method **throws on failure**.
+
+```typescript
+await adapter.trading.cancelOrder([
+  { marketId: "516", orderId: "12345", outcome: "#5160" },
+]);
+```
+
+### Parameters
+
+`cancelOrder` accepts an **array** of cancel requests:
+
+<ParamField path="[].marketId" type="string" required>
+  The outcome ID as a string.
+</ParamField>
+
+<ParamField path="[].orderId" type="string" required>
+  The Hyperliquid order ID to cancel. Obtain this from `placeOrder`'s `orderId` field or from `adapter.account.fetchOpenOrders()`.
+</ParamField>
+
+<ParamField path="[].outcome" type="string">
+  Optional side identifier (e.g. `"#5160"`). Providing this resolves the correct side asset ID. When omitted, the SDK defaults to side 0.
+</ParamField>
+
+### Return type
+
+`Promise<void>` — resolves when all cancels are confirmed. Throws if authentication is missing or the exchange rejects the request.
+
+<Warning>
+  The current implementation always resolves the cancel asset ID to **side 0** unless you provide the `outcome` field. If you placed an order on side 1 (`"#5161"`), you must pass `outcome: "#5161"` to cancel it correctly.
+</Warning>
+
+### Example
+
+```typescript
+// Cancel a single resting order
+await adapter.trading.cancelOrder([
+  { marketId: "516", orderId: "12345", outcome: "#5160" },
+]);
+
+// Cancel multiple orders at once
+await adapter.trading.cancelOrder([
+  { marketId: "516", orderId: "12345", outcome: "#5160" },
+  { marketId: "516", orderId: "67890", outcome: "#5161" },
+]);
+
+// Fetch open orders first, then cancel them
+const openOrders = await adapter.account.fetchOpenOrders(userAddress);
+const cancels = openOrders.map((order) => ({
+  marketId: String(order.outcomeId),
+  orderId: String(order.oid),
+  outcome: order.coin,
+}));
+await adapter.trading.cancelOrder(cancels);
+```

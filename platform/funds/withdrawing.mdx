@@ -1,0 +1,47 @@
+---
+title: "How to withdraw USDH and USDC to an external wallet"
+description: "Convert your USDH back to USDC, move it from your spot account to your perp account, and withdraw to an external wallet address — step by step."
+---
+
+When you're ready to take funds off the platform, you work through a four-step process: sell your USDH back to USDC, move it to your perp account, and then withdraw to your external wallet. Each step requires a wallet signature to authorize. The whole process typically completes within a few minutes once the Hyperliquid network processes each action.
+
+## Before you withdraw
+
+Cancel any open orders and close any positions you don't want to hold. Open orders lock up USDH as collateral — if you try to withdraw while orders are pending, you may not have enough free balance to cover the full withdrawal amount.
+
+<Warning>
+  Cancel all open orders before starting the withdrawal process. Outstanding orders reserve USDH from your balance, and those funds won't be available to withdraw until the orders are cancelled or filled.
+</Warning>
+
+## The withdrawal flow
+
+<Steps>
+  <Step title="Close your open positions">
+    Sell any outcome tokens you hold before withdrawing. Go to the **Positions** tab, and for each position, place a sell order (market or limit) to convert your tokens back to USDH. Wait for the orders to fill before proceeding.
+  </Step>
+  <Step title="Sell USDH back to USDC">
+    In the **Wallet** section, click **Sell USDH**. The platform sells your USDH on the Hyperliquid spot market and returns USDC to your spot account, at approximately the current USDC oracle price.
+
+    This step is signed using the platform's agent key — no manual wallet approval is needed.
+  </Step>
+  <Step title="Transfer USDC to your perp account">
+    Click **Transfer to Perps** to move your USDC from your spot account back to your perp account. You'll be prompted to sign an EIP-712 transaction with your wallet to authorize this transfer.
+  </Step>
+  <Step title="Withdraw to your external wallet">
+    Click **Withdraw** and enter the destination wallet address. Confirm the amount and sign the EIP-712 withdrawal transaction with your wallet. Hyperliquid will process the withdrawal and send USDC to your external address.
+
+    Funds typically arrive within a few minutes, depending on Hyperliquid's withdrawal processing queue.
+  </Step>
+</Steps>
+
+## Signing requirements
+
+Each step in the withdrawal flow that involves moving funds requires you to sign an EIP-712 typed data message with your connected wallet. This is a gasless signature — you're not paying a gas fee for each step, but you do need to approve each action in your wallet app.
+
+## Sending to another Hyperliquid address
+
+If you want to send USDC to another Hyperliquid account instead of withdrawing to an external wallet, use the **Send** feature. This is the `usdSend` action — it transfers USDC directly to another Hyperliquid address without going through the full bridge withdrawal. It's faster and doesn't involve the external withdrawal queue.
+
+<Tip>
+  Before starting the withdrawal, check your USDH balance in the Wallet tab to confirm you know the full amount available. This avoids surprises if some USDH is reserved by open orders.
+</Tip>

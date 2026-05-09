@@ -1,0 +1,116 @@
+---
+title: "Wallet Adapter Reference — USDH and Fund Management"
+description: "Deposit USDC, buy and sell USDH, move funds between spot and perps, and withdraw to external addresses using the HIP-4 wallet adapter."
+---
+
+The wallet adapter (`hip4.wallet`) handles all fund management for HIP-4 prediction trading: moving USDC between your perp and spot accounts, buying and selling USDH on the spot market, and withdrawing funds to external addresses. It relies on two distinct signers — one for user-authorized EIP-712 operations, and one for L1 agent-signed spot orders — so you need to configure both before using the full method surface.
+
+## Two signers
+
+The wallet adapter uses two separate signing keys depending on the operation:
+
+**User's wallet** — set via `setSigner`. Required for EIP-712 operations: transfers between spot and perps, withdrawals, and USD sends. The signer must produce a valid EIP-712 signature on the `HyperliquidSignTransaction` domain.
+
+**Agent key** — initialized via `hip4.auth.initAuth`. Required for USDH spot buy/sell, which use L1 agent signing (MessagePack serialization + keccak-256 + EIP-712 on the `Exchange` domain, chain ID 1337). The agent key signs on behalf of the user's wallet but is a separate keypair.
+
+### `setSigner` interface
+
+```typescript
+interface WalletSigner {
+  address: string;
+  signTypedData: (domain: unknown, types: unknown, value: unknown) => Promise<string>;
+}
+```
+
+This interface is compatible with viem's `walletClient.signTypedData` and any other EIP-712-capable signer.
+
+```typescript
+hip4.wallet.setSigner({
+  address: userAddress,
+  signTypedData: walletClient.signTypedData.bind(walletClient),
+});
+```
+
+## Methods
+
+| Method | Signing | Description |
+|--------|---------|-------------|
+| `setSigner(signer)` | — | Set the user's wallet for EIP-712 operations |
+| `buyUsdh(amount)` | L1 agent | Buy USDH on spot; priced at oracle × 1.1, IOC |
+| `sellUsdh(amount)` | L1 agent | Sell USDH on spot; priced at oracle × 0.9, IOC |
+| `transferToSpot(amount)` | EIP-712 | Transfer USDC from perp → spot |
+| `transferToPerps(amount)` | EIP-712 | Transfer USDC from spot → perp |
+| `withdraw({ destination, amount })` | EIP-712 | Withdraw USDC to an external address |
+| `usdSend({ destination, amount })` | EIP-712 | Send USDC to another Hyperliquid address |
+
+All amounts are strings representing USDC or USDH quantities with up to 6 decimal places (e.g. `"100"`, `"25.50"`).
+
+## `WalletActionResult`
+
+Every method returns a `Promise<WalletActionResult>`:
+
+```typescript
+interface WalletActionResult {
+  success: boolean;
+  error?: string;
+  filledSz?: string;   // spot orders only: filled size
+  avgPx?: string;      // spot orders only: average fill price
+}
+```
+
+Check `success` before reading `filledSz` and `avgPx`. These fields are only populated for `buyUsdh` and `sellUsdh`.
+
+## Deposit flow
+
+To fund a prediction account, transfer USDC from your perp balance to spot, then buy USDH on the spot market.
+
+```typescript
+// Step 1: Transfer USDC from perp to spot (EIP-712, user's wallet)
+const transfer = await hip4.wallet.transferToSpot("100");
+if (!transfer.success) {
+  throw new Error(`Transfer failed: ${transfer.error}`);
+}
+
+// Step 2: Buy USDH on the spot market (L1 agent signing)
+const buy = await hip4.wallet.buyUsdh("100");
+if (!buy.success) {
+  throw new Error(`Buy failed: ${buy.error}`);
+}
+
+console.log(`Bought ${buy.filledSz} USDH at avg price ${buy.avgPx}`);
+```
+
+## Withdraw flow
+
+To exit a prediction position and withdraw funds, sell USDH back to USDC, move it to your perp account, then withdraw.
+
+```typescript
+// Step 1: Sell USDH on the spot market (L1 agent signing)
+const sell = await hip4.wallet.sellUsdh("50");
+if (!sell.success) {
+  throw new Error(`Sell failed: ${sell.error}`);
+}
+
+// Step 2: Transfer USDC from spot to perp (EIP-712, user's wallet)
+const transfer = await hip4.wallet.transferToPerps("50");
+if (!transfer.success) {
+  throw new Error(`Transfer failed: ${transfer.error}`);
+}
+
+// Step 3: Withdraw USDC to an external address (EIP-712, user's wallet)
+const withdrawal = await hip4.wallet.withdraw({
+  destination: "0xYourExternalWalletAddress",
+  amount: "50",
+});
+if (!withdrawal.success) {
+  throw new Error(`Withdrawal failed: ${withdrawal.error}`);
+}
+```
+
+<Warning>
+  `buyUsdh` and `sellUsdh` require the agent to be initialized first. Call `hip4.auth.initAuth(walletAddress, agentSigner)` before invoking either method, or they will fail with a signing error.
+</Warning>
+
+<Warning>
+  `transferToSpot`, `transferToPerps`, `withdraw`, and `usdSend` require `setSigner` to be called first with the user's actual wallet. These operations use EIP-712 user signing and cannot use the agent key.
+</Warning>

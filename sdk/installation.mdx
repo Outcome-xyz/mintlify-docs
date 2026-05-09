@@ -1,0 +1,67 @@
+---
+title: "Install @outcomexyz/hip4-sdk: setup and entry points"
+description: "Add @outcomexyz/hip4-sdk to your TypeScript project and understand its two entry points, module formats, and compiler requirements."
+---
+
+The SDK is published to npm as `@outcomexyz/hip4-sdk`. It ships with full TypeScript types, supports both ESM and CommonJS, and has no runtime dependencies beyond your own project's dependencies.
+
+## Install
+
+<CodeGroup>
+
+```bash pnpm
+pnpm add @outcomexyz/hip4-sdk
+```
+
+```bash npm
+npm install @outcomexyz/hip4-sdk
+```
+
+```bash yarn
+yarn add @outcomexyz/hip4-sdk
+```
+
+</CodeGroup>
+
+Current version: **2.0.0**
+
+## Entry points
+
+The package exposes two entry points:
+
+| Entry point | Use when |
+|-------------|----------|
+| `@outcomexyz/hip4-sdk` | Importing the adapter, utility functions, and types in the same file |
+| `@outcomexyz/hip4-sdk/types` | Importing types only, without pulling in any runtime code |
+
+```typescript
+// Main entry — adapter, utilities, and types
+import { createHIP4Adapter, formatPrice, getMinShares } from "@outcomexyz/hip4-sdk";
+import type { DefaultBinaryMarket, PredictionOrderResult } from "@outcomexyz/hip4-sdk";
+
+// Types-only entry — useful in shared type packages or when tree-shaking matters
+import type { HIP4Market, MarketType } from "@outcomexyz/hip4-sdk/types";
+```
+
+## TypeScript requirements
+
+The SDK targets ES2020 and uses features such as optional chaining, nullish coalescing, and `BigInt`. Strict mode is recommended:
+
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true
+  }
+}
+```
+
+<Note>
+  The SDK has zero runtime dependencies. Installing it will not add any third-party packages to your `node_modules`.
+</Note>
+
+## Module format support
+
+The package ships both ESM (`.js`) and CommonJS (`.cjs`) builds. Your bundler or runtime will pick the right format automatically based on your project's `"type"` field and import syntax. No additional configuration is required.

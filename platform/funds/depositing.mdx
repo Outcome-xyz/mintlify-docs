@@ -1,0 +1,41 @@
+---
+title: "How to deposit USDC and convert to USDH for trading"
+description: "Fund your Outcome account by bridging USDC to Hyperliquid, moving it to your spot account, and converting it to USDH for prediction market trading."
+---
+
+To trade on Outcome, you need USDH — the collateral token used for all HIP-4 prediction markets on Hyperliquid. You can't trade directly with USDC; you first convert it to USDH through a short deposit flow. Once you have USDH in your spot account, you're ready to place orders.
+
+## The deposit flow
+
+<Steps>
+  <Step title="Bridge USDC to Hyperliquid">
+    If your USDC is on an external chain (Arbitrum, Ethereum, etc.), you'll need to bridge it to your Hyperliquid account first. This is done through Hyperliquid's own bridge at [app.hyperliquid.xyz](https://app.hyperliquid.xyz) — it's an external step outside the Outcome platform.
+
+    Once bridged, your USDC will appear in your **perp account** on Hyperliquid.
+  </Step>
+  <Step title="Transfer USDC from your perp account to your spot account">
+    Prediction market trading uses your **spot account**, not your perp account. In the Outcome platform, go to the **Wallet** or **Deposit** section and click **Transfer to Spot**. This moves your USDC from the perp side to the spot side of your Hyperliquid account.
+
+    You'll be prompted to sign an EIP-712 transaction with your wallet to authorize the transfer.
+  </Step>
+  <Step title="Buy USDH with your USDC">
+    With USDC in your spot account, click **Buy USDH**. The platform purchases USDH on your behalf on the Hyperliquid spot market at approximately the current USDC oracle price.
+
+    This step is signed automatically using the platform's agent key — you won't need to manually approve this transaction.
+  </Step>
+  <Step title="Start trading">
+    Your USDH balance now appears in your **Wallet** tab and is ready to use for prediction market orders. You can view your balance at any time from the wallet section of the platform.
+  </Step>
+</Steps>
+
+## Minimum deposit
+
+There is no platform-enforced minimum deposit amount, but keep in mind that individual orders require a minimum of $10 USDH notional. Depositing at least $10–$20 USDH ensures you can place at least one order without issues.
+
+## About USDH
+
+USDH is the collateral token for HIP-4 prediction markets on Hyperliquid. It is distinct from USDC and is only used within Hyperliquid's prediction market ecosystem. It is not transferable to external chains directly — to get your funds back to an external wallet, you'll need to follow the [withdrawal flow](/platform/funds/withdrawing).
+
+<Note>
+  USDH is purchased at approximately the USDC oracle price with a ±10% slippage tolerance built in. In practice, the swap executes at very close to 1:1 with USDC, since USDH is pegged to USDC. The slippage buffer ensures the order fills even in low-liquidity conditions.
+</Note>

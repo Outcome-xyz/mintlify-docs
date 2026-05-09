@@ -1,0 +1,71 @@
+---
+title: "Limit and market order types on Outcome explained"
+description: "Understand the difference between limit and market orders, how time-in-force options affect your order's behavior, and what each order status means."
+---
+
+Outcome supports two order types — limit and market — with several time-in-force options that control how long your order stays active. Choosing the right combination affects how quickly your order fills and the price you get.
+
+<Tabs>
+  <Tab title="Limit orders">
+    A limit order lets you specify the exact price you're willing to buy or sell at. Your order is placed on the Hyperliquid L1 orderbook and waits there until a counterparty matches your price.
+
+    **When to use a limit order:**
+    - You have a specific probability in mind and don't want to pay more than that.
+    - You want to provide liquidity and potentially pay lower maker fees.
+    - You're not in a rush and are comfortable waiting for a fill.
+
+    **Default behavior:** Limit orders use GTC (Good Til Cancelled) by default, meaning they stay on the book until filled or you manually cancel them.
+
+    **Pricing:** Your limit price must be between 0.00001 and 0.99999 and is rounded to 5 significant figures (for example, 0.65000). You'll see the exact rounded price before confirming.
+
+    Limit orders are the best choice for most traders. They give you price control and often result in better fills than market orders.
+  </Tab>
+  <Tab title="Market orders">
+    A market order executes immediately at the best available price in the orderbook. You don't set a price — the exchange fills your order against whatever resting orders are available.
+
+    **When to use a market order:**
+    - You need to enter or exit a position immediately.
+    - The market is liquid enough that slippage is acceptable.
+    - You're closing a position close to expiry and speed matters more than price.
+
+    **How it works:** Market orders on Outcome use the `FrontendMarket` time-in-force, which tells the Hyperliquid exchange to handle best-execution automatically. The exchange fills as much as possible at the best available prices.
+
+    **Slippage risk:** In markets with thin orderbooks, your market order may fill at prices significantly worse than the displayed mid-price. Always check the orderbook depth before using a market order for a large position.
+  </Tab>
+</Tabs>
+
+## Time-in-force options
+
+Time-in-force (TIF) controls what happens to your order if it can't fill immediately.
+
+| Option | Full name | Behavior |
+|--------|-----------|----------|
+| **GTC** | Good Til Cancelled | Stays on the book until fully filled or manually cancelled. Default for limit orders. |
+| **IOC** | Immediate or Cancel | Fills as much as possible immediately; any unfilled portion is cancelled. No resting on the book. |
+| **ALO** | Add Liquidity Only | The order is rejected entirely if it would immediately match against an existing order. Guarantees you act as a maker. |
+
+## Tick-aligned pricing
+
+All prices on Outcome are rounded to 5 significant figures. This is called tick-aligned pricing. Examples:
+
+- You enter **0.65** → submitted as **0.65000**
+- You enter **0.1234567** → rounded to **0.12346**
+- You enter **0.05** → submitted as **0.050000**
+
+The platform handles rounding automatically and shows you the final submitted price before you confirm.
+
+## Order status
+
+After you submit an order, it transitions through one of these states:
+
+| Status | Meaning |
+|--------|---------|
+| **Resting** | Your limit order is on the book, waiting for a counterparty to match your price. |
+| **Filled** | Your order was matched and executed. You now hold the tokens (for buys) or received USDH (for sells). |
+| **Cancelled** | Your order was removed — either you cancelled it manually, it expired per its TIF setting, or it couldn't fill under ALO rules. |
+
+You can view and cancel your resting orders from the **Orders** tab in the platform.
+
+<Tip>
+  For the best of both worlds, place a limit order at or very close to the current best ask (for buys) or best bid (for sells). You'll often get filled quickly while still benefiting from price control and avoiding market order slippage.
+</Tip>

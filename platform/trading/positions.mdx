@@ -1,0 +1,50 @@
+---
+title: "How to view and manage your prediction market positions"
+description: "See what outcome tokens you hold, track your unrealized P&L in real time, close positions before expiry, and review your recent trading history."
+---
+
+A position is any outcome token balance you currently hold. When you buy Yes or No tokens on a market, those tokens appear in your Positions tab with live price data, your entry cost, and how much you'd earn if the market resolves in your favor. You can close positions at any time by selling your tokens back on the market.
+
+## What a position is
+
+Outcome token positions are spot token balances on Hyperliquid — the same infrastructure that holds any other spot asset on the exchange. Each outcome token you hold is a distinct tradeable instrument representing one side of one prediction market.
+
+## Position details
+
+For each open position, the platform shows:
+
+| Field | Description |
+|-------|-------------|
+| **Outcome** | The name of the side you hold — for example, "Yes", "No", or a named outcome like "Hypurr". |
+| **Shares** | The number of tokens you hold in this position. |
+| **Average cost** | Your average entry price per token, calculated from your total entry notional divided by your total shares. |
+| **Current price** | The live mid-market price for this outcome token, updated in real time. |
+| **Unrealized P&L** | Your paper gain or loss based on the difference between your average cost and the current price, multiplied by your shares. |
+| **Potential payout** | Your maximum payout if this outcome wins: shares × $1.00 USDH. |
+
+## Closing a position
+
+You have two ways to exit a position:
+
+**Sell before expiry** — Place a sell order (limit or market) on the same market to sell some or all of your tokens. This lets you lock in a gain if the price has moved in your favor, or cut a loss if sentiment has shifted against you. The proceeds go back to your USDH balance immediately when the order fills.
+
+**Hold to resolution** — If you hold tokens through expiry and the market resolves in your favor, your winning tokens are redeemable for $1.00 USDH each. Redemption is handled by the platform as part of the settlement process. Losing tokens expire worthless — no action is needed on your part.
+
+## Activity history
+
+The **Activity** tab shows your last 30 days of trades across all prediction markets. Each record includes:
+
+- Trade type (buy, sell, or redemption)
+- Market and outcome traded
+- Price and size
+- Timestamp
+
+This covers all fills from the past 30 days but does not include positions from before that window.
+
+<Note>
+  Your positions are held as spot token balances on Hyperliquid, not as derivatives positions. This means they appear in your Hyperliquid spot account, not your perpetuals account, and are not subject to margin or liquidation.
+</Note>
+
+<Tip>
+  Keep a close eye on positions as they approach expiry. If you want to exit before resolution — for example, to lock in a gain or avoid a potential loss — you'll need to sell before the market stops trading at its scheduled expiry time. Once expiry passes, you can no longer sell on the market and must wait for settlement.
+</Tip>
