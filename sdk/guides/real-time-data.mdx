@@ -7,7 +7,7 @@ description: "Subscribe to live order book updates, price ticks, and trade strea
 The SDK maintains a single shared WebSocket connection to Hyperliquid and multiplexes all subscriptions over it. You subscribe to a market, receive a callback on every update, and call the returned unsubscribe function when you're done. Reconnection and subscription restoration happen automatically in the background.
 
 <Note>
-  All subscriptions—order book, price, and trades—share one WebSocket connection. Opening multiple subscriptions does not open multiple connections.
+  All subscriptions-order book, price, and trades-share one WebSocket connection. Opening multiple subscriptions does not open multiple connections.
 </Note>
 
 ## Subscribe to the order book
@@ -25,7 +25,7 @@ const unsub = hip4.marketData.subscribeOrderBook("516", (book) => {
   console.log("Asks:", book.asks.slice(0, 3));
 });
 
-// Later — stop receiving updates
+// Later - stop receiving updates
 unsub();
 ```
 
@@ -51,7 +51,7 @@ unsub();
 
 ```typescript
 const unsub = hip4.marketData.subscribeTrades("516", (trade) => {
-  console.log(`${trade.side} ${trade.size} @ ${trade.price} — ${new Date(trade.timestamp).toISOString()}`);
+  console.log(`${trade.side} ${trade.size} @ ${trade.price} - ${new Date(trade.timestamp).toISOString()}`);
 });
 
 // Stop when done
@@ -83,9 +83,9 @@ const unsub = createPriceFeed(
     console.log("Current mid:", snap.currentMid);
   },
   {
-    interval:   "1h",              // candle interval — default: "1h"
-    lookbackMs: 7 * 24 * 60 * 60 * 1000, // 7 days of history — default: 14 days
-    sideIndex:  0,                 // 0 = Yes side, 1 = No side — default: 0
+    interval:   "1h",              // candle interval - default: "1h"
+    lookbackMs: 7 * 24 * 60 * 60 * 1000, // 7 days of history - default: 14 days
+    sideIndex:  0,                 // 0 = Yes side, 1 = No side - default: 0
   },
 );
 
@@ -99,7 +99,7 @@ unsub();
 |-------|------|---------|-------------|
 | `interval` | `string` | `"1h"` | Candle interval accepted by Hyperliquid (e.g. `"1m"`, `"5m"`, `"1h"`, `"1d"`) |
 | `lookbackMs` | `number` | 14 days | How far back to fetch historical candles, in milliseconds |
-| `sideIndex` | `number` | `0` | Which side to track — `0` for Yes, `1` for No |
+| `sideIndex` | `number` | `0` | Which side to track - `0` for Yes, `1` for No |
 
 ### PriceFeedSnapshot
 

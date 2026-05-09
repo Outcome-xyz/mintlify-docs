@@ -1,0 +1,63 @@
+---
+title: "Markets on Outcome: probability, prices, and payouts"
+sidebarTitle: "Markets overview"
+description: "How prediction markets work on Outcome - outcome tokens trade as probability between 0 and 1, winning shares pay 1 USDH at resolution, losing shares go to zero."
+---
+
+A market on Outcome is a question with a definitive answer and a price for each possible answer. You trade on probability: every outcome token is a contract that pays exactly **1 USDH** if its outcome wins and **0 USDH** if it doesn't. The current price is the market's collective probability estimate.
+
+## How prices work
+
+Outcome tokens are priced between **0** and **1** - interpret the price directly as a probability:
+
+- A Yes priced at **0.65** implies the market thinks there's a **65% chance** the event happens.
+- The matching No would price near **0.35** (binary outcomes roughly sum to 1, modulo spread and basis).
+- Prices float freely between **0.0001** (near impossibility) and **0.9999** (near certainty) based on supply and demand on the orderbook.
+
+Two corollaries fall out of this:
+
+1. Buy a Yes at `p`, hold to a Yes resolution → realised return per token = `(1 − p) / p`.
+2. Buy a Yes at `p`, hold to a No resolution → realised loss per token = `p`.
+
+Your maximum profit per token is `1 − price`. Your maximum loss per token is `price`. No leverage, no liquidations - outcome tokens are pre-collateralised by their counterparty's offsetting share.
+
+## Taking a position
+
+| You believe                                   | Action                              |
+| --------------------------------------------- | ----------------------------------- |
+| Outcome is more likely than the price implies | **Buy Yes**                         |
+| Outcome is less likely than the price implies | **Buy No**                          |
+| The market overshot - sentiment will revert   | Sell at the new price before expiry |
+
+You can sell at any time before expiry to lock in P&L. If you don't, your position settles automatically at resolution: winning tokens redeem for 1 USDH each, losing tokens expire worthless. There's no margin call, no early-close penalty - the only cost of holding is opportunity cost on the USDH locked in the position.
+
+## Payouts at resolution
+
+Every market resolves to exactly one winning outcome. At resolution:
+
+- **Winning Yes tokens** redeem for **1 USDH** each.
+- **Winning No tokens** of any outcome that _didn't_ win also resolve to 1 USDH each (every losing outcome's No is a winner - see the [HIP-4 protocol](/concepts/hip4) page for why).
+- **Losing tokens** expire worthless.
+
+This is why the bundle equivalence `Yes + No = 1` works: holding both legs of an outcome is equivalent to holding 1 USDH no matter what resolves.
+
+## What you can trade
+
+Outcome supports four market types - each with its own structure and trading rhythm. The full breakdown is in [Market types](/markets/types):
+
+- **Recurring price binary** - auto-generated "BTC > $X by Y" markets, refreshed every 15m / 1h / 1d.
+- **Labelled binary** - standalone Yes/No markets with custom side names ("Hypurr" vs "Usain Bolt").
+- **Multi-outcome** - questions with three or more named outcomes plus a fallback.
+- **Price bucket** - recurring multi-outcome markets across a sequence of price ranges.
+
+For the lifecycle (open → trade → expire → resolve → settle), see [Market lifecycle](/markets/lifecycle).
+
+## Network and execution
+
+All trading happens on **Hyperliquid L1**. Orders match in the same on-chain orderbook that powers Hyperliquid perps:
+
+- **Fast finality** - settlement in the L1 block, no confirmations to wait through.
+- **No gas fees on trades** - only the Hyperliquid maker/taker spread applies.
+- **Same authentication as perps** - agent keys sign every order silently after one-time approval.
+
+For the full picture of how this all sits inside Hyperliquid, see [Hyperliquid](/concepts/hyperliquid-hip4).

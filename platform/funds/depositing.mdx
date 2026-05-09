@@ -1,42 +1,71 @@
 ---
-title: "How to deposit USDC and convert to USDH for trading"
+title: "Fund your account: deposit crypto or cash, get USDH"
 sidebarTitle: "Depositing"
-description: "Fund your Outcome account by bridging USDC to Hyperliquid, moving it to your spot account, and converting it to USDH for prediction market trading."
+description: "Deposit crypto from any chain via Across, or cash via Meld. Outcome converts to USDH on HyperCore automatically - no manual chain hops, no manual spot transfer, no manual swap."
 ---
 
-To trade on Outcome, you need USDH — the collateral token used for all HIP-4 prediction markets on Hyperliquid. You can't trade directly with USDC; you first convert it to USDH through a short deposit flow. Once you have USDH in your spot account, you're ready to place orders.
+USDH is the underlying asset for every existing HIP-4 market. To trade, you need USDH on the **HyperCore spot side** of your Hyperliquid account. Outcome's funding flow handles every step of getting you there - bridge in, transfer to spot, buy USDH - through two integrated providers.
 
-## The deposit flow
+## Sign in first
+
+Outcome auth runs through **Privy**. Two paths today:
+
+- **Wallet** - connect MetaMask, Rabby, or any EVM wallet via WalletConnect.
+- **Email or SSO** - Privy provisions a wallet for you under the hood. No extension to install, no seed phrase to manage upfront. Use email-OTP or any of Privy's SSO providers.
+
+Smart-wallet support (account abstraction, gasless flows, batched transactions) is coming.
+
+## Two ways to deposit
+
+| Provider   | What it handles | Source                                                                                                                         |
+| ---------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Across** | Crypto deposits | Bridge USDC (or supported assets) from Ethereum, Arbitrum, Base, Optimism, Polygon, and other supported chains to Hyperliquid. |
+| **Meld**   | Cash deposits   | Buy USDC with card, bank transfer, Apple Pay, and other fiat methods.                                                          |
+
+Either path arrives at the same endpoint: USDH in your spot account, ready to trade HIP-4 markets.
+
+## The flow
 
 <Steps>
-  <Step title="Bridge USDC to Hyperliquid">
-    If your USDC is on an external chain (Arbitrum, Ethereum, etc.), you'll need to bridge it to your Hyperliquid account first. This is done through Hyperliquid's own bridge at [app.hyperliquid.xyz](https://app.hyperliquid.xyz) — it's an external step outside the Outcome platform.
-
-    Once bridged, your USDC will appear in your **perp account** on Hyperliquid.
+  <Step title="Sign in">
+    Connect a wallet, or sign in with email / SSO via Privy.
   </Step>
-  <Step title="Transfer USDC from your perp account to your spot account">
-    Prediction market trading uses your **spot account**, not your perp account. In the Outcome platform, go to the **Wallet** or **Deposit** section and click **Transfer to Spot**. This moves your USDC from the perp side to the spot side of your Hyperliquid account.
-
-    You'll be prompted to sign an EIP-712 transaction with your wallet to authorize the transfer.
+  <Step title="Pick a deposit method">
+    In the Wallet section, choose **Crypto** (Across) or **Cash** (Meld).
   </Step>
-  <Step title="Buy USDH with your USDC">
-    With USDC in your spot account, click **Buy USDH**. The platform purchases USDH on your behalf on the Hyperliquid spot market at approximately the current USDC oracle price.
+  <Step title="Send funds">
+    For crypto: pick the source chain and asset, sign a bridge transaction with your wallet. Across handles the cross-chain delivery to your Hyperliquid account.
 
-    This step is signed automatically using the platform's agent key — you won't need to manually approve this transaction.
+    For cash: enter the amount and payment method, complete the Meld checkout flow.
+
   </Step>
-  <Step title="Start trading">
-    Your USDH balance now appears in your **Wallet** tab and is ready to use for prediction market orders. You can view your balance at any time from the wallet section of the platform.
+  <Step title="Outcome converts to USDH automatically">
+    Funds land on Hyperliquid. Outcome moves them across to HyperCore spot and buys USDH on your behalf. No manual transfer-to-spot step, no manual buy-USDH step.
+  </Step>
+  <Step title="Trade">
+    USDH balance shows up in your Wallet tab. Place orders against any HIP-4 market.
   </Step>
 </Steps>
 
-## Minimum deposit
+## Why USDH
 
-There is no platform-enforced minimum deposit amount, but keep in mind that individual orders require a minimum of $10 USDH notional. Depositing at least $10–$20 USDH ensures you can place at least one order without issues.
+USDH is the collateral token for every existing HIP-4 market. Buying or selling outcome tokens means moving USDH in and out of your spot balance. You can't trade HIP-4 directly with USDC - you need USDH.
 
-## About USDH
+USDH ≈ USDC at the oracle price. The peg is very tight in practice, and HIP-4 markets settle in USDH at exactly **1 USDH per winning share**, independent of any short-term USDC drift.
 
-USDH is the collateral token for HIP-4 prediction markets on Hyperliquid. It is distinct from USDC and is only used within Hyperliquid's prediction market ecosystem. It is not transferable to external chains directly — to get your funds back to an external wallet, you'll need to follow the [withdrawal flow](/platform/funds/withdrawing).
+## Minimums and fees
 
-<Note>
-  USDH is purchased at approximately the USDC oracle price with a ±10% slippage tolerance built in. In practice, the swap executes at very close to 1:1 with USDC, since USDH is pegged to USDC. The slippage buffer ensures the order fills even in low-liquidity conditions.
-</Note>
+- **Outcome** doesn't charge a deposit fee. The only fees you pay are the provider's (Across' bridge fee or Meld's fiat-processing fee) and Hyperliquid's standard maker/taker on the spot leg of the USDH purchase.
+- **Each provider has its own minimums** - Across has a gas-economic floor, Meld has fiat-amount thresholds.
+- **HIP-4 orders require $10 minimum notional**, so deposit at least enough to make multiple orders comfortably.
+
+## What's happening under the hood
+
+Hyperliquid is dual-chain:
+
+- **HyperCore** - the L1 with the on-chain orderbook. Spot trading and HIP-4 outcomes live here.
+- **HyperEVM** - the EVM-compatible chain. Perps and HIP-3 live here.
+
+A USDC deposit from an external chain doesn't automatically land on HyperCore spot - it lands on the perps/EVM side and needs to be transferred. Outcome's Across + Meld integration absorbs all of that. From the user's perspective, you deposit and you have USDH; the chain plumbing happens behind the scenes.
+
+For the architecture overview, see [Hyperliquid and HIP-4](/concepts/hyperliquid-hip4).

@@ -1,16 +1,16 @@
 ---
-title: "Account Adapter Reference — Positions and Activity"
+title: "Account Adapter Reference - Positions and Activity"
 sidebarTitle: "Account"
 description: "Reference for PredictionAccountAdapter: read positions, 30-day trade history, balances, and open orders for any wallet, plus subscribe to updates via polling."
 ---
 
-The Account Adapter (`adapter.account`) gives you read access to a wallet's state on HIP-4 prediction markets. You can fetch open positions (held outcome tokens), the last 30 days of trade activity, raw spot balances including USDH, and currently resting orders. You can also subscribe to live position updates, which the adapter delivers by polling every 10 seconds — there is no WebSocket channel for spot balances on Hyperliquid. All methods accept a wallet `address` parameter, so you can query any account without authentication.
+The Account Adapter (`adapter.account`) gives you read access to a wallet's state on HIP-4 prediction markets. You can fetch open positions (held outcome tokens), the last 30 days of trade activity, raw spot balances including USDH, and currently resting orders. You can also subscribe to live position updates, which the adapter delivers by polling every 10 seconds - there is no WebSocket channel for spot balances on Hyperliquid. All methods accept a wallet `address` parameter, so you can query any account without authentication.
 
 ---
 
 ## `fetchPositions(address)`
 
-Returns a wallet's open HIP-4 positions. Positions are derived from the spot clearinghouse state — each non-zero outcome token balance becomes a `PredictionPosition`. Midpoint prices are fetched in parallel to populate `currentPrice` and `unrealizedPnl`.
+Returns a wallet's open HIP-4 positions. Positions are derived from the spot clearinghouse state - each non-zero outcome token balance becomes a `PredictionPosition`. Midpoint prices are fetched in parallel to populate `currentPrice` and `unrealizedPnl`.
 
 ```typescript
 const positions = await adapter.account.fetchPositions("0xYourAddress");
@@ -93,7 +93,7 @@ for (const pos of positions) {
 
 ## `fetchActivity(address)`
 
-Returns the last 30 days of trade fills for outcome coins held by the wallet. The response is sorted newest-first. Only fills for HIP-4 outcome coins are included — regular spot trades are filtered out.
+Returns the last 30 days of trade fills for outcome coins held by the wallet. The response is sorted newest-first. Only fills for HIP-4 outcome coins are included - regular spot trades are filtered out.
 
 ```typescript
 const activity = await adapter.account.fetchActivity("0xYourAddress");
@@ -177,7 +177,7 @@ const balances = await adapter.account.fetchBalance("0xYourAddress");
 
 ### Return type
 
-`Promise<HLSpotClearinghouseState>` — an object with a `balances` array. Each balance entry contains:
+`Promise<HLSpotClearinghouseState>` - an object with a `balances` array. Each balance entry contains:
 
 | Field      | Type     | Description                               |
 |------------|----------|-------------------------------------------|
@@ -217,7 +217,7 @@ const orders = await adapter.account.fetchOpenOrders("0xYourAddress");
 
 ### Return type
 
-`Promise<HLFrontendOrder[]>` — each order contains:
+`Promise<HLFrontendOrder[]>` - each order contains:
 
 | Field       | Type            | Description                                        |
 |-------------|-----------------|----------------------------------------------------|
@@ -225,7 +225,7 @@ const orders = await adapter.account.fetchOpenOrders("0xYourAddress");
 | `side`      | `"B"` \| `"A"` | `"B"` = buy, `"A"` = sell (ask)                    |
 | `limitPx`   | `string`        | Limit price                                        |
 | `sz`        | `string`        | Remaining unfilled size                            |
-| `oid`       | `number`        | Order ID — use this in `cancelOrder`               |
+| `oid`       | `number`        | Order ID - use this in `cancelOrder`               |
 | `timestamp` | `number`        | Order creation time in milliseconds                |
 | `origSz`    | `string`        | Original order size                                |
 | `orderType` | `string`        | Order type label                                   |
@@ -261,7 +261,7 @@ await adapter.trading.cancelOrder(cancels);
 
 ## `subscribePositions(address, cb)`
 
-Starts polling the wallet's positions every 10 seconds and delivers updates to your callback. Each poll makes two API calls — `spotClearinghouseState` and `allMids`. Errors during a poll are silently swallowed and the polling continues.
+Starts polling the wallet's positions every 10 seconds and delivers updates to your callback. Each poll makes two API calls - `spotClearinghouseState` and `allMids`. Errors during a poll are silently swallowed and the polling continues.
 
 There is no WebSocket channel for spot balances on Hyperliquid, so polling is the only mechanism available.
 
@@ -291,7 +291,7 @@ unsubscribe();
 
 ### Return type
 
-`Unsubscribe` — a `() => void` function. Call it to stop the polling loop.
+`Unsubscribe` - a `() => void` function. Call it to stop the polling loop.
 
 <Note>
   The polling interval is fixed at 10 seconds. The first delivery occurs after the initial 10-second delay, not immediately on subscription. If you need the current positions right away, call `fetchPositions()` directly first, then subscribe.

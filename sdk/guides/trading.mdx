@@ -4,7 +4,7 @@ sidebarTitle: "Trading"
 description: "Authenticate an agent key, place limit and market orders, handle results, cancel resting orders, and understand pricing and fee rules for HIP-4 trading."
 ---
 
-Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetch the market and side you want to trade, place the order, and inspect the result. The SDK handles signing, tick alignment, and notional validation automatically—`placeOrder` never throws, so you can always branch on `result.success`.
+Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetch the market and side you want to trade, place the order, and inspect the result. The SDK handles signing, tick alignment, and notional validation automatically-`placeOrder` never throws, so you can always branch on `result.success`.
 
 <Warning>
   You must call `hip4.auth.initAuth` before placing or cancelling any orders. Attempting to trade without authentication will return `{ success: false, error: "auth not initialized" }`.
@@ -104,7 +104,7 @@ const result = await hip4.trading.placeOrder({
 });
 
 if (result.success) {
-  console.log(`Filled ${result.shares ?? "?"} shares — status: ${result.status}`);
+  console.log(`Filled ${result.shares ?? "?"} shares - status: ${result.status}`);
 } else {
   console.error("Failed:", result.error);
 }
@@ -141,22 +141,22 @@ await hip4.trading.cancelOrder([
 | `timeInForce` | `"GTC" \| "GTD" \| "FOK" \| "FAK"` | No | Default: `"GTC"` |
 | `markPx` | `number` | No | Current mark price; enables min-shares validation |
 | `builderAddress` | `string` | No | Builder referral address (required when using `builderFee`) |
-| `builderFee` | `number` | No | Fee in tenths of basis points — `100` = 0.1% |
+| `builderFee` | `number` | No | Fee in tenths of basis points - `100` = 0.1% |
 
 ## Pricing rules
 
-**Tick-aligned prices** — limit order prices are rounded to 5 significant figures before signing. For example, `0.55001` becomes `0.55001` and `0.550012` becomes `0.55001`. You don't need to pre-format prices yourself.
+**Tick-aligned prices** - limit order prices are rounded to 5 significant figures before signing. For example, `0.55001` becomes `0.55001` and `0.550012` becomes `0.55001`. You don't need to pre-format prices yourself.
 
-**Min-notional** — orders below 10 USDH notional value are rejected client-side before the order is signed or sent. Notional is calculated as `price × amount`. Pass `markPx` to enable this check; omit it to skip it.
+**Min-notional** - orders below 10 USDH notional value are rejected client-side before the order is signed or sent. Notional is calculated as `price × amount`. Pass `markPx` to enable this check; omit it to skip it.
 
 ## Time-in-force options
 
 | Value | Behaviour |
 |-------|-----------|
-| `GTC` | Good Til Cancelled — default for limit orders; rests on the book until filled or cancelled |
-| `GTD` | Good Til Date — currently behaves like GTC (expiration field accepted but not enforced by the exchange) |
-| `FOK` | Fill or Kill — mapped to IOC; may result in partial fills |
-| `FAK` | Fill and Kill — mapped to IOC |
+| `GTC` | Good Til Cancelled - default for limit orders; rests on the book until filled or cancelled |
+| `GTD` | Good Til Date - currently behaves like GTC (expiration field accepted but not enforced by the exchange) |
+| `FOK` | Fill or Kill - mapped to IOC; may result in partial fills |
+| `FAK` | Fill and Kill - mapped to IOC |
 
 Market orders always use `FrontendMarket` regardless of the `timeInForce` field.
 

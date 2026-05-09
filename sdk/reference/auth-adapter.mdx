@@ -1,5 +1,5 @@
 ---
-title: "Auth Adapter Reference — Agent Key and initAuth"
+title: "Auth Adapter Reference - Agent Key and initAuth"
 sidebarTitle: "Auth"
 description: "Approve an ephemeral agent keypair, initialize the auth adapter, and check authentication state before placing orders or executing USDH spot trades."
 ---
@@ -133,11 +133,11 @@ const hip4 = createHIP4Adapter({ testnet: false });
 await hip4.initialize();
 await hip4.auth.initAuth(userAddress, agent);
 
-// Auth is now ready — place orders without prompting the user
+// Auth is now ready - place orders without prompting the user
 console.log(hip4.auth.getAuthStatus());
 // { status: "ready", address: "0xUserWalletAddress" }
 ```
 
 <Note>
-  The agent's address differs from the user's wallet address. The SDK does not validate that they match — this is intentional, since the agent signs on behalf of the user.
+  The agent's address differs from the user's wallet address. The SDK does not validate that they match - this is intentional, since the agent signs on behalf of the user.
 </Note>

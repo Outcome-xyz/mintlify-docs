@@ -1,7 +1,7 @@
 ---
 title: "How to fetch and filter HIP-4 prediction markets"
 sidebarTitle: "Fetch markets"
-description: "Query, filter, group, and paginate HIP-4 markets by type—defaultBinary, labelledBinary, multiOutcome, and priceBucket—using the events adapter."
+description: "Query, filter, group, and paginate HIP-4 markets by type-defaultBinary, labelledBinary, multiOutcome, and priceBucket-using the events adapter."
 ---
 
 The events adapter gives you structured access to every HIP-4 prediction market on Hyperliquid. Markets are returned as typed objects with pre-computed coin identifiers so you can go straight from discovery to trading without any manual ID mapping.
@@ -118,7 +118,7 @@ m.expiry;            // Date (UTC)
 m.period;            // "1d"
 
 m.sides[0].name;     // "Yes"
-m.sides[0].coin;     // "#5160"  — use this in placeOrder
+m.sides[0].coin;     // "#5160"  - use this in placeOrder
 m.sides[0].asset;    // 100005160
 m.sides[1].name;     // "No"
 m.sides[1].coin;     // "#5161"
@@ -128,7 +128,7 @@ m.raw;               // original HLOutcome for direct API access
 
 ## Fetch events and categories
 
-Markets belong to events. You can query at the event level when you need the full context—title, description, volume, status, and the markets list together.
+Markets belong to events. You can query at the event level when you need the full context-title, description, volume, status, and the markets list together.
 
 ```typescript
 // All events
@@ -148,7 +148,7 @@ const event = await hip4.events.fetchEvent("q42");
 
 // Available categories
 const categories = await hip4.events.fetchCategories();
-// [{ id, name, slug }] — "custom" and "recurring"
+// [{ id, name, slug }] - "custom" and "recurring"
 ```
 
 <Note>

@@ -1,48 +1,60 @@
 ---
-title: "How to withdraw USDH and USDC to an external wallet"
+title: "Withdraw to crypto or cash"
 sidebarTitle: "Withdrawing"
-description: "Convert your USDH back to USDC, move it from your spot account to your perp account, and withdraw to an external wallet address — step by step."
+description: "Off-ramp through the same two providers that handle deposits - Across for crypto withdrawals to any supported chain, Meld for cash withdrawals to bank or card. Outcome handles the USDH-to-USDC swap and the cross-chain hop automatically."
 ---
 
-When you're ready to take funds off the platform, you work through a four-step process: sell your USDH back to USDC, move it to your perp account, and then withdraw to your external wallet. Each step requires a wallet signature to authorize. The whole process typically completes within a few minutes once the Hyperliquid network processes each action.
+Withdrawals use the same two providers as deposits, in reverse. Pick how you want to receive funds, and Outcome handles the USDH → USDC swap on HyperCore spot, the cross-chain transfer to wherever the provider needs it, and the off-ramp itself.
+
+## Two ways to withdraw
+
+| Provider | What it handles | Destination |
+|---|---|---|
+| **Across** | Crypto withdrawals | Bridge USDC (or supported assets) to Ethereum, Arbitrum, Base, Optimism, Polygon, or any other supported chain. |
+| **Meld** | Cash withdrawals | Off-ramp to bank account, card, or other fiat methods. |
+
+You don't need to manually convert USDH to USDC, manually transfer between accounts, or manually trigger a Hyperliquid bridge withdrawal. Outcome composes those steps under the chosen provider.
 
 ## Before you withdraw
 
-Cancel any open orders and close any positions you don't want to hold. Open orders lock up USDH as collateral — if you try to withdraw while orders are pending, you may not have enough free balance to cover the full withdrawal amount.
+Cancel any open orders and close any positions you don't want to hold. Open orders lock USDH as collateral - if you try to withdraw while orders are pending, you may not have enough free balance to cover the full withdrawal.
 
 <Warning>
-  Cancel all open orders before starting the withdrawal process. Outstanding orders reserve USDH from your balance, and those funds won't be available to withdraw until the orders are cancelled or filled.
+  Cancel all open orders before starting the withdrawal flow. Outstanding orders reserve USDH from your balance, and reserved USDH isn't available to withdraw.
 </Warning>
 
-## The withdrawal flow
+## The flow
 
 <Steps>
-  <Step title="Close your open positions">
-    Sell any outcome tokens you hold before withdrawing. Go to the **Positions** tab, and for each position, place a sell order (market or limit) to convert your tokens back to USDH. Wait for the orders to fill before proceeding.
+  <Step title="Close positions and cancel open orders">
+    From the **Positions** and **Orders** views, sell your outcome tokens (or use [merge outcome / merge question](/platform/trading/converting) where applicable) and cancel any resting orders. Wait for everything to settle into free USDH.
   </Step>
-  <Step title="Sell USDH back to USDC">
-    In the **Wallet** section, click **Sell USDH**. The platform sells your USDH on the Hyperliquid spot market and returns USDC to your spot account, at approximately the current USDC oracle price.
+  <Step title="Pick a withdrawal method">
+    In the Wallet section, choose **Crypto** (Across) or **Cash** (Meld), and enter how much USDH you want to off-ramp.
+  </Step>
+  <Step title="Outcome converts USDH to USDC automatically">
+    The platform sells USDH on the HyperCore spot market, moves the USDC across to wherever the provider needs it, and hands off to the bridge or off-ramp. You sign one approval; the rest is composed.
+  </Step>
+  <Step title="Receive funds">
+    For crypto: Across delivers USDC (or your chosen asset) to your destination address on the chosen chain. For cash: Meld processes the off-ramp to your bank or card.
 
-    This step is signed using the platform's agent key — no manual wallet approval is needed.
-  </Step>
-  <Step title="Transfer USDC to your perp account">
-    Click **Transfer to Perps** to move your USDC from your spot account back to your perp account. You'll be prompted to sign an EIP-712 transaction with your wallet to authorize this transfer.
-  </Step>
-  <Step title="Withdraw to your external wallet">
-    Click **Withdraw** and enter the destination wallet address. Confirm the amount and sign the EIP-712 withdrawal transaction with your wallet. Hyperliquid will process the withdrawal and send USDC to your external address.
-
-    Funds typically arrive within a few minutes, depending on Hyperliquid's withdrawal processing queue.
+    Settlement times depend on the provider and destination - typically minutes for Across, longer for fiat rails depending on the method.
   </Step>
 </Steps>
 
-## Signing requirements
-
-Each step in the withdrawal flow that involves moving funds requires you to sign an EIP-712 typed data message with your connected wallet. This is a gasless signature — you're not paying a gas fee for each step, but you do need to approve each action in your wallet app.
-
 ## Sending to another Hyperliquid address
 
-If you want to send USDC to another Hyperliquid account instead of withdrawing to an external wallet, use the **Send** feature. This is the `usdSend` action — it transfers USDC directly to another Hyperliquid address without going through the full bridge withdrawal. It's faster and doesn't involve the external withdrawal queue.
+If the destination is another Hyperliquid account (not an external wallet or fiat account), use the **Send** action instead. That's a direct on-chain transfer - faster than a withdrawal because it doesn't involve the bridge or any external rail.
+
+## Fees
+
+- **Outcome** doesn't charge a withdrawal fee.
+- **Across** charges a small bridge fee (varies by source chain and amount).
+- **Meld** charges a processing fee on fiat off-ramps (varies by method and region).
+- **Hyperliquid** maker/taker fee applies to the USDH → USDC spot swap.
+
+The Wallet UI shows total fees before you confirm.
 
 <Tip>
-  Before starting the withdrawal, check your USDH balance in the Wallet tab to confirm you know the full amount available. This avoids surprises if some USDH is reserved by open orders.
+  Check your free USDH balance in the Wallet tab before starting the withdrawal. Open orders and unconverted positions reduce free balance even if your total balance looks higher.
 </Tip>

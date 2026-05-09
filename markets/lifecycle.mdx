@@ -1,0 +1,66 @@
+---
+title: "Market lifecycle: open, trade, expire, resolve, settle"
+sidebarTitle: "Market lifecycle"
+description: "The five phases of a HIP-4 market - opening, price discovery, expiry, resolution, settlement - and what happens to your positions and orders at each step."
+---
+
+Every market on Outcome moves through five phases. Most of the time you only care about phase two (trading), but the others matter when an expiry is near or a position is still open.
+
+<Steps>
+  <Step title="Open">
+    Trading begins. Initial prices come from the protocol's seeding (for recurring markets) or from operator-set initial liquidity (for one-offs). Limit and market orders are accepted from the first block. Positions can be entered, exited, or rolled freely.
+  </Step>
+
+  <Step title="Price discovery">
+    Traders take positions; prices float to reflect the implied probability. Spreads tighten as more orders rest on the book. The orderbook is the same Hyperliquid L1 orderbook that powers perps - fast finality, no gas on trades, agent-key signing.
+
+    Most of a market's life is spent in this phase. For recurring markets it can be minutes; for long-dated standalone markets it can be months.
+  </Step>
+
+  <Step title="Expiry">
+    At the scheduled expiry timestamp, the market stops accepting new orders. Open orders are cancelled by the protocol - no need to manually cancel anything. Positions are locked in: whatever you hold at expiry is what gets settled.
+
+    For recurring markets, the next instance opens around the same time, so there's typically no gap in tradable inventory.
+  </Step>
+
+  <Step title="Resolution">
+    The protocol determines the winning outcome. The mechanism depends on the market type:
+
+    - **`defaultBinary` and `priceBucket`** - automatic, against the underlying's oracle price at the expiry timestamp.
+    - **`labelledBinary` and `multiOutcome`** - depends on the event. Could be oracle-based (sports score feed), DAO-decided, or operator-attested.
+
+    Resolution is a single on-chain action that names the winning outcome. Once resolved, the result is final - no disputed-outcome state, no resubmission window at the protocol level.
+  </Step>
+
+  <Step title="Settlement">
+    Winning tokens become redeemable for **1 USDH each**. Losing tokens go to zero. Settlement is a balance-update against your spot account - instant, no claim transaction needed, no on-chain redemption flow.
+
+    From settlement onwards, the USDH is in your spot balance and can be re-entered into any other market, sold to USDC and withdrawn, or used as collateral for a new conversion via [split](/platform/trading/converting).
+  </Step>
+</Steps>
+
+## What this means for your positions
+
+| Position state at expiry | What happens |
+|---|---|
+| Held the winning Yes (or losing No) | Pays 1 USDH per token at settlement. |
+| Held the losing Yes (or winning No on a losing outcome) | Tokens expire worthless. |
+| Held both Yes and No on the same outcome | Net pays 1 USDH per pair regardless of resolution - the bundle equivalence holds. Use [merge outcome](/platform/trading/converting) to collapse this to USDH any time before expiry rather than waiting. |
+| Held the full Yes-bundle across a question | Pays 1 USDH per bundle. Use [merge question](/platform/trading/converting) to redeem before expiry. |
+| Held an open limit order that didn't fill | Cancelled at expiry, no action required. |
+
+## What this means for your orders
+
+- **Limit orders** rest until filled, cancelled, or expired with the market. They don't roll to a new instance.
+- **Market orders** match immediately during phase 2, never carry into expiry.
+- **Modify orders** preserve queue priority when only size changes (Hyperliquid behaviour) - useful for tightening positions as you near expiry.
+
+## Fees across the lifecycle
+
+Trades during phase 2 incur Hyperliquid's standard maker/taker fees. **Conversions** (split, merge, negate) are protocol-level equivalences - no fee, no slippage, no spread. **Settlement** is automatic and free.
+
+If a builder fee is configured on your interface, it's added on top of the exchange fee and shown explicitly in the order preview before signing. See the [Trading adapter reference](/sdk/reference/trading-adapter) for builder-fee parameters.
+
+<Note>
+  Settlement happens in USDH. To convert back to USDC for withdrawal, see [Withdrawing](/platform/funds/withdrawing).
+</Note>

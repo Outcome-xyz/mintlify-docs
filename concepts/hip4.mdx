@@ -1,0 +1,77 @@
+---
+title: "HIP-4 protocol: outcomes, questions, and USDH"
+sidebarTitle: "HIP-4 protocol"
+description: "How HIP-4 represents outcomes on Hyperliquid L1: the question/outcome hierarchy, Yes and No tokens, USDH collateral, agent-key signing, and the four protocol-level conversion primitives that make the stack composable."
+---
+
+HIP-4 is Hyperliquid's outcomes protocol - prediction markets at face value, a modular primitive stack underneath. This page covers the asset model, the authentication model, and the four conversion primitives - enough to understand what every Outcome action is doing on the wire and why the same handful of primitives compose into a much wider surface area than a typical prediction-market venue.
+
+## The asset model
+
+Every market on HIP-4 is built from three nested concepts:
+
+- **Question** - the parent context ("Who will win the 2026 election?"). A question groups one or more **outcomes**.
+- **Outcome** - a specific tradable side of a question ("Candidate A", "Candidate B", "Fallback"). Every outcome ships **two tokens** - Yes and No.
+- **Tokens** - Yes and No are the actual on-chain assets. They trade in the L1 orderbook. At resolution, exactly one of `Yes` and `No` for each outcome pays 1 USDH; the other expires worthless.
+
+```
+Question  →  Outcomes  →  Yes / No tokens
+   1                3              6 (3 Yes + 3 No)
+```
+
+Two protocol-level equivalences hold by construction across every question. Both are load-bearing for the conversion primitives below:
+
+- **Within an outcome:** `Yes + No = 1 USDH`. Holding one Yes and one No of the same outcome always pays exactly 1 USDH at settlement, regardless of which side wins.
+- **Across a question:** `Σ Yes(outcome) = 1 USDH`. The sum of one Yes share from every outcome of a question - including the fallback - pays exactly 1 USDH, because exactly one outcome wins.
+
+The **fallback outcome** ("Other") exists on every question specifically so equivalence (2) holds for any partition of the world.
+
+## USDH: the unit of payout
+
+USDH is the prediction-market collateral token on Hyperliquid. Every HIP-4 market quotes, trades, and settles in USDH:
+
+- **Funding** - you deposit USDC and convert to USDH on the spot market (`hip4.wallet.buyUsdh`). One USDH ≈ one USDC, set against the USDC oracle price.
+- **Trading** - orderbook prices for outcome tokens are USDH per share. A Yes priced at `0.65` means 0.65 USDH per Yes share.
+- **Settlement** - winning tokens are redeemable for `1.00 USDH` each. Losing tokens go to zero.
+- **Withdrawal** - sell USDH back to USDC, then withdraw to an external address.
+
+USDH is scoped to prediction markets. It doesn't interact with perps margin or other Hyperliquid markets. See [Funds](/platform/funds/depositing) for the deposit/withdraw flows.
+
+## Authentication: two-layer signing
+
+HIP-4 inherits Hyperliquid's two-layer authentication model:
+
+- **Outer layer - the user wallet.** A standard EOA. Holds the funds, signs *fund-moving* operations directly via EIP-712: deposits, withdrawals, USDC transfers, agent-key approval.
+- **Inner layer - the agent key.** An ephemeral keypair your application generates. The user signs **one** approval saying "this agent may act on my behalf." After that, the agent signs orders, cancels, and conversion actions silently - no wallet prompts on the trading hot path.
+
+| Action | Signed by |
+|---|---|
+| Deposit, withdraw, USDC transfer | User wallet (EIP-712) |
+| Agent-key approval | User wallet (EIP-712, one time) |
+| Place / cancel / modify order | Agent key (L1 agent signing) |
+| Split / merge / negate | Agent key (L1 agent signing) |
+
+Conversions sit on the agent-key path because they're not fund movements at the wallet level - they're internal rotations between balances the agent already controls. See [Authentication](/sdk/concepts/authentication) for the full key-approval flow.
+
+## Conversion primitives
+
+HIP-4 ships four protocol-level conversion actions that move value between USDH and outcome tokens **without touching the orderbook**. They settle directly against your spot balances at the bundle-equivalence mint price.
+
+| Action | What it does |
+|---|---|
+| **Split** | `X` USDH → `X` Yes + `X` No of one outcome |
+| **Merge outcome** | `X` Yes + `X` No of one outcome → `X` USDH |
+| **Merge question** | `X` Yes from every outcome of a question → `X` USDH |
+| **Negate** | `X` No of one outcome → `X` Yes of every other outcome in the question |
+
+These are the foundation of structured products on HIP-4. The [Composition stack](/concepts/composition-stack) page goes into how they compose; the practical mechanics are in [Converting tokens](/platform/trading/converting).
+
+## Coin and asset IDs
+
+For developers wiring orders directly: HIP-4 uses a deterministic mapping from outcomes to on-chain identifiers.
+
+- **Coin number** = `outcomeId * 10 + sideIndex` (sideIndex: 0 for Yes, 1 for No)
+- **Coin string** = `"#<coinNum>"` - the value passed to order actions
+- **Asset ID** = `100_000_000 + coinNum` - the value used in the order wire format
+
+The SDK pre-computes these on every `HIP4Market` object's `sides` array, so application code rarely needs to construct them by hand. See [Coin naming](/sdk/concepts/coin-naming) for the full convention.

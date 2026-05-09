@@ -1,10 +1,10 @@
 ---
-title: "Outcome HIP-4 SDK: Prediction Markets on Hyperliquid"
+title: "Outcome HIP-4 SDK: outcomes on Hyperliquid"
 sidebarTitle: "Introduction"
-description: "A fully typed TypeScript SDK for building on HIP-4 prediction markets — fetch markets, stream live data, place orders, and manage USDH funds."
+description: "A fully typed TypeScript SDK for building on HIP-4 - fetch markets, stream live data, place orders, run the four protocol-level conversion primitives, and manage USDH funds."
 ---
 
-Outcome is a prediction market platform built on Hyperliquid's HIP-4 protocol. HIP-4 extends Hyperliquid's L1 with binary outcome markets, where each outcome is traded as a probability token priced between 0 and 1. The `@outcomexyz/hip4-sdk` gives you everything you need to integrate these markets into your own application: market discovery, real-time WebSocket data, order placement with EIP-712 signing, and USDH fund management — all from a single, zero-dependency TypeScript package.
+Outcome is the venue and primitive composer for HIP-4 on Hyperliquid L1 - prediction markets at face value, a modular stack of financial primitives underneath. The `@outcomexyz/hip4-sdk` gives you everything to build on that stack: market discovery, real-time WebSocket data, order placement with EIP-712 signing, the four protocol-level conversion primitives (split, merge, negate), and USDH fund management - all from a single, zero-dependency TypeScript package.
 
 ## Key features
 
@@ -51,7 +51,7 @@ const status  = hip4.auth.getAuthStatus();
 ```
 
 <Note>
-  The SDK has zero runtime dependencies. All signing — including L1 agent signing (MessagePack + keccak-256 + EIP-712) and user-signed EIP-712 operations — is implemented from scratch in TypeScript with no third-party libraries.
+  The SDK has zero runtime dependencies. All signing - including L1 agent signing (MessagePack + keccak-256 + EIP-712) and user-signed EIP-712 operations - is implemented from scratch in TypeScript with no third-party libraries.
 </Note>
 
 <Note>

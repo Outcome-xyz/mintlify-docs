@@ -36,11 +36,11 @@ The package exposes two entry points:
 | `@outcomexyz/hip4-sdk/types` | Importing types only, without pulling in any runtime code |
 
 ```typescript
-// Main entry — adapter, utilities, and types
+// Main entry - adapter, utilities, and types
 import { createHIP4Adapter, formatPrice, getMinShares } from "@outcomexyz/hip4-sdk";
 import type { DefaultBinaryMarket, PredictionOrderResult } from "@outcomexyz/hip4-sdk";
 
-// Types-only entry — useful in shared type packages or when tree-shaking matters
+// Types-only entry - useful in shared type packages or when tree-shaking matters
 import type { HIP4Market, MarketType } from "@outcomexyz/hip4-sdk/types";
 ```
 

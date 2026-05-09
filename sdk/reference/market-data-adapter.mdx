@@ -1,5 +1,5 @@
 ---
-title: "Market Data Adapter Reference — Books and Prices"
+title: "Market Data Adapter Reference - Books and Prices"
 sidebarTitle: "Market data"
 description: "Reference for PredictionMarketDataAdapter: fetch L2 order books, midpoint prices, recent trades, and OHLCV candles, or subscribe to live WebSocket streams."
 ---
@@ -7,7 +7,7 @@ description: "Reference for PredictionMarketDataAdapter: fetch L2 order books, m
 The Market Data Adapter (`adapter.marketData`) gives you both snapshot and streaming access to HIP-4 market data. You can poll for order books, prices, trades, and OHLCV candles, or subscribe to live WebSocket feeds that deliver updates as they arrive. All methods accept a `marketId`, which is the outcome ID as a string (e.g. `"516"`). Order book and trade feeds target side 0 (the first side) by default.
 
 <Note>
-  `marketId` is always the **outcome ID as a string** — not the event ID and not the coin string. For example, if the coin is `"#5160"`, the market ID is `"516"`.
+  `marketId` is always the **outcome ID as a string** - not the event ID and not the coin string. For example, if the coin is `"#5160"`, the market ID is `"516"`.
 </Note>
 
 ---
@@ -86,9 +86,9 @@ const price = await adapter.marketData.fetchPrice("516");
 
 <ResponseField name="outcomes" type="array" required>
   One entry per side. Each entry contains:
-  - `name` — generic label (`"Side 0"` or `"Side 1"`). For real side names, cross-reference `event.markets[].outcomes[].name`.
-  - `price` — current midpoint as a decimal string (0–1). `"0"` when no mid is available.
-  - `midpoint` — same value as `price` (both fields are set identically).
+  - `name` - generic label (`"Side 0"` or `"Side 1"`). For real side names, cross-reference `event.markets[].outcomes[].name`.
+  - `price` - current midpoint as a decimal string (0–1). `"0"` when no mid is available.
+  - `midpoint` - same value as `price` (both fields are set identically).
 </ResponseField>
 
 <ResponseField name="timestamp" type="number" required>
@@ -204,7 +204,7 @@ const candles = await adapter.marketData.fetchCandles("516", "1h");
 
 ### Return type
 
-`Promise<HLCandle[]>` — each candle contains:
+`Promise<HLCandle[]>` - each candle contains:
 
 | Field | Type     | Description      |
 |-------|----------|------------------|
@@ -257,7 +257,7 @@ unsubscribe();
 
 ### Return type
 
-`Unsubscribe` — a `() => void` function. Call it to stop receiving updates and release the WebSocket subscription.
+`Unsubscribe` - a `() => void` function. Call it to stop receiving updates and release the WebSocket subscription.
 
 <Tip>
   The adapter shares a single WebSocket connection across all subscriptions. The connection opens lazily on the first subscription and closes automatically when the last subscriber unsubscribes.

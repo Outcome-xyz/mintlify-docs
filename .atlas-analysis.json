@@ -1,7 +1,7 @@
 {
   "projectType": "sdk-library",
   "projectName": "Outcome",
-  "projectDescription": "A TypeScript SDK for building on Hyperliquid HIP-4 binary prediction markets — fetch events, stream real-time orderbook data, place orders, and manage funds with zero dependencies.",
+  "projectDescription": "A TypeScript SDK for building on Hyperliquid HIP-4 binary prediction markets - fetch events, stream real-time orderbook data, place orders, and manage funds with zero dependencies.",
   "theme": "luma",
   "primaryColor": "#2DD4BF",
   "lightColor": "#F0FDFA",
@@ -13,11 +13,7 @@
         "groups": [
           {
             "group": "Get Started",
-            "pages": [
-              "sdk/introduction",
-              "sdk/installation",
-              "sdk/quickstart"
-            ]
+            "pages": ["sdk/introduction", "sdk/installation", "sdk/quickstart"]
           },
           {
             "group": "Core Concepts",
@@ -56,10 +52,7 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": [
-              "platform/overview",
-              "platform/how-it-works"
-            ]
+            "pages": ["platform/overview", "platform/how-it-works"]
           },
           {
             "group": "Trading",
@@ -71,10 +64,7 @@
           },
           {
             "group": "Funds",
-            "pages": [
-              "platform/funds/depositing",
-              "platform/funds/withdrawing"
-            ]
+            "pages": ["platform/funds/depositing", "platform/funds/withdrawing"]
           }
         ]
       }

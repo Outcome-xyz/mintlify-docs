@@ -1,18 +1,18 @@
 ---
-title: "Wallet Adapter Reference — USDH and Fund Management"
+title: "Wallet Adapter Reference - USDH and Fund Management"
 sidebarTitle: "Wallet"
 description: "Deposit USDC, buy and sell USDH, move funds between spot and perps, and withdraw to external addresses using the HIP-4 wallet adapter."
 ---
 
-The wallet adapter (`hip4.wallet`) handles all fund management for HIP-4 prediction trading: moving USDC between your perp and spot accounts, buying and selling USDH on the spot market, and withdrawing funds to external addresses. It relies on two distinct signers — one for user-authorized EIP-712 operations, and one for L1 agent-signed spot orders — so you need to configure both before using the full method surface.
+The wallet adapter (`hip4.wallet`) handles all fund management for HIP-4 prediction trading: moving USDC between your perp and spot accounts, buying and selling USDH on the spot market, and withdrawing funds to external addresses. It relies on two distinct signers - one for user-authorized EIP-712 operations, and one for L1 agent-signed spot orders - so you need to configure both before using the full method surface.
 
 ## Two signers
 
 The wallet adapter uses two separate signing keys depending on the operation:
 
-**User's wallet** — set via `setSigner`. Required for EIP-712 operations: transfers between spot and perps, withdrawals, and USD sends. The signer must produce a valid EIP-712 signature on the `HyperliquidSignTransaction` domain.
+**User's wallet** - set via `setSigner`. Required for EIP-712 operations: transfers between spot and perps, withdrawals, and USD sends. The signer must produce a valid EIP-712 signature on the `HyperliquidSignTransaction` domain.
 
-**Agent key** — initialized via `hip4.auth.initAuth`. Required for USDH spot buy/sell, which use L1 agent signing (MessagePack serialization + keccak-256 + EIP-712 on the `Exchange` domain, chain ID 1337). The agent key signs on behalf of the user's wallet but is a separate keypair.
+**Agent key** - initialized via `hip4.auth.initAuth`. Required for USDH spot buy/sell, which use L1 agent signing (MessagePack serialization + keccak-256 + EIP-712 on the `Exchange` domain, chain ID 1337). The agent key signs on behalf of the user's wallet but is a separate keypair.
 
 ### `setSigner` interface
 
@@ -36,7 +36,7 @@ hip4.wallet.setSigner({
 
 | Method | Signing | Description |
 |--------|---------|-------------|
-| `setSigner(signer)` | — | Set the user's wallet for EIP-712 operations |
+| `setSigner(signer)` | - | Set the user's wallet for EIP-712 operations |
 | `buyUsdh(amount)` | L1 agent | Buy USDH on spot; priced at oracle × 1.1, IOC |
 | `sellUsdh(amount)` | L1 agent | Sell USDH on spot; priced at oracle × 0.9, IOC |
 | `transferToSpot(amount)` | EIP-712 | Transfer USDC from perp → spot |

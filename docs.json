@@ -17,17 +17,36 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Platform",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Overview",
+            "group": "Welcome",
+            "icon": "hand",
             "pages": [
-              "platform/overview",
-              "platform/how-it-works"
+              "index"
             ]
           },
           {
-            "group": "Trading",
+            "group": "Concepts",
+            "icon": "lightbulb",
+            "pages": [
+              "concepts/hyperliquid-hip4",
+              "concepts/hip4",
+              "concepts/composition-stack"
+            ]
+          },
+          {
+            "group": "Markets",
+            "icon": "trending-up",
+            "pages": [
+              "markets/overview",
+              "markets/types",
+              "markets/lifecycle"
+            ]
+          },
+          {
+            "group": "Trade",
+            "icon": "arrow-left-right",
             "pages": [
               "platform/trading/placing-orders",
               "platform/trading/order-types",
@@ -37,6 +56,7 @@
           },
           {
             "group": "Funds",
+            "icon": "wallet",
             "pages": [
               "platform/funds/depositing",
               "platform/funds/withdrawing"
@@ -45,10 +65,11 @@
         ]
       },
       {
-        "tab": "SDK",
+        "tab": "SDK Reference",
         "groups": [
           {
             "group": "Get Started",
+            "icon": "rocket",
             "pages": [
               "sdk/introduction",
               "sdk/installation",
@@ -56,7 +77,8 @@
             ]
           },
           {
-            "group": "Core Concepts",
+            "group": "Concepts",
+            "icon": "book-open",
             "pages": [
               "sdk/concepts/markets",
               "sdk/concepts/authentication",
@@ -65,6 +87,7 @@
           },
           {
             "group": "Guides",
+            "icon": "list-checks",
             "pages": [
               "sdk/guides/fetch-markets",
               "sdk/guides/trading",
@@ -74,14 +97,21 @@
             ]
           },
           {
-            "group": "Reference",
+            "group": "Adapters",
+            "icon": "package",
             "pages": [
               "sdk/reference/events-adapter",
               "sdk/reference/market-data-adapter",
               "sdk/reference/trading-adapter",
               "sdk/reference/account-adapter",
               "sdk/reference/wallet-adapter",
-              "sdk/reference/auth-adapter",
+              "sdk/reference/auth-adapter"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "icon": "wrench",
+            "pages": [
               "sdk/reference/utilities",
               "sdk/reference/types"
             ]

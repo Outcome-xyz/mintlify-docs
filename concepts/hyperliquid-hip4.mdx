@@ -1,0 +1,55 @@
+---
+title: "Hyperliquid and HIP-4: a financial-primitives stack"
+sidebarTitle: "Hyperliquid"
+description: "Where HIP-4 fits in Hyperliquid's stack, and why outcomes are more than prediction markets."
+---
+
+Hyperliquid is a **financial-primitives protocol**. It started with perpetual futures, but the orderbook, the dual-chain stack underneath, and the L1's signing model are general - every primitive Hyperliquid ships afterwards reuses the same throughput, the same latency, the same fee structure, the same authentication path.
+
+The stack so far:
+
+- **Perps.** The original Hyperliquid product. A native, on-chain limit-order book on a custom L1, fast enough to host a top-tier perps venue without offshoring matching to a centralised exchange. Dual-chain architecture (HyperCore + HyperEVM) gives high throughput and low latency without giving up accessibility.
+- **HIP-3.** Permissionless perps. Anyone can list a perp on any underlying - commodities, equities, FX, indices, the long tail. Same orderbook, same fees, same L1 - the asset universe stops being a gatekeeping question.
+- **HIP-4.** Outcomes. From a distance, prediction markets. From up close, a small set of modular financial primitives that compose into instruments DeFi can't natively express elsewhere.
+
+The "outcome" framing is doing a lot of work. At face value, HIP-4 is prediction markets - Yes/No tokens, 1 USDH per winning share, settlement at expiry. Underneath, the protocol primitives that drive those markets - split, merge, negate, the question/outcome model - are general-purpose building blocks for **structured products and synthetic exposure**. Some of what's expressible has tradfi analogs (binary options, range-bound payoffs, dispersion plays). Some is genuinely new (cross-question routing via negate, fallback-absorbed bundles, conversion-mode entry and exit at the bundle equivalence). All of it inherits the Hyperliquid stack: low fees, high efficiency, on-chain matching.
+
+Outcome is the venue and primitive composer for HIP-4. Same wallet, same agent-key auth, same orderbook, same fee model as perps. No new mental model on the trading hot path - just a new asset class to point those mechanics at.
+
+## How it stacks
+
+Hyperliquid is dual-chain by design. Each chain hosts a different slice of the stack:
+
+| Chain              | What lives there                                                                          |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| **HyperCore** (L1) | Spot trading and **HIP-4 outcomes**. The on-chain orderbook for outcome tokens runs here. |
+| **HyperEVM**       | Perps and **HIP-3** permissionless perps. EVM-compatible, programmable.                   |
+
+The split is what makes Hyperliquid scale - throughput and latency on each side are tuned for what runs on it - but it does mean a USDC deposit doesn't automatically land on the side you need it on. Outcome's [funding flow](/platform/funds/depositing) absorbs that cross-chain plumbing through Across (crypto) and Meld (cash), so users never see it.
+
+| Layer                                     | Role                                                                                                        |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Hyperliquid L1** (HyperCore + HyperEVM) | Dual-chain settlement, on-chain orderbook on HyperCore, EVM execution on HyperEVM, shared agent-key auth.   |
+| **HIP-3**                                 | Permissionless perps on HyperEVM - listing flow for arbitrary underlyings.                                  |
+| **HIP-4**                                 | Outcome tokens, USDH collateral, conversion primitives - all on HyperCore spot.                             |
+| **Outcome**                               | UX, market discovery, structured-product composition, and the funding solution that bridges between chains. |
+
+## What composes
+
+HIP-4 ships four conversion actions the protocol settles directly against your spot balance whenever a bundle equivalence holds: **split**, **merge outcome**, **merge question**, **negate**. Combined with the orderbook, they're the inputs to:
+
+- Synthetic single-sided exposure when one leg is mispriced relative to the other.
+- Cross-outcome rotation without paying spread on three or four separate trades.
+- Bundle redemption before resolution - cash out a Yes-bundle the moment the math lets you, not when the question settles.
+- Position-level hedges that aren't expressible as a single orderbook trade.
+
+Prediction markets are the first instrument this stack ships. They aren't the limit of what it can express. The [Composition stack](/concepts/composition-stack) page goes into exactly how the four primitives compose, and is positioned as the home for the upcoming visual builder.
+
+## What this means in practice
+
+- **One auth path covers everything.** The agent-key model that signs your perp orders signs your HIP-4 actions - orders, cancels, and conversions. See [HIP-4 protocol](/concepts/hip4) for the two-layer auth model.
+- **Same fee stack as perps.** Hyperliquid maker/taker, no gas on trades, fast L1 finality. Outcome doesn't add a layer of fees on top of the protocol - the only optional charge is a builder fee if your interface configures one.
+- **Composable with the rest of Hyperliquid.** Outcome tokens are L1 spot assets. Anything that holds a Hyperliquid spot balance can hold them; anything that signs an L1 action can trade them.
+- **No oracles in the trading loop.** Until a market reaches resolution, the price of an outcome token is whatever the book says it is. Resolution is a single on-chain action; everything before that is pure orderbook (and conversion).
+
+Next: read [HIP-4 protocol](/concepts/hip4) for the asset model and the conversion primitives in depth, or jump to [Markets](/markets/overview) for what's actually tradable today.

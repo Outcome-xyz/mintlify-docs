@@ -4,11 +4,11 @@ sidebarTitle: "Authentication"
 description: "How the two-layer auth model works in HIP-4: approving an ephemeral agent key so your app can sign orders silently without prompting the user's wallet."
 ---
 
-HIP-4 uses a two-layer authentication model. The outer layer is your user's wallet — an EOA (externally owned account) that holds funds and controls the account on-chain. The inner layer is an ephemeral **agent key**: a temporary keypair your application generates that the user authorizes once to sign orders on their behalf. After that one-time approval, all order placement and cancellation happens silently through the agent key without any wallet prompts. A separate signing path — standard EIP-712 with the user's actual wallet — still handles fund transfers, withdrawals, and sends, since those operations move real money and should always require explicit user approval.
+HIP-4 uses a two-layer authentication model. The outer layer is your user's wallet - an EOA (externally owned account) that holds funds and controls the account on-chain. The inner layer is an ephemeral **agent key**: a temporary keypair your application generates that the user authorizes once to sign orders on their behalf. After that one-time approval, all order placement and cancellation happens silently through the agent key without any wallet prompts. A separate signing path - standard EIP-712 with the user's actual wallet - still handles fund transfers, withdrawals, and sends, since those operations move real money and should always require explicit user approval.
 
 ## Why an agent key?
 
-Every order on Hyperliquid's L1 requires a signature. Without an agent key, your app would need to prompt the user's wallet for each order — which is impractical for active trading. The agent key solves this: the user signs a single on-chain approval that says "this key may act on my behalf," and from then on your app can sign orders silently using the agent's private key, which you hold in memory.
+Every order on Hyperliquid's L1 requires a signature. Without an agent key, your app would need to prompt the user's wallet for each order - which is impractical for active trading. The agent key solves this: the user signs a single on-chain approval that says "this key may act on my behalf," and from then on your app can sign orders silently using the agent's private key, which you hold in memory.
 
 <Warning>
   Never persist agent private keys to disk, localStorage, or any server-side store. Generate a fresh key each session and hold it only in memory. If the key is compromised, an attacker can place orders on behalf of the user until the agent approval is revoked.
@@ -124,7 +124,7 @@ hip4.wallet.setSigner({
 
 // This will prompt the user's wallet:
 await hip4.wallet.transferToSpot("100");
-await hip4.wallet.buyUsdh("100");  // silent — uses agent key
+await hip4.wallet.buyUsdh("100");  // silent - uses agent key
 ```
 
 ## The HIP4Signer interface
@@ -155,9 +155,9 @@ Call `hip4.auth.getAuthStatus()` at any time to inspect the current state.
 const status = hip4.auth.getAuthStatus();
 
 // status.status is one of:
-//   "disconnected"     — no auth initialized
-//   "pending_approval" — initAuth called but not yet confirmed
-//   "ready"            — agent key is active and orders can be placed
+//   "disconnected"     - no auth initialized
+//   "pending_approval" - initAuth called but not yet confirmed
+//   "ready"            - agent key is active and orders can be placed
 
 if (status.status !== "ready") {
   // prompt user to complete auth before placing orders
@@ -166,7 +166,7 @@ if (status.status !== "ready") {
 
 ## Clearing auth
 
-To reset the adapter to its unauthenticated state — for example, when the user disconnects their wallet — call `clearAuth`.
+To reset the adapter to its unauthenticated state - for example, when the user disconnects their wallet - call `clearAuth`.
 
 ```typescript
 hip4.auth.clearAuth();

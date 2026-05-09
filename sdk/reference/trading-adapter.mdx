@@ -1,10 +1,10 @@
 ---
-title: "Trading Adapter Reference — Orders and Conversions"
+title: "Trading Adapter Reference - Orders and Conversions"
 sidebarTitle: "Trading"
 description: "PredictionTradingAdapter API: place limit and market orders on HIP-4 outcomes, cancel resting orders, and run split, merge, and negate conversions."
 ---
 
-The Trading Adapter (`adapter.trading`) lets you submit and cancel orders on HIP-4 prediction market outcomes. Before you can place any orders you must authenticate using `adapter.auth.initAuth()` — the trading adapter returns an error result (rather than throwing) if you attempt to place an order without a valid signer. Order placement performs local validation for tick alignment, notional size, and minimum shares before signing, so most errors are caught before hitting the exchange.
+The Trading Adapter (`adapter.trading`) lets you submit and cancel orders on HIP-4 prediction market outcomes. Before you can place any orders you must authenticate using `adapter.auth.initAuth()` - the trading adapter returns an error result (rather than throwing) if you attempt to place an order without a valid signer. Order placement performs local validation for tick alignment, notional size, and minimum shares before signing, so most errors are caught before hitting the exchange.
 
 <Warning>
   You must call `adapter.auth.initAuth(walletAddress, signer)` before using any trading methods. See the [Auth Adapter](/sdk/reference/auth-adapter) page for the full authentication flow, including agent key setup.
@@ -14,7 +14,7 @@ The Trading Adapter (`adapter.trading`) lets you submit and cancel orders on HIP
 
 ## `placeOrder(params)`
 
-Places a single order on a HIP-4 outcome. This method **never throws** — check the `success` field and the `error` message on the returned result instead.
+Places a single order on a HIP-4 outcome. This method **never throws** - check the `success` field and the `error` message on the returned result instead.
 
 For limit orders, the SDK performs these local checks before signing:
 - Tick-aligns the price to 5 significant figures.
@@ -98,7 +98,7 @@ The SDK maps SDK-level TIF values to Hyperliquid order types as follows:
 
 ### Return type
 
-`Promise<PredictionOrderResult>` — never throws.
+`Promise<PredictionOrderResult>` - never throws.
 
 <ResponseField name="success" type="boolean" required>
   `true` if the order was accepted by the exchange.
@@ -109,7 +109,7 @@ The SDK maps SDK-level TIF values to Hyperliquid order types as follows:
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  `"filled"` — fully executed. `"resting"` — sitting in the book. `"error"` — exchange rejected the order. `"unknown"` — unrecognised response.
+  `"filled"` - fully executed. `"resting"` - sitting in the book. `"error"` - exchange rejected the order. `"unknown"` - unrecognised response.
 </ResponseField>
 
 <ResponseField name="shares" type="string">
@@ -226,7 +226,7 @@ await adapter.trading.cancelOrder([
 
 ### Return type
 
-`Promise<void>` — resolves when all cancels are confirmed. Throws if authentication is missing or the exchange rejects the request.
+`Promise<void>` - resolves when all cancels are confirmed. Throws if authentication is missing or the exchange rejects the request.
 
 <Warning>
   The current implementation always resolves the cancel asset ID to **side 0** unless you provide the `outcome` field. If you placed an order on side 1 (`"#5161"`), you must pass `outcome: "#5161"` to cancel it correctly.
@@ -260,7 +260,7 @@ await adapter.trading.cancelOrder(cancels);
 
 ## Token conversions
 
-Four protocol-level share-conversion primitives that move value between USDH and outcome tokens without touching the orderbook. They settle directly against your spot balances at the conservation-identity mint price — no spread paid, no slippage, no liquidity required. See the [Converting tokens concept](/platform/trading/converting) for the math, and the [Token conversions guide](/sdk/guides/conversions) for end-to-end code.
+Four protocol-level share-conversion primitives that move value between USDH and outcome tokens without touching the orderbook. They settle directly against your spot balances at the bundle-equivalence mint price - no spread paid, no slippage, no liquidity required. See the [Converting tokens concept](/platform/trading/converting) for the math, and the [Token conversions guide](/sdk/guides/conversions) for end-to-end code.
 
 All four methods use the same `userOutcome` action envelope, sign via L1 agent signing, and return a `WalletActionResult`. None of them throw.
 
@@ -303,7 +303,7 @@ await adapter.trading.splitOutcome({
 
 ### Return type
 
-`Promise<WalletActionResult>` — never throws.
+`Promise<WalletActionResult>` - never throws.
 
 ---
 
@@ -328,12 +328,12 @@ await adapter.trading.mergeOutcome({ outcome: 5160, amount: null });
 </ParamField>
 
 <ParamField path="amount" type="string | null" required>
-  Paired-share count to merge, as a decimal string. Pass `null` to merge the maximum available — the protocol burns `min(yes_balance, no_balance)` shares.
+  Paired-share count to merge, as a decimal string. Pass `null` to merge the maximum available - the protocol burns `min(yes_balance, no_balance)` shares.
 </ParamField>
 
 ### Return type
 
-`Promise<WalletActionResult>` — never throws.
+`Promise<WalletActionResult>` - never throws.
 
 ---
 
@@ -354,16 +354,16 @@ await adapter.trading.mergeQuestion({ question: 42, amount: null });
 ### Parameters
 
 <ParamField path="question" type="number" required>
-  Numeric question ID. For multi-outcome and price-bucket markets, this is `market.questionId`. Default-binary markets have no parent question — use `mergeOutcome` instead.
+  Numeric question ID. For multi-outcome and price-bucket markets, this is `market.questionId`. Default-binary markets have no parent question - use `mergeOutcome` instead.
 </ParamField>
 
 <ParamField path="amount" type="string | null" required>
-  Yes-share count to redeem from each member outcome, as a decimal string. Pass `null` to redeem the maximum — `min(yes_balance)` across every outcome of the question.
+  Yes-share count to redeem from each member outcome, as a decimal string. Pass `null` to redeem the maximum - `min(yes_balance)` across every outcome of the question.
 </ParamField>
 
 ### Return type
 
-`Promise<WalletActionResult>` — never throws.
+`Promise<WalletActionResult>` - never throws.
 
 ---
 
@@ -395,8 +395,8 @@ await adapter.trading.negateOutcome({
 
 ### Return type
 
-`Promise<WalletActionResult>` — never throws.
+`Promise<WalletActionResult>` - never throws.
 
 <Note>
-  The on-wire sub-action key is `negateOutcome`, matching Hyperliquid's testnet "Convert Outcomes" UI. Hyperliquid's docs body shows `negateQuestion` in places — that's a typo in their docs. The SDK sends `negateOutcome`.
+  The on-wire sub-action key is `negateOutcome`, matching Hyperliquid's testnet "Convert Outcomes" UI. Hyperliquid's docs body shows `negateQuestion` in places - that's a typo in their docs. The SDK sends `negateOutcome`.
 </Note>

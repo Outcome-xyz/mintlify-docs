@@ -1,79 +1,57 @@
 ---
-title: "Outcome: TypeScript SDK for HIP-4 Prediction Markets"
-description: "Build on Hyperliquid HIP-4 prediction markets with zero dependencies. Fetch events, stream real-time data, place orders, and manage USDH funds from TypeScript."
+title: "Outcome: HIP-4 outcomes on Hyperliquid"
+sidebarTitle: "Introduction"
+description: "Outcome is the venue and primitive composer for HIP-4 - prediction markets at face value, a modular stack of financial primitives underneath. Trade outcome tokens through the Hyperliquid orderbook, or build on top with @outcomexyz/hip4-sdk."
 ---
 
-Outcome provides the `@outcomexyz/hip4-sdk` — a fully typed TypeScript SDK for integrating with HIP-4 prediction markets on Hyperliquid. Whether you're building a trading interface, analytics dashboard, or automated strategy, the SDK gives you everything you need: market discovery, real-time WebSocket subscriptions, order placement with EIP-712 signing, and USDH fund management — all with zero runtime dependencies.
+Outcome is the venue and primitive composer for **HIP-4** on **Hyperliquid L1**. At face value, prediction markets - every outcome token is a contract that pays exactly **$1.00 USDH** if its outcome wins. Underneath, a modular stack of financial primitives that compose into structured products and synthetic exposure that DeFi can't natively express elsewhere. Same on-chain orderbook that powers Hyperliquid perps, same fast finality, same agent-key auth model. No oracles between you and the price.
+
+Two ways to use these docs depending on what you're here for:
 
 <CardGroup cols={2}>
-  <Card title="Quick Start" icon="rocket" href="/sdk/quickstart">
-    Install the SDK and place your first order in minutes.
+  <Card title="Trade" icon="arrow-left-right" href="/markets/overview">
+    Understand markets, place your first order, and learn how the four
+    protocol-level conversion primitives compose into structured products.
   </Card>
-  <Card title="Core Concepts" icon="book-open" href="/sdk/concepts/markets">
-    Understand market types, authentication, and coin naming conventions.
-  </Card>
-  <Card title="API Reference" icon="code" href="/sdk/reference/events-adapter">
-    Full reference for every adapter method, parameter, and return type.
-  </Card>
-  <Card title="Platform Guide" icon="chart-line" href="/platform/overview">
-    Learn how the Outcome prediction market platform works end-to-end.
+  <Card title="Build" icon="code" href="/sdk/quickstart">
+    Integrate `@outcomexyz/hip4-sdk` - fetch markets, stream live data, place
+    orders, and run conversions, all from typed TypeScript with zero runtime
+    dependencies.
   </Card>
 </CardGroup>
 
-## Get started in 4 steps
+## What's on Outcome
 
-<Steps>
-  <Step title="Install the SDK">
-    Add `@outcomexyz/hip4-sdk` to your project with your package manager of choice.
-    ```bash
-    pnpm add @outcomexyz/hip4-sdk
-    ```
-  </Step>
-  <Step title="Create an adapter">
-    Instantiate the HIP-4 adapter and initialize it to warm up the event cache.
-    ```typescript
-    import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+- **Outcome tokens** - Yes and No shares of every outcome, priced 0–1 as the implied probability, settled in USDH.
+- **Four market types** - recurring price binary, labelled binary, multi-outcome, and price bucket. See [Market types](/markets/types).
+- **Four conversion primitives** - split, merge outcome, merge question, negate. The protocol mints, burns, and rotates bundles directly against your spot balance, with no orderbook spread paid. See [Composition stack](/concepts/composition-stack).
+- **Hyperliquid-native** - agent-key signing, L1 finality, no gas on trades, the same orderbook engine you already know.
 
-    const hip4 = createHIP4Adapter({ testnet: true });
-    await hip4.initialize();
-    ```
-  </Step>
-  <Step title="Fetch markets">
-    Query live prediction markets with filtering, grouping, and pagination.
-    ```typescript
-    const markets = await hip4.events.fetchMarkets({ type: "defaultBinary" });
-    console.log(markets[0].underlying); // "BTC"
-    ```
-  </Step>
-  <Step title="Authenticate and trade">
-    Approve an agent key, then place limit and market orders silently.
-    ```typescript
-    await hip4.auth.initAuth(userAddress, agentSigner);
-    const result = await hip4.trading.placeOrder({
-      marketId: "516",
-      outcome: "#5160",
-      side: "buy",
-      type: "limit",
-      price: "0.65",
-      amount: "100",
-    });
-    ```
-  </Step>
-</Steps>
-
-## What you can build
+## Where to go next
 
 <CardGroup cols={2}>
-  <Card title="Fetch markets" icon="search" href="/sdk/guides/fetch-markets">
-    Discover and filter prediction markets by type, category, and status.
+  <Card title="Hyperliquid" icon="lightbulb" href="/concepts/hyperliquid-hip4">
+    The two-layer foundation Outcome sits on - what HIP-4 adds to Hyperliquid L1
+    and why it matters.
   </Card>
-  <Card title="Real-time data" icon="activity" href="/sdk/guides/real-time-data">
-    Subscribe to live order books, prices, and trade streams via WebSocket.
+  <Card
+    title="Composition stack"
+    icon="layers"
+    href="/concepts/composition-stack"
+  >
+    The bundle equivalences and the four primitives that compose into structured
+    products. The future home of the drag-and-drop builder.
   </Card>
-  <Card title="Trading" icon="arrow-left-right" href="/sdk/guides/trading">
-    Place limit and market orders with tick-aligned pricing and min-notional checks.
+  <Card
+    title="Trade tutorial"
+    icon="play"
+    href="/platform/trading/placing-orders"
+  >
+    Place your first order - connect a wallet, fund USDH, sign with an agent
+    key, and submit.
   </Card>
-  <Card title="Wallet & funds" icon="wallet" href="/sdk/guides/wallet-funding">
-    Deposit USDC, buy USDH, and withdraw funds back to your wallet.
+  <Card title="SDK quickstart" icon="rocket" href="/sdk/quickstart">
+    Install, authenticate, and fire your first programmatic order in five
+    minutes.
   </Card>
 </CardGroup>

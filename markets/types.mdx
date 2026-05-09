@@ -1,0 +1,72 @@
+---
+title: "Market types: binary, multi-outcome, and price buckets"
+sidebarTitle: "Market types"
+description: "The four HIP-4 market types - recurring price binary, labelled binary, multi-outcome, and price bucket - and the structural differences between them."
+---
+
+HIP-4 ships four market types. They share the same core mechanic - outcome tokens that pay 1 USDH if they win - but differ in structure: how outcomes are grouped, whether the market is recurring, and how resolution criteria are encoded.
+
+The SDK exposes these as a discriminated union (`HIP4Market`) with a `type` field. See [SDK / Market types](/sdk/concepts/markets) for the typed shapes; this page is the protocol-side overview.
+
+## defaultBinary - recurring price binary
+
+Auto-generated price-threshold markets. The protocol creates a fresh batch on a schedule (15m, 1h, 1d, etc.) so there's always an active market on every supported underlying. Format:
+
+> **"Will BTC be above $69,000 at 3pm UTC?"**
+
+- **Two outcomes only** - Yes and No.
+- **Standalone** - no parent question, no fallback. The Yes and No are the entire market.
+- **Recurring** - a new version opens as the previous one expires. Position rolls have no built-in mechanism; each market is fully independent.
+- **Resolution** - automatic, against the underlying's oracle price at the expiry timestamp.
+
+This is the most-traded shape on Outcome and the easiest to scan: pick an underlying, pick an expiry, pick a side.
+
+## labelledBinary - custom Yes/No markets
+
+Standalone binary markets with operator-defined side names instead of "Yes/No". Format:
+
+> **"Hypurr vs. Usain Bolt - who wins the 100m?"** → side names `"Hypurr"` and `"Usain Bolt"`.
+
+- **Two outcomes** - but the side labels reflect the actual choices, not abstract Yes/No.
+- **Standalone** - like `defaultBinary`, no parent question.
+- **Manually created** - not on a recurring schedule. One-off markets keyed to specific events.
+- **Resolution** - depends on the event. Could be oracle-based (sports score feed), governance-decided (DAO vote), or operator-attested.
+
+Mechanically identical to `defaultBinary`. The difference is purely presentation - the side names are richer, so the UI shows the real question instead of "Yes / No".
+
+## multiOutcome - three or more named outcomes
+
+Markets with multiple named outcomes grouped under a parent **question**. Format:
+
+> **"Who will win the 2026 election?"** → outcomes `Candidate A`, `Candidate B`, `Candidate C`, `Fallback`.
+
+- **Multiple outcomes per question** - each outcome is independently tradable as Yes/No.
+- **Always includes a fallback.** "Other" - any scenario not covered by the named outcomes. The fallback is what makes the bundle equivalence `Σ Yes = 1` hold for arbitrary partitions of the world.
+- **Per-outcome trading.** You don't trade *the question* - you trade Yes or No on a *specific* outcome. Each outcome's Yes/No prices are independent on the orderbook.
+- **Cross-outcome conversions** - this is where [negate](/concepts/composition-stack) becomes powerful. "I don't think A wins" becomes "I think one of {B, C, Fallback} wins" without three separate trades.
+
+The fallback is also a real outcome: it has its own Yes/No tokens, trades like any other outcome, and pays out if no named outcome resolves true.
+
+## priceBucket - recurring multi-outcome ranges
+
+Recurring multi-outcome markets where each outcome corresponds to a **price range** (bucket). Format:
+
+> **"Where will BTC settle at 3pm UTC?"** → outcomes `< $80k`, `$80k–$82k`, `$82k–$84k`, `> $84k`, `Fallback`.
+
+- **Multi-outcome.** Each price bucket is one outcome under the parent question.
+- **Recurring.** Generated on the same cadence as `defaultBinary`. Buckets are defined by adjacent `priceThresholds` on the question - N thresholds → N+1 named buckets, plus a fallback.
+- **Higher payouts on narrow predictions.** A correct bucket pick is harder than a binary above/below - the price reflects the implied narrow-band probability.
+- **Fallback handles edge cases.** If the price-bucket resolution path fails (data feed outage, etc.), the fallback absorbs the settlement.
+
+Mechanically identical to `multiOutcome`. The difference is purely semantic: the outcomes are price ranges, encoded by the question's `priceThresholds`.
+
+## Summary
+
+| Type | Outcomes | Recurring | Has fallback | Conversion-friendly |
+|---|---|---|---|---|
+| `defaultBinary` | 2 | Yes | No | split / merge outcome |
+| `labelledBinary` | 2 | No | No | split / merge outcome |
+| `multiOutcome` | 3+ | No | Yes | all four primitives |
+| `priceBucket` | 3+ | Yes | Yes | all four primitives |
+
+The two-outcome types are simpler to reason about and dominate volume on most active days. The multi-outcome types are where structured products and conversion strategies have more room to breathe - see [Composition stack](/concepts/composition-stack) for what becomes possible with `negate` and `mergeQuestion`.

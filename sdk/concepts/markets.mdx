@@ -4,7 +4,7 @@ sidebarTitle: "Market types"
 description: "How prediction markets are structured in HIP-4: the four market types, the event and outcome hierarchy, market status, and how prices work."
 ---
 
-In HIP-4, a prediction market is a probability instrument priced between 0 and 1, where the price reflects the market's implied probability that a given outcome will occur. Each market has two tradeable sides — for example, "Yes" and "No" — and each side is a separate token. If you buy "Yes" at 0.65, you're paying 0.65 USDH per share and receiving a payout of 1 USDH per share if the outcome resolves in your favor. The SDK classifies every live outcome into one of four typed market structures, each carrying pre-computed side identifiers and metadata that makes it straightforward to display, filter, and trade.
+In HIP-4, a prediction market is a probability instrument priced between 0 and 1, where the price reflects the market's implied probability that a given outcome will occur. Each market has two tradeable sides - for example, "Yes" and "No" - and each side is a separate token. If you buy "Yes" at 0.65, you're paying 0.65 USDH per share and receiving a payout of 1 USDH per share if the outcome resolves in your favor. The SDK classifies every live outcome into one of four typed market structures, each carrying pre-computed side identifiers and metadata that makes it straightforward to display, filter, and trade.
 
 ## Market types
 
@@ -40,7 +40,7 @@ HIP-4 markets fall into four types, each with its own structure and set of field
     ```
   </Tab>
   <Tab title="labelledBinary">
-    Standalone binary markets with custom side names. These are one-off markets not grouped under a parent question. The sides can be anything — "Hypurr" vs "Usain Bolt", "Pass" vs "Fail" — as defined by the market creator.
+    Standalone binary markets with custom side names. These are one-off markets not grouped under a parent question. The sides can be anything - "Hypurr" vs "Usain Bolt", "Pass" vs "Fail" - as defined by the market creator.
 
     **Distinguishing fields:** custom `sides[n].name` values (not "Yes"/"No")
 
@@ -124,8 +124,8 @@ HIP-4 structures data in three layers: **events**, **markets**, and **outcomes**
 ```
 PredictionEvent  (e.g. "Will BTC hit $69k?")
 └── PredictionMarket  (the tradeable question, id = outcome ID as string)
-    ├── PredictionOutcome  (side 0 — "Yes")
-    └── PredictionOutcome  (side 1 — "No")
+    ├── PredictionOutcome  (side 0 - "Yes")
+    └── PredictionOutcome  (side 1 - "No")
 ```
 
 A `PredictionEvent` groups one or more `PredictionMarket` objects. For question-based events (multi-outcome), each named outcome becomes its own `PredictionMarket`. For standalone outcomes, the event contains a single market.
@@ -157,8 +157,8 @@ outcome.price;     // "0.65"
 
 Event IDs follow two formats depending on how the market was created:
 
-- **`q{n}`** — a question-based event grouping multiple named outcomes (e.g. `"q42"`)
-- **`o{n}`** — a standalone outcome that forms its own single-market event (e.g. `"o516"`)
+- **`q{n}`** - a question-based event grouping multiple named outcomes (e.g. `"q42"`)
+- **`o{n}`** - a standalone outcome that forms its own single-market event (e.g. `"o516"`)
 
 Recurring markets and labelled binary markets are typically standalone and use the `o{n}` format. Multi-outcome and price bucket markets are always question-based and use `q{n}`.
 

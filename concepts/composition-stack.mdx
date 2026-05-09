@@ -1,0 +1,97 @@
+---
+title: "Composition stack: modular primitives for structured products"
+sidebarTitle: "Composition stack"
+description: "Four protocol-level conversion primitives - split, merge outcome, merge question, negate - that compose into structured products on HIP-4. No spread, no slippage, no liquidity needed."
+---
+
+HIP-4 doesn't ship structured products. It ships **primitives that compose into them**. Four conversion actions, each a one-line protocol equivalence, each settled directly against your spot balance with no orderbook involvement. Stack them, and you have the building blocks for hedges, conditional bundles, basis trades, and synthetic positions that traditional prediction-market venues can't express.
+
+This page is about *how the primitives compose*. For protocol-level mechanics see [HIP-4 protocol](/concepts/hip4). For the practical SDK and platform flows see [Converting tokens](/platform/trading/converting) and the [Token conversions guide](/sdk/guides/conversions).
+
+<Note>
+  An interactive structured-product builder will live on this page - drag-and-drop composition of the four primitives so you can intuit the resulting bundle and its payoff curve before signing anything. Coming soon.
+</Note>
+
+## The two equivalences everything is built on
+
+Every HIP-4 question carries two bundle equivalences by construction:
+
+1. **Within an outcome:** `Yes + No = 1 USDH`
+2. **Across a question:** `Σ Yes(outcome) = 1 USDH` - including the fallback
+
+These hold *at every moment*, not just at settlement. They're invariants of the protocol's accounting, not consequences of the market. Anything that preserves them is something the protocol can mint or burn directly. That's it. That's the entire foundation.
+
+## The four primitives
+
+### Split
+
+```
+1 USDH  →  1 Yes + 1 No   (of one outcome)
+```
+
+Mint paired exposure. Useful as the input to a negate, or to seed both sides of an outcome's orderbook.
+
+### Merge outcome
+
+```
+1 Yes + 1 No  →  1 USDH   (of one outcome)
+```
+
+The inverse of split. Recover collateral from a paired position.
+
+### Merge question
+
+```
+1 Yes from every outcome of Q  →  1 USDH
+```
+
+Redeem a full Yes-bundle for cash without waiting for resolution. The bundle is already worth exactly 1 USDH by equivalence (2), so the protocol settles it on the spot.
+
+### Negate
+
+```
+1 No of outcome A  →  1 Yes of every other outcome of Q (incl. fallback)
+```
+
+The most subtle. "I don't think A wins" is the same statement as "I think one of the others wins." Negate converts the first position into the second directly - no orderbook trip required.
+
+## How they compose
+
+The four primitives are not mutually exclusive - they compose to express positions that aren't naturally expressible as single trades.
+
+### Synthetic Yes via split + sell
+
+Split 100 USDH into 100 Yes + 100 No. Sell the No leg into the orderbook. You've effectively bought Yes at `1 - sell_price_of_No`. When the No leg trades richer than the Yes leg's market ask, this beats a direct Yes purchase.
+
+### Cross-outcome rotation via negate
+
+You hold 50 No of outcome A in a 4-outcome question. Negate converts that into 50 Yes of B + 50 Yes of C + 50 Yes of D + 50 Yes of fallback - a uniform "anything but A" bundle. From there, you can sell whichever legs are mispriced or merge-question to collapse back to USDH.
+
+### Locked-in P&L via merge question
+
+You're long the full Yes-bundle on a question - by accident, by deliberate construction, or as the residual of a hedging strategy. Don't wait for resolution. `mergeQuestion(amount: null)` collapses the bundle into USDH at exactly 1 USDH per share, today, no exit liquidity needed.
+
+### Bridge via split + negate + merge
+
+The four primitives form a closed system: any composition that preserves equivalences (1) and (2) can be built from these four operations. That's why the same handful of methods cover the structured-product surface area.
+
+## Why this is different from a regular trade
+
+| | Orderbook trade | Conversion |
+|---|---|---|
+| Counterparty | Other traders | Protocol equivalence |
+| Price | Market-determined, varies with depth | Fixed at the bundle equivalence |
+| Slippage | Yes - depends on book depth | None - `X` in, `X` out |
+| Spread paid | Yes - bid/ask gap | None |
+| Liquidity required | Yes | No |
+| Settlement | When matched | Immediate |
+
+For single-side directional exposure at a price the market is offering, the orderbook still wins - buying Yes at 0.3 USDH from a counterparty is cheaper than splitting at 1 USDH. Conversions win when you already hold one of the bundles the equivalences cover, when the orderbook can't fill you, or when you want a structured bundle the orderbook has no native expression for.
+
+## What's coming on this page
+
+- **Visual composition builder.** Drag-and-drop the four primitives onto a canvas, see the resulting bundle, see the payoff curve under every resolution outcome, then sign the composed transaction.
+- **Pattern library.** Named compositions - covered call, hedged spread, fallback short, etc. - with the protocol primitives that produce them.
+- **Cost / efficiency calculator.** For a given target payoff, compute whether the cheapest route is orderbook, conversion, or a hybrid.
+
+For now, the primitives themselves are documented in full at [Converting tokens](/platform/trading/converting) and the [Token conversions guide](/sdk/guides/conversions).

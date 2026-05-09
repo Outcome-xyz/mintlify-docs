@@ -1,13 +1,14 @@
 ---
-title: "Quickstart: install and trade with the HIP-4 SDK"
+title: "Quickstart"
 sidebarTitle: "Quickstart"
-description: "Install @outcomexyz/hip4-sdk, fetch live prediction markets, authenticate with an agent key, and place your first limit order — all in five steps."
+description: "Install the sdk, hook up data fetching for live prediction markets, authenticate with an agent key, and place your first order. Five steps, here we go."
 ---
 
-This guide walks you through the full integration path — from installation to placing a live limit order on a HIP-4 prediction market. By the end, you'll have a working adapter, a list of available markets, and a submitted order you can verify on the Hyperliquid exchange.
+This guide walks you through the full integration path, meaning that by the end, you'll have a working adapter, a list of available markets, and order submissions functional and verifiable (via the Hyperliquid exchange).
 
 <Tip>
-  Use `testnet: true` while you're getting started. The Hyperliquid testnet gives you a free environment to experiment without risking real funds.
+  Use `testnet: true` while you're getting started. The Hyperliquid testnet
+  gives you a free environment to experiment without risking real funds.
 </Tip>
 
 <Steps>
@@ -39,7 +40,7 @@ The adapter automatically connects to the correct Hyperliquid testnet endpoints 
 
 <Step title="Fetch markets">
 
-Call `fetchMarkets()` to retrieve live prediction markets. The response is an array of typed market objects — each one carries pre-computed side identifiers, expiry dates, and outcome metadata.
+Call `fetchMarkets()` to retrieve live prediction markets. The response is an array of typed market objects - each one carries pre-computed side identifiers, expiry dates, and outcome metadata.
 
 ```typescript
 import type { DefaultBinaryMarket } from "@outcomexyz/hip4-sdk";
@@ -49,12 +50,12 @@ const markets = (await hip4.events.fetchMarkets({
 })) as DefaultBinaryMarket[];
 
 for (const market of markets) {
-  console.log(market.underlying);       // "BTC"
-  console.log(market.targetPrice);      // 69070
-  console.log(market.expiry);           // Date object
-  console.log(market.period);           // "1d"
-  console.log(market.sides[0].coin);    // "#5160"  (Yes side)
-  console.log(market.sides[1].name);    // "No"
+  console.log(market.underlying); // "BTC"
+  console.log(market.targetPrice); // 69070
+  console.log(market.expiry); // Date object
+  console.log(market.period); // "1d"
+  console.log(market.sides[0].coin); // "#5160"  (Yes side)
+  console.log(market.sides[1].name); // "No"
 }
 ```
 
@@ -75,8 +76,10 @@ import { createWalletClient, http } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { arbitrum } from "viem/chains";
 
-// Your user's main wallet (from environment — never hardcode private keys)
-const userAccount = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`);
+// Your user's main wallet (from environment - never hardcode private keys)
+const userAccount = privateKeyToAccount(
+  process.env.PRIVATE_KEY as `0x${string}`,
+);
 const walletClient = createWalletClient({
   account: userAccount,
   chain: arbitrum,
@@ -128,10 +131,11 @@ After `initAuth()` completes, the adapter signs all subsequent orders automatica
 
 <Step title="Place a limit order">
 
-With auth initialized, call `hip4.trading.placeOrder()` to submit a limit order. The method returns a result object — it never throws.
+With auth initialized, call `hip4.trading.placeOrder()` to submit a limit order. The method returns a result object - it never throws.
 
 <Warning>
-  Placing orders on mainnet (`testnet: false`) uses real funds. Make sure your account has sufficient USDH balance before submitting.
+  Placing orders on mainnet (`testnet: false`) uses real funds. Make sure your
+  account has sufficient USDH balance before submitting.
 </Warning>
 
 ```typescript
@@ -148,18 +152,18 @@ const markPx = parseFloat(priceData.outcomes[0]?.midpoint ?? "0.5");
 // Place a limit buy on the Yes side
 const result = await hip4.trading.placeOrder({
   marketId: String(market.outcomeId),
-  outcome: market.sides[0].coin,          // Yes side coin, e.g. "#5160"
+  outcome: market.sides[0].coin, // Yes side coin, e.g. "#5160"
   side: "buy",
   type: "limit",
   price: String(markPx),
-  amount: String(getMinShares(markPx)),   // minimum shares for 10 USDH notional
-  markPx,                                 // enables pre-submission min-shares check
+  amount: String(getMinShares(markPx)), // minimum shares for 10 USDH notional
+  markPx, // enables pre-submission min-shares check
 });
 
 if (result.success) {
   console.log("Order status:", result.status);
   if (result.orderId) console.log("Order ID:", result.orderId);
-  if (result.shares)  console.log("Filled shares:", result.shares);
+  if (result.shares) console.log("Filled shares:", result.shares);
 } else {
   console.error("Order rejected:", result.error);
 }

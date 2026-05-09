@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   Outcome docs — brand-aligned overrides
+   Outcome docs - brand-aligned overrides
    Light-first, ink-on-paper, square corners, hairline rules. Brand
    purple is the only chromatic accent. Display headings use PP Neue
    Corp Narrow; body stays Geist (loaded by Mintlify via fonts.family).
@@ -34,7 +34,7 @@
   --outcome-display: "PP Neue Corp Narrow", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* ─── Display headings — scoped to article body ──────────────────────
+/* ─── Display headings - scoped to article body ──────────────────────
    We only retypeset headings inside <main>/<article> so the nav,
    sidebar, and chrome keep Mintlify's defaults and don't pick up
    the condensed display face. Sentence case: brand reserves uppercase
@@ -58,7 +58,7 @@ article h4 {
   letter-spacing: -0.005em;
 }
 
-/* ─── Selection — print-style inversion ───────────────────────────── */
+/* ─── Selection - print-style inversion ───────────────────────────── */
 ::selection {
   background: var(--outcome-ink);
   color: var(--outcome-paper);
@@ -67,4 +67,21 @@ article h4 {
 html.dark ::selection {
   background: var(--outcome-paper);
   color: var(--outcome-ink);
+}
+
+/* ─── Sidebar selected state ─────────────────────────────────────────
+   Lowered-opacity purple fill on the link container; text stays in
+   the regular nav-item colour (matches inactive items, no purple
+   recolouring, no fake-bold text-shadow). Mintlify marks the active
+   <li> with data-active="true". */
+#navigation-items li[data-active="true"] > a {
+  background-color: rgba(111, 46, 228, 0.12);
+  border-radius: 6px;
+  color: rgb(55, 65, 81) !important;
+  text-shadow: none !important;
+}
+
+html.dark #navigation-items li[data-active="true"] > a {
+  background-color: rgba(111, 46, 228, 0.22);
+  color: rgb(156, 163, 175) !important;
 }
