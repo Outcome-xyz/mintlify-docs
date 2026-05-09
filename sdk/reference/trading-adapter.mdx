@@ -1,7 +1,7 @@
 ---
 title: "Trading Adapter Reference — Orders and Conversions"
 sidebarTitle: "Trading"
-description: "Reference for PredictionTradingAdapter: place limit and market orders on HIP-4 outcomes, cancel resting orders, and run share-conversion primitives — split, merge, and negate."
+description: "PredictionTradingAdapter API: place limit and market orders on HIP-4 outcomes, cancel resting orders, and run split, merge, and negate conversions."
 ---
 
 The Trading Adapter (`adapter.trading`) lets you submit and cancel orders on HIP-4 prediction market outcomes. Before you can place any orders you must authenticate using `adapter.auth.initAuth()` — the trading adapter returns an error result (rather than throwing) if you attempt to place an order without a valid signer. Order placement performs local validation for tick alignment, notional size, and minimum shares before signing, so most errors are caught before hitting the exchange.
