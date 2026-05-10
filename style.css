@@ -138,6 +138,15 @@ html.dark #navigation-items li[data-active="true"] > a {
   }
 }
 
+/* ─── Shrink the navbar top row (logo + search + CTA) ───────────────
+   Mintlify ships `h-12` (3rem). Drop to 2.5rem so the chrome takes
+   less vertical space. */
+@media (min-width: 1024px) {
+  #navbar .h-12 {
+    height: 2.5rem !important;
+  }
+}
+
 /* ─── Page header: move copy button onto the eyebrow (breadcrumb) row,
    shrink it, drop the word "page" so it just reads "Copy". */
 @media (min-width: 640px) {
