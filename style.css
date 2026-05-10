@@ -212,12 +212,45 @@ html.dark #navigation-items li[data-active="true"] > a {
 html.dark #background-color {
   background-color: #0a0a0a !important;
   background-image:
-    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255, 255, 255, 0.06), transparent 60%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='480'><filter id='o'><feTurbulence type='fractalNoise' baseFrequency='0.35' numOctaves='2' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23o)'/></svg>") !important;
-  background-size: auto, 480px 480px !important;
-  background-repeat: no-repeat, repeat !important;
-  background-position: center top, 0 0 !important;
-  background-attachment: fixed, fixed !important;
+    /* Top glow — slight lightening at the very top */
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255, 255, 255, 0.07), transparent 60%),
+    /* Slow vertical brush-stroke layer */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.45' numOctaves='3' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23b)'/></svg>"),
+    /* Slow horizontal brush-stroke layer */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='h'><feTurbulence type='fractalNoise' baseFrequency='0.4 0.018' numOctaves='3' seed='29' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23h)'/></svg>"),
+    /* Canvas grain — fine painterly noise */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='480'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23g)'/></svg>") !important;
+  background-size: auto, 900px 900px, 900px 900px, 480px 480px !important;
+  background-repeat: no-repeat, repeat, repeat, repeat !important;
+  background-position: center top, 0 0, 0 0, 0 0 !important;
+  background-attachment: fixed, fixed, fixed, fixed !important;
+}
+
+/* ─── Force readable contrast on primary button + banner
+   With colors.primary/light/dark all set to neutral shades, Mintlify's
+   `text-white` defaults on the CTA + banner can end up white-on-light.
+   Force black text on the off-white primary button regardless of mode,
+   and keep banner text white against its dark fill. */
+#topbar-cta-button a,
+#topbar-cta-button a span,
+#topbar-cta-button a * {
+  color: #171717 !important;
+}
+html.dark #topbar-cta-button a {
+  background-color: #f5f5f5 !important;
+}
+html:not(.dark) #topbar-cta-button a {
+  background-color: #ffffff !important;
+}
+
+/* Banner — always dark fill + light text */
+#banner {
+  background-color: #171717 !important;
+}
+#banner,
+#banner *,
+#banner a {
+  color: #f5f5f5 !important;
 }
 
 /* ─── Brand purple accents ──────────────────────────────────────────
