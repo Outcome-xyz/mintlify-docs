@@ -214,13 +214,18 @@ html.dark #background-color {
   background-image:
     /* Top glow — slight lightening at the very top */
     radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255, 255, 255, 0.07), transparent 60%),
-    /* Slow vertical brush-stroke layer */
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.45' numOctaves='3' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23b)'/></svg>"),
-    /* Slow horizontal brush-stroke layer */
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='h'><feTurbulence type='fractalNoise' baseFrequency='0.4 0.018' numOctaves='3' seed='29' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23h)'/></svg>"),
-    /* Canvas grain — fine painterly noise */
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='480'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23g)'/></svg>") !important;
-  background-size: auto, 900px 900px, 900px 900px, 480px 480px !important;
+    /* Long vertical brush strokes — `type=turbulence` (not fractalNoise)
+       gives smoother, wavier patterns that read as paint sweeps rather
+       than sandpaper grain. Very anisotropic baseFrequency stretches
+       the cells vertically. */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='1200'><filter id='vs'><feTurbulence type='turbulence' baseFrequency='0.008 0.5' numOctaves='3' seed='13' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.11 0'/></filter><rect width='100%25' height='100%25' filter='url(%23vs)'/></svg>"),
+    /* Long horizontal brush strokes — mirrors the vertical layer at 90°
+       so the two cross like real paint on canvas. */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='1200'><filter id='hs'><feTurbulence type='turbulence' baseFrequency='0.5 0.008' numOctaves='3' seed='29' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.09 0'/></filter><rect width='100%25' height='100%25' filter='url(%23hs)'/></svg>"),
+    /* Soft isotropic blob layer — adds painted-patch variation,
+       lower frequency for big slow shifts in tone. */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='1200'><filter id='bl'><feTurbulence type='turbulence' baseFrequency='0.025' numOctaves='2' seed='47' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23bl)'/></svg>") !important;
+  background-size: auto, 1200px 1200px, 1200px 1200px, 1200px 1200px !important;
   background-repeat: no-repeat, repeat, repeat, repeat !important;
   background-position: center top, 0 0, 0 0, 0 0 !important;
   background-attachment: fixed, fixed, fixed, fixed !important;
