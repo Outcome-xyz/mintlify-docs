@@ -15,10 +15,10 @@ This guide walks you through the full integration path, meaning that by the end,
 
 <Step title="Install the SDK">
 
-Add `@outcomexyz/hip4-sdk` to your project:
+Add `@hip4/sdk` to your project:
 
 ```bash
-pnpm add @outcomexyz/hip4-sdk
+pnpm add @hip4/sdk
 ```
 
 </Step>
@@ -28,7 +28,7 @@ pnpm add @outcomexyz/hip4-sdk
 Import `createHIP4Adapter` and call `initialize()` to warm up the event cache. Every other SDK method depends on this step completing first.
 
 ```typescript
-import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+import { createHIP4Adapter } from "@hip4/sdk";
 
 const hip4 = createHIP4Adapter({ testnet: true });
 await hip4.initialize();
@@ -43,7 +43,7 @@ The adapter automatically connects to the correct Hyperliquid testnet endpoints 
 Call `fetchMarkets()` to retrieve live prediction markets. The response is an array of typed market objects - each one carries pre-computed side identifiers, expiry dates, and outcome metadata.
 
 ```typescript
-import type { DefaultBinaryMarket } from "@outcomexyz/hip4-sdk";
+import type { DefaultBinaryMarket } from "@hip4/sdk";
 
 const markets = (await hip4.events.fetchMarkets({
   type: "defaultBinary",
@@ -71,7 +71,7 @@ Trading requires an approved ephemeral agent key. The agent key signs orders on 
 import {
   getAgentApprovalTypedData,
   submitAgentApproval,
-} from "@outcomexyz/hip4-sdk";
+} from "@hip4/sdk";
 import { createWalletClient, http } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { arbitrum } from "viem/chains";
@@ -139,8 +139,8 @@ With auth initialized, call `hip4.trading.placeOrder()` to submit a limit order.
 </Warning>
 
 ```typescript
-import { getMinShares } from "@outcomexyz/hip4-sdk";
-import type { DefaultBinaryMarket } from "@outcomexyz/hip4-sdk";
+import { getMinShares } from "@hip4/sdk";
+import type { DefaultBinaryMarket } from "@hip4/sdk";
 
 // Pick a market (reusing the list from step 3)
 const market = markets[0] as DefaultBinaryMarket;

@@ -11,8 +11,8 @@ The events adapter gives you structured access to every HIP-4 prediction market 
 `hip4.events.fetchMarkets()` returns a flat `HIP4Market[]` array covering all active outcomes.
 
 ```typescript
-import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
-import type { HIP4Market } from "@outcomexyz/hip4-sdk";
+import { createHIP4Adapter } from "@hip4/sdk";
+import type { HIP4Market } from "@hip4/sdk";
 
 const hip4 = createHIP4Adapter({ testnet: true });
 await hip4.initialize();
@@ -44,7 +44,7 @@ const buckets = await hip4.events.fetchMarkets({ type: "priceBucket" });
 Use `groupBy: "type"` to receive a `MarketsByType` object with one key per market category.
 
 ```typescript
-import type { MarketsByType, DefaultBinaryMarket, MultiOutcomeMarket } from "@outcomexyz/hip4-sdk";
+import type { MarketsByType, DefaultBinaryMarket, MultiOutcomeMarket } from "@hip4/sdk";
 
 const grouped = await hip4.events.fetchMarkets({ groupBy: "type" }) as MarketsByType;
 
@@ -57,7 +57,7 @@ const multiOutcomeMarkets  = (grouped.multiOutcome ?? []) as MultiOutcomeMarket[
 Multi-outcome markets share a parent question. Grouping by question returns a `MarketsByQuestion` object keyed by question ID (or `"standalone"` for unclaimed outcomes).
 
 ```typescript
-import type { MultiOutcomeMarket } from "@outcomexyz/hip4-sdk";
+import type { MultiOutcomeMarket } from "@hip4/sdk";
 
 const byQuestion = await hip4.events.fetchMarkets({
   type: "multiOutcome",
@@ -107,7 +107,7 @@ const byNewest = await hip4.events.fetchMarkets({ sortBy: "newest" });
 Each market type exposes fields specific to its category. `DefaultBinaryMarket` includes the parsed description fields you need for display and filtering.
 
 ```typescript
-import type { DefaultBinaryMarket } from "@outcomexyz/hip4-sdk";
+import type { DefaultBinaryMarket } from "@hip4/sdk";
 
 const markets = await hip4.events.fetchMarkets({ type: "defaultBinary" }) as DefaultBinaryMarket[];
 const m = markets[0];

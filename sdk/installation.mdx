@@ -1,25 +1,25 @@
 ---
-title: "Install @outcomexyz/hip4-sdk: setup and entry points"
+title: "Install @hip4/sdk: setup and entry points"
 sidebarTitle: "Installation"
-description: "Add @outcomexyz/hip4-sdk to your TypeScript project and understand its two entry points, module formats, and compiler requirements."
+description: "Add @hip4/sdk to your TypeScript project and understand its two entry points, module formats, and compiler requirements."
 ---
 
-The SDK is published to npm as `@outcomexyz/hip4-sdk`. It ships with full TypeScript types, supports both ESM and CommonJS, and has no runtime dependencies beyond your own project's dependencies.
+The SDK is published to npm as `@hip4/sdk`. It ships with full TypeScript types, supports both ESM and CommonJS, and has no runtime dependencies beyond your own project's dependencies.
 
 ## Install
 
 <CodeGroup>
 
 ```bash pnpm
-pnpm add @outcomexyz/hip4-sdk
+pnpm add @hip4/sdk
 ```
 
 ```bash npm
-npm install @outcomexyz/hip4-sdk
+npm install @hip4/sdk
 ```
 
 ```bash yarn
-yarn add @outcomexyz/hip4-sdk
+yarn add @hip4/sdk
 ```
 
 </CodeGroup>
@@ -32,16 +32,16 @@ The package exposes two entry points:
 
 | Entry point | Use when |
 |-------------|----------|
-| `@outcomexyz/hip4-sdk` | Importing the adapter, utility functions, and types in the same file |
-| `@outcomexyz/hip4-sdk/types` | Importing types only, without pulling in any runtime code |
+| `@hip4/sdk` | Importing the adapter, utility functions, and types in the same file |
+| `@hip4/sdk/types` | Importing types only, without pulling in any runtime code |
 
 ```typescript
 // Main entry - adapter, utilities, and types
-import { createHIP4Adapter, formatPrice, getMinShares } from "@outcomexyz/hip4-sdk";
-import type { DefaultBinaryMarket, PredictionOrderResult } from "@outcomexyz/hip4-sdk";
+import { createHIP4Adapter, formatPrice, getMinShares } from "@hip4/sdk";
+import type { DefaultBinaryMarket, PredictionOrderResult } from "@hip4/sdk";
 
 // Types-only entry - useful in shared type packages or when tree-shaking matters
-import type { HIP4Market, MarketType } from "@outcomexyz/hip4-sdk/types";
+import type { HIP4Market, MarketType } from "@hip4/sdk/types";
 ```
 
 ## TypeScript requirements

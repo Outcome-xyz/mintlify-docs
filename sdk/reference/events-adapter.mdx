@@ -77,7 +77,7 @@ const events = await adapter.events.fetchEvents({ active: true, limit: 20 });
 ### Example
 
 ```typescript
-import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+import { createHIP4Adapter } from "@hip4/sdk";
 
 const adapter = createHIP4Adapter({ testnet: false });
 await adapter.initialize();
@@ -185,7 +185,7 @@ The return type changes depending on whether you pass `groupBy`:
 | `"question"`    | `MarketsByQuestion` |
 
 ```typescript
-import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+import { createHIP4Adapter } from "@hip4/sdk";
 
 const adapter = createHIP4Adapter({ testnet: false });
 await adapter.initialize();
@@ -245,7 +245,7 @@ import type {
   LabelledBinaryMarket,
   MultiOutcomeMarket,
   PriceBucketMarket,
-} from "@outcomexyz/hip4-sdk";
+} from "@hip4/sdk";
 
 // --- Flat list of all markets ---
 const all = await adapter.events.fetchMarkets();

@@ -17,7 +17,7 @@ HIP-4 markets fall into four types, each with its own structure and set of field
     **Distinguishing fields:** `underlying`, `targetPrice`, `expiry`, `period`
 
     ```typescript
-    import type { DefaultBinaryMarket } from "@outcomexyz/hip4-sdk";
+    import type { DefaultBinaryMarket } from "@hip4/sdk";
 
     const market = markets[0] as DefaultBinaryMarket;
 
@@ -45,7 +45,7 @@ HIP-4 markets fall into four types, each with its own structure and set of field
     **Distinguishing fields:** custom `sides[n].name` values (not "Yes"/"No")
 
     ```typescript
-    import type { LabelledBinaryMarket } from "@outcomexyz/hip4-sdk";
+    import type { LabelledBinaryMarket } from "@hip4/sdk";
 
     const market = markets[0] as LabelledBinaryMarket;
 
@@ -61,7 +61,7 @@ HIP-4 markets fall into four types, each with its own structure and set of field
     **Distinguishing fields:** `questionId`, `questionName`, `questionDescription`, `isFallback`
 
     ```typescript
-    import type { MultiOutcomeMarket } from "@outcomexyz/hip4-sdk";
+    import type { MultiOutcomeMarket } from "@hip4/sdk";
 
     const market = markets[0] as MultiOutcomeMarket;
 
@@ -91,7 +91,7 @@ HIP-4 markets fall into four types, each with its own structure and set of field
     The `class:priceBucket` tag appears on the parent question's description, not the individual outcome. N thresholds produce N+1 bucket outcomes plus one settlement fallback outcome.
 
     ```typescript
-    import type { PriceBucketMarket } from "@outcomexyz/hip4-sdk";
+    import type { PriceBucketMarket } from "@hip4/sdk";
 
     const market = markets[0] as PriceBucketMarket;
 
@@ -133,7 +133,7 @@ A `PredictionEvent` groups one or more `PredictionMarket` objects. For question-
 `PredictionOutcome` represents one side. It carries the side name, the `tokenId` (the side coin like `#5160`), and the current price as a decimal string between "0" and "1".
 
 ```typescript
-import type { PredictionEvent, PredictionMarket, PredictionOutcome } from "@outcomexyz/hip4-sdk";
+import type { PredictionEvent, PredictionMarket, PredictionOutcome } from "@hip4/sdk";
 
 const event: PredictionEvent = await hip4.events.fetchEvent("q1");
 

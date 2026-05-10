@@ -123,12 +123,12 @@ The SDK maps SDK-level TIF values to Hyperliquid order types as follows:
 ### Examples
 
 ```typescript
-import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+import { createHIP4Adapter } from "@hip4/sdk";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import {
   getAgentApprovalTypedData,
   submitAgentApproval,
-} from "@outcomexyz/hip4-sdk";
+} from "@hip4/sdk";
 
 const adapter = createHIP4Adapter({ testnet: false });
 await adapter.initialize();
