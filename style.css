@@ -226,21 +226,15 @@ html.dark #background-color {
   background-attachment: fixed, fixed, fixed, fixed !important;
 }
 
-/* ─── Force readable contrast on primary button + banner
-   With colors.primary/light/dark all set to neutral shades, Mintlify's
-   `text-white` defaults on the CTA + banner can end up white-on-light.
-   Force black text on the off-white primary button regardless of mode,
-   and keep banner text white against its dark fill. */
+/* ─── Primary button: same scheme as the banner.
+   Dark fill (#171717) + light text (#f5f5f5) in both modes. */
+#topbar-cta-button a {
+  background-color: #171717 !important;
+}
 #topbar-cta-button a,
 #topbar-cta-button a span,
 #topbar-cta-button a * {
-  color: #171717 !important;
-}
-html.dark #topbar-cta-button a {
-  background-color: #f5f5f5 !important;
-}
-html:not(.dark) #topbar-cta-button a {
-  background-color: #ffffff !important;
+  color: #f5f5f5 !important;
 }
 
 /* Banner — always dark fill + light text */
