@@ -47,7 +47,8 @@
             "group": "Reference",
             "icon": "receipt",
             "pages": [
-              "reference/fees"
+              "reference/fees",
+              "reference/risks"
             ]
           }
         ]
