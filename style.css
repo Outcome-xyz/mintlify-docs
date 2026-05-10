@@ -213,19 +213,17 @@ html.dark #background-color {
   background-color: #0a0a0a !important;
   background-image:
     /* Top glow — slight lightening at the very top */
-    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255, 255, 255, 0.06), transparent 60%),
-    /* Impasto oil-paint surface. `feTurbulence` produces a noise
-       heightmap; `feDiffuseLighting` then renders it as a lit 3D
-       surface with shadows and highlights, with the light coming
-       from the upper-left (azimuth 135°). `background-blend-mode:
-       screen` brightens the dark base where the impasto highlights
-       are, while leaving the valleys at the underlying #0a0a0a. */
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='oil'><feTurbulence type='turbulence' baseFrequency='0.016' numOctaves='3' seed='17' stitchTiles='stitch'/><feDiffuseLighting surfaceScale='7' lighting-color='%23555555' diffuseConstant='1.4'><feDistantLight azimuth='135' elevation='40'/></feDiffuseLighting></filter><rect width='900' height='900' filter='url(%23oil)'/></svg>") !important;
-  background-size: auto, 900px 900px !important;
-  background-repeat: no-repeat, repeat !important;
-  background-position: center top, 0 0 !important;
-  background-attachment: fixed, fixed !important;
-  background-blend-mode: normal, screen !important;
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255, 255, 255, 0.07), transparent 60%),
+    /* Slow vertical brush-stroke layer */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.45' numOctaves='3' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23b)'/></svg>"),
+    /* Slow horizontal brush-stroke layer */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='h'><feTurbulence type='fractalNoise' baseFrequency='0.4 0.018' numOctaves='3' seed='29' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23h)'/></svg>"),
+    /* Canvas grain — fine painterly noise */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='480'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23g)'/></svg>") !important;
+  background-size: auto, 900px 900px, 900px 900px, 480px 480px !important;
+  background-repeat: no-repeat, repeat, repeat, repeat !important;
+  background-position: center top, 0 0, 0 0, 0 0 !important;
+  background-attachment: fixed, fixed, fixed, fixed !important;
 }
 
 /* ─── Primary button: same scheme as the banner.
