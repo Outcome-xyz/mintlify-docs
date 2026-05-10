@@ -15,7 +15,7 @@ The SDK maintains a single shared WebSocket connection to Hyperliquid and multip
 `subscribeOrderBook` delivers a Level 2 book snapshot (bids and asks) on every change.
 
 ```typescript
-import { createHIP4Adapter } from "@hip4/sdk";
+import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
 
 const hip4 = createHIP4Adapter({ testnet: true });
 await hip4.initialize();
@@ -71,7 +71,7 @@ The WebSocket reconnects automatically if the connection drops. The retry schedu
 `createPriceFeed` merges historical candles with live price ticks into a single continuously-updating snapshot. It's designed to power live charts without you needing to stitch together the initial fetch and the real-time stream yourself.
 
 ```typescript
-import { createPriceFeed } from "@hip4/sdk";
+import { createPriceFeed } from "@outcomexyz/hip4-sdk";
 
 const unsub = createPriceFeed(
   hip4.marketData,

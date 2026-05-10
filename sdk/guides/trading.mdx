@@ -17,7 +17,7 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     Generate or load an agent key and pass it to `initAuth`. The agent key signs orders silently on behalf of the user's wallet.
 
     ```typescript
-    import { createHIP4Adapter } from "@hip4/sdk";
+    import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
     import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
     const hip4 = createHIP4Adapter({ testnet: true });
@@ -39,7 +39,7 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     Retrieve the market you want to trade. The `sides` array on each market object carries the pre-computed coin identifier you pass to `placeOrder`.
 
     ```typescript
-    import type { DefaultBinaryMarket } from "@hip4/sdk";
+    import type { DefaultBinaryMarket } from "@outcomexyz/hip4-sdk";
 
     const markets = await hip4.events.fetchMarkets({
       type: "defaultBinary",
@@ -55,7 +55,7 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     Call `hip4.trading.placeOrder` with the market ID, the side coin, and your price and amount. Pass `markPx` to enable pre-submission min-shares validation.
 
     ```typescript
-    import { getMinShares } from "@hip4/sdk";
+    import { getMinShares } from "@outcomexyz/hip4-sdk";
 
     // Fetch current mid price for validation
     const priceData = await hip4.marketData.fetchPrice(String(market.outcomeId));

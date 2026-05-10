@@ -73,7 +73,7 @@ hip4.auth.clearAuth();
 
 ## Standalone functions
 
-These functions are exported from `@hip4/sdk` and are used to create and submit the one-time agent approval before calling `initAuth`.
+These functions are exported from `@outcomexyz/hip4-sdk` and are used to create and submit the one-time agent approval before calling `initAuth`.
 
 ### `getAgentApprovalTypedData(agentAddress, name, nonce, testnet)`
 
@@ -112,7 +112,7 @@ import {
   createHIP4Adapter,
   getAgentApprovalTypedData,
   submitAgentApproval,
-} from "@hip4/sdk";
+} from "@outcomexyz/hip4-sdk";
 
 // 1. Generate an ephemeral agent keypair
 const agentKey = generatePrivateKey();
