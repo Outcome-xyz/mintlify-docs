@@ -31,7 +31,7 @@ Every order on Hyperliquid's L1 requires a signature. Without an agent key, your
     `getAgentApprovalTypedData` returns the EIP-712 typed data the user needs to sign. Pass the agent's address, a human-readable name for your app, the current timestamp as a nonce, and a boolean indicating whether you're targeting mainnet.
 
     ```typescript
-    import { getAgentApprovalTypedData } from "@outcomexyz/hip4-sdk";
+    import { getAgentApprovalTypedData } from "@hip4/sdk";
 
     const nonce = Date.now();
     const typedData = getAgentApprovalTypedData(
@@ -67,7 +67,7 @@ Every order on Hyperliquid's L1 requires a signature. Without an agent key, your
     `submitAgentApproval` sends the signed approval to the Hyperliquid exchange. The same nonce you used to build the typed data must be passed here.
 
     ```typescript
-    import { submitAgentApproval } from "@outcomexyz/hip4-sdk";
+    import { submitAgentApproval } from "@hip4/sdk";
 
     const result = await submitAgentApproval(
       signature,

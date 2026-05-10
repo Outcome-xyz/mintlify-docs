@@ -15,7 +15,7 @@ USDH is the collateral token used for all HIP-4 prediction market activity on Hy
 Before calling any wallet method, register the user's wallet signer. The agent key is registered separately via `hip4.auth.initAuth` and is used automatically for spot buy/sell orders.
 
 ```typescript
-import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+import { createHIP4Adapter } from "@hip4/sdk";
 
 const hip4 = createHIP4Adapter({ testnet: true });
 await hip4.initialize();

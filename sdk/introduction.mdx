@@ -4,7 +4,7 @@ sidebarTitle: "Introduction"
 description: "A typed TypeScript SDK for building on HIP-4 - fetch markets, stream live data, place orders, run conversion primitives, and manage USDH funds on Hyperliquid."
 ---
 
-Outcome is the venue and primitive composer for HIP-4 on Hyperliquid L1 - prediction markets at face value, a modular stack of financial primitives underneath. The `@outcomexyz/hip4-sdk` gives you everything to build on that stack: market discovery, real-time WebSocket data, order placement with EIP-712 signing, the four protocol-level conversion primitives (split, merge, negate), and USDH fund management - all from a single, zero-dependency TypeScript package.
+Outcome is the venue and primitive composer for HIP-4 on Hyperliquid L1 - prediction markets at face value, a modular stack of financial primitives underneath. The `@hip4/sdk` gives you everything to build on that stack: market discovery, real-time WebSocket data, order placement with EIP-712 signing, the four protocol-level conversion primitives (split, merge, negate), and USDH fund management - all from a single, zero-dependency TypeScript package.
 
 ## Key features
 
@@ -39,7 +39,7 @@ The SDK is organized around a single `HIP4Client` that handles HTTP routing, 5xx
 You create the adapter with `createHIP4Adapter()` and call `initialize()` once to warm up the event cache. After that, all sub-adapters are accessible as properties on the returned object.
 
 ```typescript
-import { createHIP4Adapter } from "@outcomexyz/hip4-sdk";
+import { createHIP4Adapter } from "@hip4/sdk";
 
 const hip4 = createHIP4Adapter({ testnet: true });
 await hip4.initialize();
