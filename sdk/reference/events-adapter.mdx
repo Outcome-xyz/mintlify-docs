@@ -26,11 +26,11 @@ const events = await adapter.events.fetchEvents({ active: true, limit: 20 });
   When `true`, only events with `status === "active"` are returned.
 </ParamField>
 
-<ParamField path="params.limit" type="number" default="50">
+<ParamField path="params.limit" default="50" type="number">
   Maximum number of events to return.
 </ParamField>
 
-<ParamField path="params.offset" type="number" default="0">
+<ParamField path="params.offset" default="0" type="number">
   Pagination offset. Applied after category, active, and query filters.
 </ParamField>
 
@@ -155,9 +155,9 @@ const categories = await adapter.events.fetchCategories();
 
 The response always contains exactly two entries:
 
-| `id`        | `name`      | `slug`      |
-|-------------|-------------|-------------|
-| `custom`    | `Custom`    | `custom`    |
+| `id` | `name` | `slug` |
+| --- | --- | --- |
+| `custom` | `Custom` | `custom` |
 | `recurring` | `Recurring` | `recurring` |
 
 ### Example
@@ -178,11 +178,11 @@ Returns typed `HIP4Market` objects for all HIP-4 outcomes. Each market is classi
 
 The return type changes depending on whether you pass `groupBy`:
 
-| `groupBy` value | Return type         |
-|-----------------|---------------------|
-| _(none)_        | `HIP4Market[]`      |
-| `"type"`        | `MarketsByType`     |
-| `"question"`    | `MarketsByQuestion` |
+| `groupBy` value | Return type |
+| --- | --- |
+| _(none)_ | `HIP4Market[]` |
+| `"type"` | `MarketsByType` |
+| `"question"` | `MarketsByQuestion` |
 
 ```typescript
 import { createHIP4Adapter } from "@hip4/sdk";
@@ -199,7 +199,7 @@ const markets = await adapter.events.fetchMarkets();
   Filter to a single market type. One of `"defaultBinary"`, `"labelledBinary"`, `"multiOutcome"`, `"priceBucket"`.
 </ParamField>
 
-<ParamField path="params.sortBy" type="string" default="newest">
+<ParamField path="params.sortBy" default="newest" type="string">
   Sort order. `"newest"` | `"volume"` | `"expiry"`.
 </ParamField>
 
@@ -207,11 +207,11 @@ const markets = await adapter.events.fetchMarkets();
   Group the results. `"type"` returns a `MarketsByType` object keyed by market type. `"question"` returns a `MarketsByQuestion` object keyed by question ID (or `"standalone"` for unattached outcomes).
 </ParamField>
 
-<ParamField path="params.limit" type="number" default="100">
+<ParamField path="params.limit" default="100" type="number">
   Maximum number of markets to return (applied after filtering).
 </ParamField>
 
-<ParamField path="params.offset" type="number" default="0">
+<ParamField path="params.offset" default="0" type="number">
   Pagination offset.
 </ParamField>
 
@@ -219,23 +219,23 @@ const markets = await adapter.events.fetchMarkets();
 
 All four types extend a shared `BaseMarket` with these fields:
 
-| Field         | Type                       | Description                                          |
-|---------------|----------------------------|------------------------------------------------------|
-| `type`        | `MarketType`               | Discriminant: `"defaultBinary"` | `"labelledBinary"` | `"multiOutcome"` | `"priceBucket"` |
-| `outcomeId`   | `number`                   | Hyperliquid outcome ID                               |
-| `name`        | `string`                   | Human-readable name                                  |
-| `description` | `string`                   | Description text                                     |
-| `sides`       | `[MarketSide, MarketSide]` | Both tradeable sides with pre-computed identifiers   |
-| `raw`         | `HLOutcome`                | Raw Hyperliquid API response for escape-hatch access |
+| Field | Type | Description |  |  |  |
+| --- | --- | --- | --- | --- | --- |
+| `type` | `MarketType` | Discriminant: `"defaultBinary"` | `"labelledBinary"` | `"multiOutcome"` | `"priceBucket"` |
+| `outcomeId` | `number` | Hyperliquid outcome ID |  |  |  |
+| `name` | `string` | Human-readable name |  |  |  |
+| `description` | `string` | Description text |  |  |  |
+| `sides` | `[MarketSide, MarketSide]` | Both tradeable sides with pre-computed identifiers |  |  |  |
+| `raw` | `HLOutcome` | Raw Hyperliquid API response for escape-hatch access |  |  |  |
 
 Each `MarketSide` exposes:
 
-| Field     | Type     | Description                                      |
-|-----------|----------|--------------------------------------------------|
-| `name`    | `string` | Human-readable side name (e.g. `"Yes"`, `"No"`) |
-| `coinNum` | `number` | `outcomeId * 10 + sideIndex`                     |
-| `coin`    | `string` | Coin string for API calls (e.g. `"#5160"`)       |
-| `asset`   | `number` | Order asset ID (`100_000_000 + coinNum`)          |
+| Field | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Human-readable side name (e.g. `"Yes"`, `"No"`) |
+| `coinNum` | `number` | `outcomeId * 10 + sideIndex` |
+| `coin` | `string` | Coin string for API calls (e.g. `"#5160"`) |
+| `asset` | `number` | Order asset ID (`100_000_000 + coinNum`) |
 
 ### Examples
 
