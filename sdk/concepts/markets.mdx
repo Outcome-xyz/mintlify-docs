@@ -14,13 +14,17 @@ HIP-4 markets fall into four types, each with its own structure and set of field
   <Tab title="defaultBinary">
     Recurring price binary markets are auto-generated on a schedule and ask whether an asset's price will exceed a target by a given expiry. They always use "Yes" / "No" sides.
 
+    <Info>
+      e.g. "Will BTC finish above \$82.000 at 23:59 11/05/2026"
+    </Info>
+
     **Distinguishing fields:** `underlying`, `targetPrice`, `expiry`, `period`
 
     ```typescript
     import type { DefaultBinaryMarket } from "@hip4/sdk";
-
+    
     const market = markets[0] as DefaultBinaryMarket;
-
+    
     market.type;           // "defaultBinary"
     market.underlying;     // "BTC"
     market.targetPrice;    // 69070
@@ -40,15 +44,19 @@ HIP-4 markets fall into four types, each with its own structure and set of field
     ```
   </Tab>
   <Tab title="labelledBinary">
-    Standalone binary markets with custom side names. These are one-off markets not grouped under a parent question. The sides can be anything - "Hypurr" vs "Usain Bolt", "Pass" vs "Fail" - as defined by the market creator.
+    Standalone binary markets with custom side names. These are one-off markets not grouped under a parent question. The sides can be anything - "True" vs "False", "Hypurr" vs "Usain Bolt", "Pass" vs "Fail" - as defined by the market creator.
+
+    <Info>
+      e.g. "Hyperliquid is the best DeFi ecosystem (true / false)"
+    </Info>
 
     **Distinguishing fields:** custom `sides[n].name` values (not "Yes"/"No")
 
     ```typescript
     import type { LabelledBinaryMarket } from "@hip4/sdk";
-
+    
     const market = markets[0] as LabelledBinaryMarket;
-
+    
     market.type;           // "labelledBinary"
     market.sides[0].name;  // e.g. "Hypurr"
     market.sides[1].name;  // e.g. "Usain Bolt"
@@ -62,9 +70,9 @@ HIP-4 markets fall into four types, each with its own structure and set of field
 
     ```typescript
     import type { MultiOutcomeMarket } from "@hip4/sdk";
-
+    
     const market = markets[0] as MultiOutcomeMarket;
-
+    
     market.type;                 // "multiOutcome"
     market.questionId;           // 42
     market.questionName;         // "Which team wins the championship?"
@@ -84,17 +92,17 @@ HIP-4 markets fall into four types, each with its own structure and set of field
     ```
   </Tab>
   <Tab title="priceBucket">
-    Multi-bucket price range markets (introduced in v2). Instead of a single binary threshold, the parent question defines N price thresholds that create N+1 buckets. Each bucket is its own `priceBucket` market, representing whether the price will land in that range at expiry.
+    Multi-bucket price range markets (introduced in v2). Instead of a single binary threshold, the parent question defines N price thresholds that create N\+1 buckets. Each bucket is its own `priceBucket` market, representing whether the price will land in that range at expiry.
 
     **Distinguishing fields:** `priceThresholds`, `lowerBound`, `upperBound`, `bucketIndex`, `isFallback`
 
-    The `class:priceBucket` tag appears on the parent question's description, not the individual outcome. N thresholds produce N+1 bucket outcomes plus one settlement fallback outcome.
+    The `class:priceBucket` tag appears on the parent question's description, not the individual outcome. N thresholds produce N\+1 bucket outcomes plus one settlement fallback outcome.
 
     ```typescript
     import type { PriceBucketMarket } from "@hip4/sdk";
-
+    
     const market = markets[0] as PriceBucketMarket;
-
+    
     market.type;             // "priceBucket"
     market.underlying;       // "BTC"
     market.expiry;           // Date (UTC)
@@ -111,7 +119,7 @@ HIP-4 markets fall into four types, each with its own structure and set of field
 ## Market type summary
 
 | Type | Description | Key fields |
-|------|-------------|------------|
+| --- | --- | --- |
 | `defaultBinary` | Recurring price binary (auto-generated) | `underlying`, `targetPrice`, `expiry`, `period` |
 | `labelledBinary` | Standalone binary with custom side names | Custom `sides[n].name` values |
 | `multiOutcome` | Grouped under a parent question | `questionId`, `questionName`, `isFallback` |
@@ -121,7 +129,7 @@ HIP-4 markets fall into four types, each with its own structure and set of field
 
 HIP-4 structures data in three layers: **events**, **markets**, and **outcomes**.
 
-```
+```text
 PredictionEvent  (e.g. "Will BTC hit $69k?")
 └── PredictionMarket  (the tradeable question, id = outcome ID as string)
     ├── PredictionOutcome  (side 0 - "Yes")
@@ -172,7 +180,7 @@ const standaloneEvent = await hip4.events.fetchEvent("o516"); // binary
 Every `PredictionEvent` has a `status` field that reflects its current lifecycle state.
 
 | Status | Meaning |
-|--------|---------|
+| --- | --- |
 | `"active"` | Trading is open |
 | `"pending_resolution"` | Market has closed; awaiting settlement |
 | `"resolved"` | Outcome has been determined |
