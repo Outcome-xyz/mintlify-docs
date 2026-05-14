@@ -1,0 +1,47 @@
+---
+title: "Reading the order book"
+---
+
+Every market on Outcome has an order book that shows you who's willing to buy and who's willing to sell at what price. Understanding what you're looking at is the foundation for placing trades intelligently.
+
+### **The two sides**
+
+The order book has two sides:
+
+- **Bids** are orders from people willing to buy a specific outcome at a given price. The bid stack shows the highest prices buyers are offering, sorted from best (highest) to lowest.
+- **Asks** are orders from people willing to sell. The ask stack shows the lowest prices sellers will accept, sorted from best (lowest) to highest.
+
+Each row in the book shows the price and the total amount of tokens available at that price.
+
+### **Best bid, best ask, and spread**
+
+The **best bid** is the highest price anyone is currently willing to pay for the outcome.
+
+The **best ask** is the lowest price anyone is currently willing to sell at.
+
+The difference between them is the **spread**. A tight spread (e.g., bid at 0.39, ask at 0.40) means buyers and sellers are close to agreeing on a price, usually a sign of active liquidity. A wide spread (e.g., bid at 0.30, ask at 0.50) means there's significant uncertainty or limited liquidity, and trades will cost more in slippage.
+
+### **How your order interacts with the book**
+
+When you submit an order, where it lands depends on the price you set relative to the current book:
+
+- A buy priced at or above the best ask fills immediately at the best available price. This is a **taker** order (you take an existing offer).
+- A sell priced at or below the best bid fills immediately. Also a taker order.
+- Otherwise, your order rests on the book at your specified price until someone takes it or you cancel. This is a **maker** order (you make liquidity available for others).
+
+Whether you're a maker or taker determines what fees apply. See Fees for details.
+
+### **Depth**
+
+Beyond the best bid and ask, the rest of the book is **depth**. Depth tells you how much you can trade before the price moves. A market with 100 USDH at the best ask and 100 USDH at the next-best ask has shallow depth, and a large order will walk through both levels. A market with 10,000 USDH stacked at the best ask has deeper liquidity, and the same order would fill at one price.
+
+### **Other prices you'll see**
+
+Beyond the order book itself, market pages typically display two related prices:
+
+- **Mid price** is the midpoint between the best bid and the best ask. It's a convenient single-number reference for where the market is currently pricing the outcome.
+- **Last trade price** is the price of the most recent fill. It tells you what someone actually paid, which can be different from the current mid if the book has moved since the last trade.
+
+For a quick read of where a market is, the mid price is usually the best single number. For tracking activity, the last trade price tells you what's been happening.
+
+\

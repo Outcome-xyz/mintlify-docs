@@ -1,14 +1,12 @@
 ---
-title: "How prediction markets work: shares, prices, and payouts"
-sidebarTitle: "Prediction markets"
-description: "Buy and sell shares in the outcome of a future event. Prices reflect probabilities, YES and NO trade together, and you can exit any time before settlement."
+title: "How prediction markets work"
 ---
 
 A prediction market is a place where you buy and sell shares in the outcome of a future event. Each share represents a claim on whether something will happen. If you're right at the time the event resolves, your share is worth 1 USDH. If you're wrong, it's worth 0.
 
 What makes prediction markets useful is what the price tells you in between.
 
-## Prices are probabilities
+### **Prices are probabilities**
 
 The price of a YES share, between 0 and 1, is the market's collective estimate of how likely the event is to happen. A YES at 0.40 means buyers and sellers, on net, are pricing the event at 40% likely.
 
@@ -16,20 +14,28 @@ If you think the true probability is higher than 40%, you buy YES. If you think 
 
 It's the same logic as any probability statement: a 0.60 price means 60% likely, the same way a weather forecast says there's a 60% chance of rain.
 
-## YES and NO are two sides of the same market
+### **Outcome prices add up to 1**
 
-For every outcome contract there's a YES token and a NO token. They always sum to exactly 1 USDH at settlement: whichever side wins pays 1, the other pays 0.
+Every market has at least two possible outcomes. Binary markets have two (YES and NO, or UP and DOWN). Multi-outcome markets have more, like an election with three candidates or a tournament with multiple teams.
 
-Because they're complementary, their prices add up to about 1 while the market is open. If YES is trading at 0.40, NO will be trading at about 0.60. The two sides mirror each other, so picking YES or NO is just picking which view you want to express.
+Whatever the number of outcomes, the prices for all of them sum to approximately 1 USDH at any time the market is open. If a binary market has YES at 0.40, NO will be at about 0.60. If a four-outcome market has tokens at 0.30, 0.25, 0.25, and 0.20, those sum to 1.00.
 
-You don't need to think about the math every time you trade. Pick the side you want and put your order in.
+This is what makes it a coherent system: every outcome has a price, every price is a probability, and the probabilities have to sum to 100%.
 
-## You don't have to wait for settlement
+You don't need to think about the math every time you trade. Pick the outcome you think will happen and put your order in.
+
+### **You don't have to wait for settlement**
 
 You're not locked into a position once you open it. As long as the market is open and someone is willing to take the other side, you can sell at whatever the current market price is.
 
 If you bought YES at 0.40 and the price has moved to 0.60 because the event now looks more likely, you can sell at 0.60 and lock in the gain without waiting for settlement. Likewise, if the price has moved against you, you can sell at a loss to free up capital instead of riding the position to expiry.
 
-## Why prices move
+### **Why prices move**
 
 Prices in a prediction market move when new information changes how likely the event looks. A market on "will the central bank cut rates this month" will react to economic data releases, statements from policymakers, and shifts in related markets. A BTC binary will react to spot price moves.
+
+If you have a view that's better than what the market is currently pricing, either because you have better information or because you think the market is overreacting, that's the trade. If you're consistently right, you make money. If you're consistently wrong, you don't.
+
+For more on how markets are structured, what makes prices coherent, and how settlement works, see How markets work.
+
+\

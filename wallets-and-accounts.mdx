@@ -1,0 +1,91 @@
+---
+title: "Wallets and accounts"
+---
+
+Outcome supports two ways to access the app: a self-custody wallet that you manage directly, or a social login via Privy that handles wallet keys for you. Both are non-custodial: Outcome never holds your funds. Either option works equally well at any size of position.
+
+This page explains how each option works, the trade-offs between them, and how to keep your account secure. If you're new to crypto, read this carefully. The single biggest source of irreversible loss in this space is wallet mismanagement.
+
+### **What a wallet is**
+
+A wallet is what proves you own your funds on a blockchain. Mechanically, a wallet is a pair of cryptographic keys:
+
+- A **public address** that anyone can see and send funds to (similar to an account number).
+- A **private key** that lets you spend or transfer those funds (similar to a password, but with no recovery option).
+
+The wallet app you use stores and manages your keys, and signs transactions on your behalf when you approve them.
+
+### **Private keys, and why they matter**
+
+A private key is a long secret string. Anyone with the private key controls the funds in the wallet. There is no customer service, no "forgot my password" link, and no central authority that can reverse a transaction signed by your private key.
+
+This is the core security model in crypto:
+
+- If you lose your private key, your funds are inaccessible. Forever.
+- If someone else gets your private key, they can move your funds. Immediately.
+- Transactions cannot be reversed once they're signed and broadcast.
+
+Treat your private key like the only key to a vault. Outcome cannot recover it for you, and neither can anyone else.
+
+### **How each option works**
+
+**Self-custody wallet.** You install a wallet app (MetaMask, Rabby, or any compatible EVM wallet), and the wallet generates and stores your private key locally. You see the key as a 12 or 24-word recovery phrase and are responsible for backing it up. When you connect to Outcome, the wallet signs trades on your approval.
+
+**Social login via Privy.** You sign in with Google, Apple, or email, and Privy creates a wallet for you. Privy splits the key material across multiple secure systems so the full key never exists in any one place. You don't see or directly handle the private key; signing happens automatically when you authorize a trade. See [<u>Privy's security docs</u>](https://docs.privy.io/security/wallet-infrastructure/architecture) for technical details.
+
+### **Choosing between them**
+
+**Self-custody is right if:**
+
+- You're comfortable managing a recovery phrase yourself
+- You want direct control over your keys
+- You already have a wallet you use across other crypto apps
+- You prefer not to depend on third-party authentication services
+
+**Social login is right if:**
+
+- You'd rather sign in with email or Google than install a wallet app
+- You don't want to be responsible for safeguarding a recovery phrase yourself
+- You're comfortable trusting Privy as a layer in your account access
+- You don't already have a preferred wallet
+
+### **Accepting the Terms of Service**
+
+Before you can place your first trade, you'll be asked to accept Outcome's [<u>Terms of Service</u>](https://outcome.xyz/terms). This is a one-time signature, separate from connecting your wallet. You can browse markets without accepting, but trading requires acceptance.
+
+### **Keeping your account secure**
+
+**Self-custody.** Your recovery phrase is the only thing standing between you and total loss of access. Some rules:
+
+- Write the phrase down on paper and store it somewhere safe. Many people use multiple copies in different physical locations.
+- **Never** take a photo of it. Photos sync to cloud services.
+- **Never** type it into any website, including ones that ask you to "verify" your wallet.
+- **Never** share it with anyone, including someone claiming to be customer support. No legitimate service will ever ask for your recovery phrase.
+- Consider a hardware wallet (Ledger, Trezor, etc.) for amounts you can't afford to lose. Hardware wallets keep the private key on a dedicated device that never touches the internet.
+
+A password manager can store a recovery phrase, but it shifts the trust to the password manager's security. A piece of paper in a fireproof location is harder to compromise remotely.
+
+**Social login.** Your authentication method (email, Google, etc.) is the access point for your wallet. Protect it accordingly:
+
+- Enable two-factor authentication on the email or social account you use to sign in.
+- Use a strong, unique password for that account.
+- Treat that account's recovery options (phone number, backup email, recovery codes) with the same care as the account itself.
+- Watch for phishing attempts targeting the email address linked to your wallet.
+
+If someone gains access to your authentication account, they can sign in to Outcome as you.
+
+### **Backup and recovery**
+
+**Self-custody.** Your recovery phrase is the backup. Anyone with the phrase can restore the wallet on any device. Losing the phrase means losing the wallet. Outcome cannot help with recovery.
+
+**Social login via Privy.** Recovery is through whatever authentication method you used to sign in (email, Google, Apple, etc.). If you lose access to that account, you lose access to your wallet. Protect your email account, enable two-factor authentication where available, and don't share account credentials.
+
+### **What happens if you lose access**
+
+If you lose access to a self-custody wallet recovery phrase, the funds are unrecoverable. There is no path to restore them. This is a structural property of self-custody, not a limitation of Outcome.
+
+If you lose access to your Privy login, follow the account recovery process for that service. Privy itself does not have a separate recovery flow. Your authentication identity is the recovery method.
+
+In either case, Outcome cannot recover funds for you. The non-custodial design means Outcome doesn't have access to your wallet to assist.
+
+\

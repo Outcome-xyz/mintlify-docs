@@ -1,0 +1,51 @@
+---
+title: "Funding your account"
+---
+
+This page covers the two ways to fund your Outcome account, what to expect during deposits, and what to do if something goes wrong.
+
+If you're starting from another chain, you'll bridge in using Outcome's built-in bridge. If you already have USDC on Hyperliquid, you can convert it to USDH directly in the app without bridging.
+
+### **Deposit from another chain**
+
+Outcome supports deposits from many chains, using a bridge powered by [<u>Across</u>](https://across.to/). The bridge is built into the app, so you don't need a separate tool or interface to move funds in.
+
+To deposit:
+
+1. Open the Deposit panel in [outcome.xyz](http://outcome.xyz).
+2. Select the chain you're depositing from.
+3. Choose the asset you want to send.
+4. Enter the amount.
+5. Confirm the transaction in your wallet.
+
+Any supported asset is automatically converted to USDH when it arrives. You don't need to acquire USDH ahead of time, and you don't need to manage the conversion yourself.
+
+### **Convert from Hyperliquid USDC**
+
+If you already hold USDC on Hyperliquid, you can convert it to USDH inside Outcome without bridging from an external chain.
+
+When you connect your wallet, Outcome detects any existing USDC balance and offers an in-app conversion. The conversion is direct: USDC in, USDH out, no third-party bridge involved.
+
+### **Bridging fees and timing**
+
+**Fees.** Bridging from another chain has an Across bridge fee, which is set by Across and varies by source chain and asset. The fee is shown in the deposit interface before you confirm, so you'll see the total cost upfront.
+
+**Timing.** Across uses an intent-based bridging model where third-party relayers compete to fulfill deposits. Most deposits arrive within a few minutes. Larger amounts or less common routes may take longer.
+
+In-app USDC to USDH conversion happens directly within Hyperliquid, without a cross-chain bridge step.
+
+### **Where deposits appear**
+
+Funds arrive as USDH in your account. You'll see the balance in your portfolio on [outcome.xyz](http://outcome.xyz), ready to trade.
+
+There is no separate "Outcome account." Your balance is tied to the wallet you connected, not to any specific app interface.
+
+### **Common issues**
+
+**Deposit taking longer than expected.** Cross-chain bridges can occasionally experience delays due to network congestion or relayer availability. Check the transaction status on the source chain's block explorer to confirm it was processed.
+
+**Transaction failed on the source chain.** Your funds remain there and no bridge fee is charged. Try again.
+
+**Anything else.** Save the source transaction hash before reaching out for help. It's the first thing needed to investigate any deposit issue.
+
+\

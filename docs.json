@@ -18,29 +18,30 @@
     "tabs": [
       {
         "tab": "Documentation",
-        "groups": [
+        "pages": [
+          "introduction",
+          "how-prediction-markets-work",
+          "outcome-and-hyperliquid",
           {
             "group": "Get started",
             "icon": "rocket",
             "pages": [
-              "index",
-              "getting-started"
-            ]
-          },
-          {
-            "group": "Concepts",
-            "icon": "lightbulb",
-            "pages": [
-              "concepts/prediction-markets",
-              "concepts/markets",
-              "concepts/hyperliquid"
+              "wallets-and-accounts",
+              "funding-your-account",
+              "placing-your-first-trade",
+              "closing-a-position",
+              "trading-fee-discount",
+              "withdrawing-funds"
             ]
           },
           {
             "group": "Trading",
             "icon": "arrow-left-right",
             "pages": [
-              "trading/guide"
+              "reading-the-order-book",
+              "order-types",
+              "order-lifecycle",
+              "managing-your-positions.mdx"
             ]
           },
           {
@@ -49,6 +50,14 @@
             "pages": [
               "reference/fees",
               "reference/risks"
+            ]
+          },
+          {
+            "group": "How markets work",
+            "icon": "align-horizontal-distribute-center",
+            "pages": [
+              "market-types",
+              "market-types"
             ]
           }
         ]

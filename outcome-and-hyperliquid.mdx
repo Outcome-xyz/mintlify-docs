@@ -1,0 +1,27 @@
+---
+title: "Outcome and Hyperliquid"
+---
+
+[<u>Hyperliquid</u>](https://hyperliquid.xyz/) is a high-performance L1 blockchain that hosts one of the largest on-chain decentralized exchanges. Outcome is built directly on it. Markets you trade on Outcome match, settle, and live on Hyperliquid's HyperCore execution layer, the same infrastructure that powers Hyperliquid's perpetuals and spot markets.
+
+This setup has a few practical implications for how you trade.
+
+### **Non-custodial**
+
+Your funds never leave your wallet to be held by Outcome. Outcome doesn't custody collateral, run a matching engine, or process settlements. All of that happens on Hyperliquid, on-chain. The only thing Outcome controls is the interface you use to interact with the markets.
+
+If [outcome.xyz](http://outcome.xyz) went offline tomorrow, your positions and balances would still be there. You could close them through any other interface that supports Hyperliquid's HIP-4 markets, or directly through the Hyperliquid API.
+
+### **One account across the entire network**
+
+There is no separate Outcome account. Your wallet on Outcome is the same wallet you use across the rest of Hyperliquid: the main app, and every other builder on the network. Connect once, and your balance and positions are visible everywhere.
+
+USDH is the settlement currency for outcome markets. Once funded, the same balance is available across all your positions.
+
+### **About HIP-4**
+
+[<u>HIP-4</u>](https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-4-outcome-markets) is the protocol upgrade that added outcome trading to Hyperliquid. It introduced the technical primitive (fully collateralized binary contracts that settle to 0 or 1) that prediction markets run on. Additional features and markets will be rolled out in stages.
+
+For the full specification, see the Hyperliquid docs.
+
+\
