@@ -55,10 +55,7 @@
           {
             "group": "How markets work",
             "icon": "align-horizontal-distribute-center",
-            "pages": [
-              "market-types",
-              "market-types"
-            ]
+            "pages": []
           }
         ]
       },
