@@ -9,22 +9,16 @@ description: "Once you have open positions, your portfolio page is where you tra
 Every filled order creates or adds to a position. The portfolio view shows each open position with:
 
 - The market and outcome you're holding.
-
 - Your position size (how many tokens).
-
 - Your average entry price.
-
 - The current market price.
-
 - Your unrealized gain or loss.
 
 If you've traded the same outcome multiple times at different prices, the position is aggregated, and your average entry is the size-weighted average across all your fills.
 
-\<Note\>
-
+<Note>
   Your full trade history (filled orders, closes, and settlements) appears in the **Trade History** tab.
-
-\</Note\>
+</Note>
 
 ## Cost basis and average entry
 
@@ -40,24 +34,20 @@ Cost basis is what you'd need to recover to break even at settlement.
 
 If you bought 100 tokens at 0.40 and the price is now 0.60, your unrealized gain is 20 USDH. If you sell those 100 tokens at 0.60, that 20 USDH becomes realized.
 
-\<Warning\>
-
-  A market close can realize a different amount than the unrealized figure shows. If your order walks through multiple levels of the book, the average fill price is lower (or higher) than the best price displayed, and your realized gain or loss differs from the unrealized estimate. See \[Order lifecycle\](/05c-order-lifecycle) for slippage detail.
-
-\</Warning\>
+<Warning>
+  A market close can realize a different amount than the unrealized figure shows. If your order walks through multiple levels of the book, the average fill price is lower (or higher) than the best price displayed, and your realized gain or loss differs from the unrealized estimate. See [Order lifecycle](/05c-order-lifecycle) for slippage detail.
+</Warning>
 
 ## Closing a partial position
 
 You don't have to close a full position at once. Selling fewer tokens than you hold leaves the rest open.
 
-For example, if you hold 100 tokens with an average entry of 0.40 and sell 60 at 0.60, you realize a gain of 12 USDH on the 60 sold (\$60 \\times (0.60 - 0.40)\$). The remaining 40 tokens stay open at the same 0.40 average entry, with their own unrealized gain or loss based on the current market price.
+For example, if you hold 100 tokens with an average entry of 0.40 and sell 60 at 0.60, you realize a gain of 12 USDH on the 60 sold ($60 \times (0.60 - 0.40)$). The remaining 40 tokens stay open at the same 0.40 average entry, with their own unrealized gain or loss based on the current market price.
 
 Partial closes are useful for:
 
 - Taking gains progressively.
-
 - Reducing exposure without exiting entirely.
-
 - Freeing up capital for other trades.
 
 ## Positions across recurring market instances
@@ -66,11 +56,9 @@ For recurring markets like the daily BTC binary, each instance is a separate mar
 
 Holding a position through settlement does not extend into the new instance. Your tokens settle (at 1 or 0 per token), proceeds go to your USDH balance, and any further exposure requires a new trade in the next instance's market.
 
-\<Tip\>
-
-  See \[Recurring markets\](/06b-recurring-markets) for more on how these markets work.
-
-\</Tip\>
+<Tip>
+  See [Recurring markets](/06b-recurring-markets) for more on how these markets work.
+</Tip>
 
 ## Formulas
 
@@ -78,56 +66,50 @@ For each open position, the math behind what you see in your portfolio.
 
 ### Average entry price
 
-\$\$
+$$
 
-\\text{average entry} = \\frac{\\text{total spent on buys}}{\\text{total tokens bought}}
-
-\$\$
+\text{average entry} = \frac{\text{total spent on buys}}{\text{total tokens bought}}
+$$
 
 The size-weighted average across all your buys of the same outcome.
 
 ### Cost basis (of current position)
 
-\$\$
+$$
 
-\\text{cost basis} = \\text{average entry} \\times \\text{tokens held}
-
-\$\$
+\text{cost basis} = \text{average entry} \times \text{tokens held}
+$$
 
 What you've paid for the tokens you still hold.
 
 ### Unrealized gain or loss
 
-\$\$
+$$
 
-\\text{unrealized PnL} = (\\text{current price} - \\text{average entry}) \\times \\text{tokens held}
-
-\$\$
+\text{unrealized PnL} = (\text{current price} - \text{average entry}) \times \text{tokens held}
+$$
 
 The paper value of your position right now.
 
 ### Realized gain or loss on a sale
 
-\$\$
+$$
 
-\\text{realized PnL} = (\\text{sale price} - \\text{average entry}) \\times \\text{tokens sold}
-
-\$\$
+\text{realized PnL} = (\text{sale price} - \text{average entry}) \times \text{tokens sold}
+$$
 
 Locked in when you close part or all of a position.
 
 ### Settlement payoff
 
-\$\$
+$$
 
-\\text{payoff per token} = \\begin{cases} 1 \\text{ USDH} & \\text{if your outcome resolves} \\\\ 0 & \\text{otherwise} \\end{cases}
+\text{payoff per token} = \begin{cases} 1 \text{ USDH} & \text{if your outcome resolves} \\ 0 & \text{otherwise} \end{cases}
+$$
 
-\$\$
+$$
 
-\$\$
-
-\\text{total payoff} = \\text{tokens held} \\times \\text{payoff per token}
-
-\$\$
+\text{total payoff} = \text{tokens held} \times \text{payoff per token}
+$$
 
 What you receive automatically when the market resolves.
