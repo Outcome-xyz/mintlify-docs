@@ -124,17 +124,19 @@ html.dark #navigation-items li[data-active="true"] > a {
 }
 
 /* ─── Align tops of the three columns (mint theme) + extra breathing room
-   Shift all three columns down by ~1rem from where the navbar ends so
-   there's clear space between the tabs row and the first label. */
+   Shift all three columns down so there's clear space between the tabs
+   row and the first sidebar label. The 8rem value compensates for the
+   32px gradient fade we delete elsewhere — that fade used to provide
+   the buffer below the navbar; without it, content sits flush. */
 @media (min-width: 1024px) {
   div:has(> #content-side-layout) {
-    padding-top: 1rem !important;
+    padding-top: 1.5rem !important;
   }
   #sidebar {
-    top: calc(6rem + var(--banner-height, 2.5rem)) !important;
+    top: calc(8rem + var(--banner-height, 2.5rem)) !important;
   }
   #content-side-layout {
-    top: calc(6rem + var(--banner-height, 2.5rem)) !important;
+    top: calc(8rem + var(--banner-height, 2.5rem)) !important;
   }
 }
 
@@ -219,7 +221,7 @@ html.dark #navigation-items li[data-active="true"] > a {
        band), (2) a faint brand-purple wash at the same spot, and
    (3) a low-frequency Perlin noise pattern as the painterly grain. */
 html.dark #background-color {
-  background-color: #0a0a0a !important;
+  background-color: #050505 !important;
   background-image:
     /* Top glow — slight lightening at the very top */
     radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255, 255, 255, 0.07), transparent 60%),
@@ -307,3 +309,54 @@ main a,
   text-decoration-color: var(--outcome-purple) !important;
 }
 
+
+/* ─── Remove the gradient fade overlay beneath the navbar tabs.
+   Mintlify renders a 32px-tall sticky <div> right under the header
+   with a `from-background-(light|dark)` gradient + backdrop blur.
+   It creates a soft "fog" band the user wants gone. ──────────── */
+header#header + div > div.sticky.top-0.h-8.bg-gradient-to-b,
+div.sticky.top-0.h-8.pointer-events-none.bg-gradient-to-b {
+  display: none !important;
+}
+
+/* ─── Hero diagram frame.
+   Wraps the SDK-architecture animation in a self-contained "panel"
+   whose bg matches the SVG's own canvas color (#fafafa light /
+   #0a0a0a dark — same values used inside the SVG file). The page
+   bg sits a notch darker (#050505 in dark mode, #ffffff in light),
+   so the panel reads as a distinct surface without needing a heavy
+   border. Subtle 1px hairline at low opacity locks the edges. ──── */
+.hero-frame {
+  display: block;
+  background: #fafafa;
+  border: 1px solid rgba(23, 23, 23, 0.08);
+  border-radius: 8px;
+  padding: 0;
+  margin: 1.5rem auto 2rem;
+  max-width: 1200px;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+  font-size: 0;
+}
+html.dark .hero-frame {
+  background: #0a0a0a;
+  border-color: rgba(245, 245, 245, 0.06);
+}
+/* Mintlify wraps every <img> in two inline <span data-rmiz> elements
+   (react-medium-image-zoom). Inline wrappers introduce a line-box gap
+   above and below the image. Force them block so .hero-frame's height
+   collapses to the image's natural height — aspect ratio matches. */
+.hero-frame span,
+.hero-frame [data-rmiz],
+.hero-frame [data-rmiz-content] {
+  display: block !important;
+  line-height: 0 !important;
+}
+.hero-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  vertical-align: top;
+}

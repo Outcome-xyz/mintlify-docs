@@ -4,13 +4,20 @@ sidebarTitle: "Introduction"
 description: "A typed TypeScript SDK for building on HIP-4 - fetch markets, stream live data, place orders, run conversion primitives, and manage USDH funds on Hyperliquid."
 ---
 
-Outcome is the venue and primitive composer for HIP-4 on Hyperliquid L1 - prediction markets at face value, a modular stack of financial primitives underneath. The `@hip4/sdk` gives you everything to build on that stack: market discovery, real-time WebSocket data, order placement with EIP-712 signing, the four protocol-level conversion primitives (split, merge, negate), and USDH fund management - all from a single, zero-dependency TypeScript package.
+Outcome composes HIP-4 on Hyperliquid L1 into a modular stack of financial primitives. `@hip4/sdk` is the typed TypeScript surface for building on it.
+
+<div className="hero-frame">
+  <img
+    src="/images/sdk-architecture.svg"
+    alt="HIP-4 SDK stack: outcome.xyz consumes the SDK, which composes six sub-adapters atop a single HIP-4 client"
+  />
+</div>
 
 ## Key features
 
 <CardGroup cols={2}>
   <Card title="Market discovery" icon="search" href="/sdk/guides/fetch-markets">
-    Fetch and filter prediction markets by type (`defaultBinary`, `labelledBinary`, `multiOutcome`), category, or status. Paginate results and group by type or parent question.
+    Fetch and filter prediction markets by type (`defaultBinding`, `labelledBinding`, `priceBucket`), category, or status. Paginate results and group by type or parent question.
   </Card>
   <Card title="Real-time data" icon="activity" href="/sdk/guides/real-time-data">
     Subscribe to live order books, mid prices, and trade streams via WebSocket. The SDK handles connection management and auto-reconnect with exponential backoff.
