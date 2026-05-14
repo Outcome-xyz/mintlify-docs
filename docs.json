@@ -41,7 +41,7 @@
               "reading-the-order-book",
               "order-types",
               "order-lifecycle",
-              "managing-your-positions.mdx"
+              "managing-your-positions"
             ]
           },
           {
@@ -58,7 +58,8 @@
             "pages": [
               "market-types",
               "recurring-markets",
-              "outcome-tokens-and-pricing"
+              "outcome-tokens-and-pricing",
+              "resolution-and-settlement"
             ]
           }
         ]
