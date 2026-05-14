@@ -55,7 +55,11 @@
           {
             "group": "How markets work",
             "icon": "align-horizontal-distribute-center",
-            "pages": []
+            "pages": [
+              "market-types",
+              "recurring-markets",
+              "outcome-tokens-and-pricing"
+            ]
           }
         ]
       },

@@ -1,0 +1,43 @@
+---
+title: "Outcome tokens and pricing"
+---
+
+This page explains the mechanics behind outcome tokens: where they come from, why their prices always sum to 1 USDH, and what those prices represent.
+
+### **Outcome tokens**
+
+Every market on Outcome is made up of outcome tokens, one per possible outcome. In a binary market, that's two tokens (YES and NO, or UP and DOWN). In a multi-outcome market, it's one token per possibility.
+
+Each token has a single defining property: it pays 1 USDH at settlement if its outcome resolves, and 0 otherwise. That's the entire payoff structure. The price you pay for the token before settlement is what determines your gain or loss.
+
+### **Minting and burning**
+
+The reason a complete set of outcome tokens always sums to 1 USDH is a process called minting and burning.
+
+**Minting.** Anyone can deposit 1 USDH to the protocol and receive a complete set of outcome tokens in exchange. For a binary market, that's one YES and one NO. For a multi-outcome market, it's one token for each possible outcome. Because exactly one of those tokens will pay 1 USDH at settlement, the complete set is always worth 1 USDH.
+
+**Burning.** Anyone holding a complete set of outcome tokens can return them to the protocol and receive 1 USDH in exchange. This is the reverse of minting.
+
+Most users never mint or burn directly. They buy and sell individual tokens on the order book. But minting and burning are what guarantee that a complete set is always worth 1 USDH, regardless of how the individual tokens are trading. If any single token gets too cheap or too expensive relative to the others, traders can mint or burn to capture the arbitrage, which keeps the prices coherent.
+
+### **Why prices sum to 1**
+
+Because a complete set always burns back to 1 USDH, the prices of the tokens in a market always sum to approximately 1 USDH. Otherwise, arbitrage would be available.
+
+For a binary market: YES \+ NO ≈ 1 USDH at any time.
+
+For a multi-outcome market: the sum of all outcome prices ≈ 1 USDH at any time.
+
+The word "approximately" matters. In practice, prices sum to slightly less than 1 USDH because of the spread (there's always a gap between the best bid and best ask on each side). But the bound is tight enough that the probability interpretation works.
+
+### **Prices as probabilities**
+
+Because the prices sum to 1, each price can be read as the market's implied probability for that specific outcome.
+
+A YES at 0.40 means the market is collectively pricing the event at 40% likely. A NO at 0.60 means the market is pricing the event at 60% likely _not_ to happen. They sum to 1.00, which corresponds to 100% probability that something happens.
+
+In a multi-outcome market, the same applies. If candidate A trades at 0.50, candidate B at 0.30, and candidate C at 0.20, the market is pricing A at 50% likely, B at 30%, and C at 20%. The three sum to 100%.
+
+This is what makes prediction markets useful as a forecasting tool, even for people who don't trade. The prices aggregate the views of everyone buying and selling, producing a probability estimate based on collective belief and money at stake.
+
+\

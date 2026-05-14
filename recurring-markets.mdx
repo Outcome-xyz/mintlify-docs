@@ -1,0 +1,39 @@
+---
+title: "Recurring markets"
+---
+
+Some markets on Outcome are deployed automatically by the protocol on a fixed cadence. When one instance settles, the next instance is already live for trading. This is the structure behind the daily BTC binary and any similar markets that follow a regular pattern.
+
+### **How a recurring market works**
+
+A recurring market is defined by a specification that includes:
+
+- The **underlying asset** (for example, BTC).
+- The **target** that determines how the outcome is decided (for example, a specific price).
+- The **expiry time** when the current instance settles.
+- The **period** (the cadence at which new instances are deployed, like 1 day).
+
+The protocol uses this specification to auto-deploy new instances on a regular schedule. There's no manual market creation; the contract terms are encoded directly in the protocol.
+
+### **The redeploy cycle**
+
+When a recurring market reaches its expiry time:
+
+1. The current instance settles based on the target and the underlying value at expiry.
+2. Token holders receive their settlement payouts.
+3. The next instance is deployed with a new expiry and (typically) a new target.
+4. Trading opens immediately on the new instance.
+
+The cycle continues for as long as the recurring market is enabled at the protocol level.
+
+### **Positions don't carry over**
+
+Each instance of a recurring market is its own separate market with its own tokens. When today's BTC daily binary settles, that day's YES and NO tokens redeem at 1 or 0 USDH and the position is closed out.
+
+If you want exposure to tomorrow's instance, you have to buy into tomorrow's tokens. The protocol doesn't auto-extend positions across instances. Each instance is a complete, self-contained market.
+
+### **Finding the current spec**
+
+The current instance's spec (target, expiry, period, underlying) is shown on the market page. Because the values change with each redeployment, the market page is the canonical source for what's live right now.
+
+\
