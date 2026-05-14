@@ -29,6 +29,8 @@
   --outcome-ink-soft: #343330;
   --outcome-ink-mute: #777777;
   --outcome-rule-soft: #d4d4d4;
+
+  /* (background vars set per-mode below — see html:not(.dark) block) */
   /* Accent colour. Mode-aware so it stays readable on both paper and
      near-black backgrounds. Brand purple removed per design call;
      accents are now neutral off-white in dark mode, near-black in
@@ -46,6 +48,16 @@
 html.dark {
   --outcome-purple: #f5f5f5;
   --outcome-purple-soft: #e5e5e5;
+}
+
+/* Light-mode bg-color token: set below the page bg (#f3f3f3 → 243,243,243)
+   so that anything painted with bg-background-light (the navbar/header
+   surface, popovers, etc.) reads a touch darker than the page beneath.
+   Dark mode keeps Mintlify's default — that scheme already gives the
+   header the "slightly darker than page" effect via the page's gridline
+   contrast. */
+html:not(.dark) {
+  --background-light: 232 232 232;
 }
 
 /* ─── Display headings - scoped to article body ──────────────────────
@@ -89,7 +101,7 @@ html.dark ::selection {
    recolouring, no fake-bold text-shadow). Mintlify marks the active
    <li> with data-active="true". */
 #navigation-items li[data-active="true"] > a {
-  background-color: rgba(23, 23, 23, 0.08);
+  background-color: rgba(23, 23, 23, 0.13);
   border-radius: 6px;
   color: rgb(55, 65, 81) !important;
   text-shadow: none !important;
@@ -214,26 +226,50 @@ html.dark #navigation-items li[data-active="true"] > a {
   }
 }
 
-/* ─── Dark-mode page background: oil-paint texture + top glow
-   Mintlify renders a fixed-position #background-color span behind
-   the layout. Layering three things on top of the brand near-black:
-   (1) a subtle white radial glow at the very top (the "touch lighter"
-       band), (2) a faint brand-purple wash at the same spot, and
-   (3) a low-frequency Perlin noise pattern as the painterly grain. */
+/* ─── Dark-mode page background: charcoal canvas + recessed gridlines.
+   Composition (back to front):
+     1. Charcoal base (#0c0c0e).
+     2. 64-px square grid (white hairlines at 5.5% alpha).
+     3. Centerward darkening blob — grid fades out in the middle, so the
+        center "recedes" while edges read as foreground.
+     4. Asymmetric secondary darkening, offset to lower-left — breaks
+        the radial symmetry so visibility varies across the page rather
+        than being a perfect ring.
+   All layers fixed-attachment so the grid stays locked to the viewport
+   as the article scrolls (no parallax drift). */
 html.dark #background-color {
-  background-color: #050505 !important;
+  background-color: #0c0c0e !important;
   background-image:
-    /* Top glow — slight lightening at the very top */
-    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255, 255, 255, 0.07), transparent 60%),
-    /* Slow vertical brush-stroke layer */
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.45' numOctaves='3' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23b)'/></svg>"),
-    /* Slow horizontal brush-stroke layer */
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='h'><feTurbulence type='fractalNoise' baseFrequency='0.4 0.018' numOctaves='3' seed='29' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23h)'/></svg>"),
-    /* Canvas grain — fine painterly noise */
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='480'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23g)'/></svg>") !important;
-  background-size: auto, 900px 900px, 900px 900px, 480px 480px !important;
-  background-repeat: no-repeat, repeat, repeat, repeat !important;
-  background-position: center top, 0 0, 0 0, 0 0 !important;
+    /* Centerward fade — covers the grid in the middle */
+    radial-gradient(ellipse 70% 80% at 50% 50%, #0c0c0e 12%, transparent 92%),
+    /* Asymmetric secondary darkening, lower-left quadrant */
+    radial-gradient(ellipse 45% 38% at 28% 68%, rgba(12, 12, 14, 0.72) 0%, transparent 78%),
+    /* Vertical gridlines */
+    linear-gradient(to right, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    /* Horizontal gridlines */
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.055) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px !important;
+  background-repeat: no-repeat, no-repeat, repeat, repeat !important;
+  background-position: center, center, 0 0, 0 0 !important;
+  background-attachment: fixed, fixed, fixed, fixed !important;
+}
+
+/* ─── Light-mode page background: off-white canvas + recessed gridlines.
+   Mirrors the dark-mode recipe — same composition, inverted palette.
+     1. Off-white base (#f3f3f3 — slightly more gray than pure paper).
+     2. 64-px square grid (dark hairlines at 6% alpha).
+     3. Centerward fade hiding the grid in the middle.
+     4. Asymmetric lower-left blob, same as dark mode.  */
+html:not(.dark) #background-color {
+  background-color: #f3f3f3 !important;
+  background-image:
+    radial-gradient(ellipse 70% 80% at 50% 50%, #f3f3f3 12%, transparent 92%),
+    radial-gradient(ellipse 45% 38% at 28% 68%, rgba(243, 243, 243, 0.72) 0%, transparent 78%),
+    linear-gradient(to right, rgba(23, 23, 23, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(23, 23, 23, 0.06) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px !important;
+  background-repeat: no-repeat, no-repeat, repeat, repeat !important;
+  background-position: center, center, 0 0, 0 0 !important;
   background-attachment: fixed, fixed, fixed, fixed !important;
 }
 
@@ -248,14 +284,14 @@ html.dark #background-color {
   color: #f5f5f5 !important;
 }
 
-/* Banner — always dark fill + light text */
+/* Banner — charcoal fill + light-grey text (both modes). */
 #banner {
-  background-color: #171717 !important;
+  background-color: #1a1a1a !important;
 }
 #banner,
 #banner *,
 #banner a {
-  color: #f5f5f5 !important;
+  color: #d4d4d4 !important;
 }
 
 /* ─── Brand purple accents ──────────────────────────────────────────
@@ -328,7 +364,17 @@ div.sticky.top-0.h-8.pointer-events-none.bg-gradient-to-b {
    border. Subtle 1px hairline at low opacity locks the edges. ──── */
 .hero-frame {
   display: block;
-  background: #fafafa;
+  /* Light panel: off-white base with a dot pattern that mirrors the
+     same dot motif the SVG draws inside its viewBox — so the panel
+     extends the diagram's own texture rather than competing with it. */
+  background-color: #ededed;
+  background-image:
+    radial-gradient(ellipse 70% 80% at 50% 50%, #ededed 12%, transparent 92%),
+    radial-gradient(ellipse 45% 38% at 28% 68%, rgba(237, 237, 237, 0.72) 0%, transparent 78%),
+    radial-gradient(rgba(23, 23, 23, 0.13) 1.2px, transparent 1.7px);
+  background-size: 100% 100%, 100% 100%, 22px 22px;
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-position: center, center, 0 0;
   border: 1px solid rgba(23, 23, 23, 0.08);
   border-radius: 8px;
   padding: 0;
@@ -340,7 +386,8 @@ div.sticky.top-0.h-8.pointer-events-none.bg-gradient-to-b {
   font-size: 0;
 }
 html.dark .hero-frame {
-  background: #0a0a0a;
+  background-color: #0a0a0a;
+  background-image: none;
   border-color: rgba(245, 245, 245, 0.06);
 }
 /* Mintlify wraps every <img> in two inline <span data-rmiz> elements
@@ -359,4 +406,35 @@ html.dark .hero-frame {
   height: auto;
   margin: 0;
   vertical-align: top;
+}
+
+/* ─── Light-mode elevated surfaces — match the animation-panel tone.
+   Mintlify code blocks have 4 nested layers in light mode, all painted
+   white or near-white. Cards use a single bg-white. Bumping everything
+   that should read as "raised surface" to the same #ededed used on the
+   hero-frame so every elevated panel — animation, Cards, CodeBlock,
+   CodeGroup — shares one tone, distinct from page + header.
+   Dark mode is untouched; --shiki-dark-bg stays at the existing #0B0C0E. */
+
+/* Cards (Mintlify <Card> = <a class="rounded-2xl bg-white …">) */
+html:not(.dark) [class*="rounded-2xl"][class*="bg-white"] {
+  background-color: #ededed !important;
+}
+/* Shiki <pre> — inline style="background-color:#ffffff" needs !important */
+html:not(.dark) pre.shiki {
+  background-color: #ededed !important;
+}
+/* Mintlify code-block parts: header bar, tab strip, root content surface */
+html:not(.dark) [data-component-part="code-block-root"],
+html:not(.dark) [data-component-part="code-block-header"],
+html:not(.dark) [data-component-part="code-group-tab-bar"] {
+  background-color: #ededed !important;
+}
+/* CodeGroup outer frame (rounded-2xl + bg-gray-50) */
+html:not(.dark) div[class*="rounded-2xl"][class*="bg-gray-50"] {
+  background-color: #ededed !important;
+}
+/* Single CodeBlock inner frame inside a CodeGroup (rounded-md + bg-white) */
+html:not(.dark) div[class*="rounded-md"][class*="bg-white"] {
+  background-color: #ededed !important;
 }

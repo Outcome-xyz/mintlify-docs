@@ -3,7 +3,7 @@
 
   <style>
     svg.root {
-      --diagram-bg: #fafafa;
+      --diagram-bg: #ededed;
     }
     @media (prefers-color-scheme: dark) {
       svg.root { --diagram-bg: #0a0a0a; }
@@ -11,23 +11,27 @@
 
     .bg-fill            { fill: var(--diagram-bg); }
     .stroke             { stroke: #171717; fill: none; }
-    .stroke-faded       { stroke: #171717; opacity: 0.32; fill: none; }
-    .stroke-band-bright { stroke: #171717; opacity: 0.7; fill: none; }
-    .stroke-band-faded  { stroke: #171717; opacity: 0.28; fill: none; }
+    /* Light-mode opacities are intentionally bumped above the dark-mode
+       values because dark marks on a light bg need more weight to read
+       at the same perceived contrast as light marks on dark bg. The
+       prefers-color-scheme: dark block below restores the lower values. */
+    .stroke-faded       { stroke: #171717; opacity: 0.75; fill: none; }
+    .stroke-band-bright { stroke: #171717; opacity: 0.78; fill: none; }
+    .stroke-band-faded  { stroke: #171717; opacity: 0.90; fill: none; }
 
     .label          { fill: #171717; font-family: ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
-    .label-faded    { fill: #171717; opacity: 0.45; font-family: ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
+    .label-faded    { fill: #171717; opacity: 0.85; font-family: ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
     .faint          { fill: #a3a3a3; font-family: ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
     .grid-dot       { fill: #171717; }
     .icon-fill      { fill: #171717; }
-    .icon-fill-faded { fill: #171717; opacity: 0.5; }
+    .icon-fill-faded { fill: #171717; opacity: 0.85; }
 
     .connector-dotted {
       stroke: #171717;
       stroke-width: 1;
       stroke-dasharray: 3 4;
       fill: none;
-      opacity: 0.55;
+      opacity: 0.75;
     }
     .reveal-mask {
       stroke: #fff;
@@ -41,7 +45,7 @@
       .stroke-faded       { stroke: #e5e5e5; opacity: 0.32; }
       .stroke-band-bright { stroke: #e5e5e5; opacity: 0.7; }
       .stroke-band-faded  { stroke: #e5e5e5; opacity: 0.28; }
-      .connector-dotted   { stroke: #e5e5e5; }
+      .connector-dotted   { stroke: #e5e5e5; opacity: 0.55; }
       .label              { fill: #fafafa; }
       .label-faded        { fill: #fafafa; opacity: 0.45; }
       .faint              { fill: #525252; }
@@ -155,8 +159,8 @@
 
     @keyframes fadeIn            { from { opacity: 0; } to { opacity: 1; } }
     @keyframes fadeInBandBright  { from { opacity: 0; } to { opacity: 0.7; } }
-    @keyframes fadeInBandFaded   { from { opacity: 0; } to { opacity: 0.28; } }
-    @keyframes fadeInFaded       { from { opacity: 0; } to { opacity: 0.45; } }
+    @keyframes fadeInBandFaded   { from { opacity: 0; } to { opacity: 0.55; } }
+    @keyframes fadeInFaded       { from { opacity: 0; } to { opacity: 0.75; } }
     @keyframes maskGrow          { to { stroke-dashoffset: 0; } }
     @keyframes drawIn            { to { stroke-dashoffset: 0; } }
     @keyframes riseFaded {
@@ -182,8 +186,8 @@
       * { animation-duration: 0.01ms !important; animation-delay: 0ms !important; }
       .reveal-mask { stroke-dashoffset: 0; }
       .module-name { opacity: 0.65; }
-      .app-side-left, .app-side-right { opacity: 0.45; }
-      .layer-band-apps, .layer-band-hip4 { opacity: 0.28; }
+      .app-side-left, .app-side-right { opacity: 0.75; }
+      .layer-band-apps, .layer-band-hip4 { opacity: 0.55; }
       .layer-band-sdk { opacity: 0.7; }
       .sdk-edge { stroke-dashoffset: 0; }
       .sdk-fill { opacity: 1; }
