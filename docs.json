@@ -45,14 +45,6 @@
             ]
           },
           {
-            "group": "Reference",
-            "icon": "receipt",
-            "pages": [
-              "reference/fees",
-              "reference/risks"
-            ]
-          },
-          {
             "group": "How markets work",
             "icon": "align-horizontal-distribute-center",
             "pages": [
