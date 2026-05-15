@@ -1,0 +1,43 @@
+---
+title: "Risks"
+---
+
+Trading on Outcome involves real risks. This page summarizes the most important ones, but it is not exhaustive. For the full picture, see [<u>Outcome's Terms of Service</u>](https://outcome.xyz/terms). Because trades execute on Hyperliquid's infrastructure, Hyperliquid's [<u>Terms of Use</u>](https://app.hyperliquid.xyz/terms) and [<u>Risks page</u>](https://hyperliquid.gitbook.io/hyperliquid-docs/risks) also apply.
+
+### **Total loss of position**
+
+If your position resolves at 0, you lose the full amount you paid for it. There is no leverage and no liquidation, but "no liquidation" is not the same as "no risk." Every position can settle at zero.
+
+### **Smart contract and network risk**
+
+Outcome and Hyperliquid run on smart contracts and on Hyperliquid's L1 blockchain. The Hyperliquid bridge contract has been [<u>audited by Zellic</u>](https://hyperliquid.gitbook.io/hyperliquid-docs/audits), but no audit eliminates risk entirely. Bugs or vulnerabilities anywhere along the path could result in loss of funds. The network may also experience downtime, which could prevent you from opening or closing positions while it lasts.
+
+### **Interface availability**
+
+If [outcome.xyz](http://outcome.xyz) is unreachable (website issues, browser problems, general internet outages), your funds and positions are unaffected. They live on Hyperliquid, not on Outcome's servers. You can close positions through any other interface that supports Hyperliquid's HIP-4 markets while you wait for [outcome.xyz](http://outcome.xyz) to come back.
+
+### **Oracle and settlement risk**
+
+Markets resolve based on a data source defined in the market specification. For the BTC daily binary, that source is the BTC mark price on HyperCore, maintained by Hyperliquid validators. If an oracle is compromised, manipulated, or stale at the resolution timestamp, settlement could behave unexpectedly.
+
+### **Liquidity risk**
+
+Spreads on Outcome can be wide in less active markets, and the order book may thin out further as a market approaches resolution. You may not be able to exit a position at a fair price (or at all) if there is no counterparty willing to take the other side. Prices can also move quickly near resolution as new information arrives.
+
+### **Bridge risk**
+
+Deposits from other chains use [<u>Across</u>](https://across.to/), a third-party cross-chain bridge. Across has a strong track record, but bridges remain a higher-risk category in DeFi. A bridge failure would affect deposits in transit but would not affect funds already in your account on Hyperliquid.
+
+### **Stablecoin risk**
+
+Outcome markets settle in USDH, which is issued by [<u>Native Markets</u>](https://nativemarkets.com/). Like any stablecoin, USDH carries issuer, custodian, peg, and regulatory risks separate from the Hyperliquid protocol itself.
+
+### **Geographic restrictions**
+
+Outcome is not available in some jurisdictions, including (but not limited to) the United States, certain Canadian provinces, and territories subject to international sanctions. For the complete list and your responsibilities as a user, see [<u>Outcome's Terms of Service</u>](https://outcome.xyz/terms). Hyperliquid's underlying protocol has its own restrictions; see [<u>Hyperliquid's Terms</u>](https://app.hyperliquid.xyz/terms). You are responsible for confirming you can lawfully use Outcome in your jurisdiction.
+
+### **Regulatory uncertainty**
+
+Prediction markets are regulated differently across jurisdictions, and the regulatory environment is evolving. The treatment of outcome contracts for tax, securities, and derivatives purposes may not be settled in your jurisdiction. You should consider consulting a qualified advisor before trading at scale.
+
+\
