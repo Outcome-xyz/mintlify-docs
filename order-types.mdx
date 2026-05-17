@@ -6,11 +6,11 @@ description: "Compare limit and market orders on Outcome: price control versus f
 
 Outcome supports two order types: limit orders and market orders. Each makes a different tradeoff between price control and execution certainty.
 
-### **Limit orders**
+### Limit orders
 
 A limit order specifies the worst price you're willing to accept. For a buy, that's the maximum price you'll pay. For a sell, the minimum price you'll accept.
 
-A limit buy at 0.40 only fills if someone is willing to sell at 0.40 or lower. If no one matches, the order rests on the book at 0.40 until either the price moves to where someone will trade with you, or you cancel.
+A limit buy at C40 only fills if someone is willing to sell at C40 or lower. If no one matches, the order rests on the book at C40 until either the price moves to where someone will trade with you, or you cancel.
 
 **Use limit orders when:**
 
@@ -20,11 +20,11 @@ A limit buy at 0.40 only fills if someone is willing to sell at 0.40 or lower. I
 
 The tradeoff is fill uncertainty. If the market moves away from your price, your order sits unfilled until you adjust or cancel it.
 
-### **Market orders**
+### Market orders
 
 A market order takes whatever price is currently available, starting at the best price and walking through deeper levels of the book if needed.
 
-A market buy of 100 tokens with a best ask of 0.40 (for 50 tokens) and next ask of 0.41 (for 50 tokens) would fill at an average price of 0.405: 50 tokens at 0.40 and 50 tokens at 0.41.
+A market buy of 100 tokens with a best ask of C40 (for 50 tokens) and next ask of C41 (for 50 tokens) would fill at an average price of C40.5: 50 tokens at C40 and 50 tokens at C41.
 
 **Use market orders when:**
 
@@ -34,27 +34,25 @@ A market buy of 100 tokens with a best ask of 0.40 (for 50 tokens) and next ask 
 
 The tradeoff is price uncertainty. In a thin book, your market order can walk through multiple price levels and end up with a worse average price than you expected. This is called **slippage**.
 
-### **How fees differ**
+### Maker vs taker
 
-Limit orders that rest on the book before filling are **maker** orders. They pay no fees on Outcome.
+Limit orders that rest on the book before filling are **maker** orders.
 
 Limit orders that fill immediately (because the price you set matches an existing offer) are **taker** orders.
 
-Market orders are always taker orders. They incur the standard taker fee.
+Market orders are always taker orders.
 
-See Fees for details.
+The fee schedule differs between makers and takers. See [Fees](07-fees.md) for current rates.
 
-### **Tick size and minimum order**
+### Tick size and minimum order
 
-Prices on Outcome have a tick size of 0.001 cents, meaning prices move in increments of one-thousandths of a cent. You can place a limit order at 0.401, 0.402, or 0.403, but not at 0.4015.
+Prices on Outcome are quoted in cents and range from C0.001 to C99.999. The tick size is 0.001 cents, meaning prices move in increments of one one-thousandth of a cent. You can place a limit order at C40.001, C40.002, or C40.003, but not at C40.0015.
 
-The minimum order size is 10 USDH in value. For a buy at 0.40 per token, that's at least 25 tokens. For a buy at 0.10 per token, at least 100 tokens. The minimum scales with the price so the total value stays at least 10 USDH.
+The minimum order size is 10 USDH in value. For a buy at C40 per token, that's at least 25 tokens. For a buy at C10 per token, at least 100 tokens. The minimum scales with the price so the total value stays at least 10 USDH.
 
-### **Choosing between them**
+### Choosing between them
 
-The simple version: limit orders give you control, market orders give you speed. For most trading on Outcome, limit orders are the better default because they let you control your entry price and they pay no fees when they rest. Use market orders when you need certainty of fill more than certainty of price.
-
-\
+The simple version: limit orders give you control, market orders give you speed. For most trading on Outcome, limit orders are the better default because they let you control your entry price. Use market orders when you need certainty of fill more than certainty of price.\
 \
 \
 \

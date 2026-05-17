@@ -6,18 +6,18 @@ description: "Outcome supports binary markets (YES/NO or UP/DOWN) and multi-outc
 
 Outcome supports two types of markets: binary markets and multi-outcome markets. They share the same underlying structure but differ in how many outcomes are possible.
 
-### **Binary markets**
+### Binary markets
 
 Binary markets have two mutually exclusive outcomes. Depending on the question, the outcomes are framed differently:
 
 - **YES / NO** for event-based markets: "Will the Fed cut rates at its next meeting?"
 - **UP / DOWN** for directional markets: "Will Bitcoin's price be higher at 06:00 UTC than now?"
 
-Both framings work mechanically the same way. There are two outcome tokens, their prices sum to approximately 1 USDH while the market is open, and exactly one of them settles to 1 USDH at resolution (the other settles to 0).
+Both framings work mechanically the same way. There are two outcome tokens, their prices sum to approximately C100 (which equals 1 USDH) while the market is open, and exactly one of them settles to 1 USDH at resolution (the other settles to 0).
 
 The choice between YES/NO and UP/DOWN framing is about clarity for the user. UP/DOWN is more natural when the question is about price direction; YES/NO is more natural for everything else.
 
-### **Multi-outcome markets**
+### Multi-outcome markets
 
 Multi-outcome markets have more than two possible outcomes, only one of which can resolve. Each outcome has its own token that pays 1 USDH if it resolves and 0 otherwise.
 
@@ -27,9 +27,6 @@ A typical multi-outcome market is one with several candidates or possibilities. 
 - A tournament with multiple teams: one token per team
 - A categorical event: one token per category
 
-The sum of all outcome prices stays close to 1 USDH while the market is open. If a four-outcome market has tokens trading at 0.30, 0.25, 0.25, and 0.20, the prices sum to 1.00, reflecting that exactly one outcome will resolve and pay 1 USDH per token.
+The sum of all outcome prices stays close to C100 while the market is open. If a four-outcome market has tokens trading at C30, C25, C25, and C20, the prices sum to C100, reflecting that exactly one outcome will resolve and pay 1 USDH per token.
 
-For more on what prices mean and why they sum the way they do, see Outcome tokens and pricing.
-
-\
-\
+For more on what prices mean and why they sum the way they do, see [Outcome tokens and pricing](06c-outcome-tokens-and-pricing.md).

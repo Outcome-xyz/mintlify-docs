@@ -6,13 +6,13 @@ description: "How an Outcome order moves from submission through resting, partia
 
 This page covers what happens to your order from the moment you submit it until it's filled or cancelled.
 
-### **Submitting an order**
+### Submitting an order
 
 When you confirm an order on [outcome.xyz](http://outcome.xyz), it goes to the matching engine. Submission is near-instant, and the engine checks your order against the current state of the book.
 
 If the order can fill at the price you've set (or better), it fills immediately. If it can't, it rests on the book at the price you specified.
 
-### **Resting on the book**
+### Resting on the book
 
 An order that rests stays open on the book at its specified price. Other traders see it as part of the bid or ask stack. The order continues to rest until one of three things happens:
 
@@ -20,34 +20,32 @@ An order that rests stays open on the book at its specified price. Other traders
 - You cancel it.
 - The market reaches its resolution time, at which point any open orders are cancelled automatically.
 
-There's no time limit on how long a resting order stays open. If you place a limit order at 0.30 and the market trades at 0.50 for the next 12 hours, your order is still sitting there at 0.30.
+There's no time limit on how long a resting order stays open. If you place a limit order at C30 and the market trades at C50 for the next 12 hours, your order is still sitting there at C30.
 
-### **Matching and filling**
+### Matching and filling
 
 When a new order arrives that crosses the best price on the opposite side, the matching engine pairs it with the resting order. The resting order is the **maker** (it was there first) and the incoming order is the **taker**.
 
-Fills happen at the maker's price, not the taker's. If you have a limit buy at 0.40 and someone submits a market sell, your buy fills at 0.40, even if they would have accepted less.
+Fills happen at the maker's price, not the taker's. If you have a limit buy at C40 and someone submits a market sell, your buy fills at C40, even if they would have accepted less.
 
-### **Partial fills**
+### Partial fills
 
 If your order is larger than the volume available at your price, it can partially fill. The portion that has a matching counterparty fills immediately. The rest continues to rest on the book.
 
-A limit buy of 1,000 tokens at 0.40 with only 600 tokens available to sell at 0.40 fills 600 immediately. The remaining 400 stays on the book at 0.40, waiting for more sellers.
+A limit buy of 1,000 tokens at C40 with only 600 tokens available to sell at C40 fills 600 immediately. The remaining 400 stays on the book at C40, waiting for more sellers.
 
 Market orders can also partially fill if the book runs out of liquidity before your full size is satisfied. In that case, the unfilled portion is cancelled, since market orders don't rest on the book.
 
-### **Cancelling an order**
+### Cancelling an order
 
 You can cancel any open or partially-filled order at any time before it fully fills. Cancelling removes the remaining unfilled portion from the book.
 
 Cancelling has no fee and is generally instant. However, if a fill arrives at the same moment you cancel, the fill may execute before the cancellation is processed. In that case, the filled portion is yours; only the unfilled remainder is cancelled.
 
-### **Slippage on market orders**
+### Slippage on market orders
 
 When a market order walks through multiple price levels of the book, the average price you pay can differ significantly from the best price you saw before submitting. This is **slippage**.
 
-Slippage is most pronounced in thin markets or when submitting a large order. For example, a market buy of 1,000 tokens with 100 at 0.40, 200 at 0.41, and 700 at 0.43 results in an average fill price of around 0.422. The best price on screen (0.40) was only the starting point.
+Slippage is most pronounced in thin markets or when submitting a large order. For example, a market buy of 1,000 tokens with 100 at C40, 200 at C41, and 700 at C43 results in an average fill price of around C42.3. The best price on screen (C40) was only the starting point.
 
-To avoid slippage, use a limit order with a price you're willing to accept as your worst-case fill.
-
-\
+To avoid slippage, use a limit order with a price you're willing to accept as your worst-case fill. See [Order types](05b-order-types.md) for the difference between limit and market orders.\
