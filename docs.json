@@ -60,7 +60,8 @@
             "pages": [
               "leaderboard",
               "badges-and-cards"
-            ]
+            ],
+            "icon": "smile"
           },
           "fees",
           "risks"
