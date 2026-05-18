@@ -219,14 +219,14 @@ const markets = await adapter.events.fetchMarkets();
 
 All four types extend a shared `BaseMarket` with these fields:
 
-| Field | Type | Description |  |  |  |
-| --- | --- | --- | --- | --- | --- |
-| `type` | `MarketType` | Discriminant: `"defaultBinary"` | `"labelledBinary"` | `"multiOutcome"` | `"priceBucket"` |
-| `outcomeId` | `number` | Hyperliquid outcome ID |  |  |  |
-| `name` | `string` | Human-readable name |  |  |  |
-| `description` | `string` | Description text |  |  |  |
-| `sides` | `[MarketSide, MarketSide]` | Both tradeable sides with pre-computed identifiers |  |  |  |
-| `raw` | `HLOutcome` | Raw Hyperliquid API response for escape-hatch access |  |  |  |
+| Field | Type | Description |
+| --- | --- | --- |
+| `type` | `MarketType` | Discriminant: `"defaultBinary"` \| `"labelledBinary"` \| `"multiOutcome"` \| `"priceBucket"` |
+| `outcomeId` | `number` | Hyperliquid outcome ID |
+| `name` | `string` | Human-readable name |
+| `description` | `string` | Description text |
+| `sides` | `[MarketSide, MarketSide]` | Both tradeable sides with pre-computed identifiers |
+| `raw` | `HLOutcome` | Raw Hyperliquid API response for escape-hatch access |
 
 Each `MarketSide` exposes:
 
