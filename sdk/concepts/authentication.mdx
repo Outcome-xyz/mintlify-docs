@@ -22,7 +22,7 @@ Every order on Hyperliquid's L1 requires a signature. Without an agent key, your
 
     ```typescript
     import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-
+    
     const agentPrivateKey = generatePrivateKey();
     const agentAccount = privateKeyToAccount(agentPrivateKey);
     ```
@@ -31,8 +31,8 @@ Every order on Hyperliquid's L1 requires a signature. Without an agent key, your
     `getAgentApprovalTypedData` returns the EIP-712 typed data the user needs to sign. Pass the agent's address, a human-readable name for your app, the current timestamp as a nonce, and a boolean indicating whether you're targeting mainnet.
 
     ```typescript
-    import { getAgentApprovalTypedData } from "@hip4/sdk";
-
+    import { getAgentApprovalTypedData } from "@outcome.xyz/hip4";
+    
     const nonce = Date.now();
     const typedData = getAgentApprovalTypedData(
       agentAccount.address,
@@ -48,13 +48,13 @@ Every order on Hyperliquid's L1 requires a signature. Without an agent key, your
     ```typescript
     import { createWalletClient, http } from "viem";
     import { arbitrum } from "viem/chains";
-
+    
     const walletClient = createWalletClient({
       account: userAccount,
       chain: arbitrum,
       transport: http(),
     });
-
+    
     const signature = await walletClient.signTypedData({
       domain: typedData.domain,
       types: typedData.types,
@@ -67,8 +67,8 @@ Every order on Hyperliquid's L1 requires a signature. Without an agent key, your
     `submitAgentApproval` sends the signed approval to the Hyperliquid exchange. The same nonce you used to build the typed data must be passed here.
 
     ```typescript
-    import { submitAgentApproval } from "@hip4/sdk";
-
+    import { submitAgentApproval } from "@outcome.xyz/hip4";
+    
     const result = await submitAgentApproval(
       signature,
       agentAccount.address,
@@ -76,7 +76,7 @@ Every order on Hyperliquid's L1 requires a signature. Without an agent key, your
       nonce,
       false, // must match the testnet flag used above
     );
-
+    
     if (!result.success) {
       throw new Error(`Agent approval failed: ${result.error}`);
     }
@@ -88,9 +88,9 @@ Every order on Hyperliquid's L1 requires a signature. Without an agent key, your
     ```typescript
     const hip4 = createHIP4Adapter({ testnet: true });
     await hip4.initialize();
-
+    
     await hip4.auth.initAuth(userAccount.address, agentAccount);
-
+    
     const status = hip4.auth.getAuthStatus();
     // status.status === "ready"
     // status.address === userAccount.address
