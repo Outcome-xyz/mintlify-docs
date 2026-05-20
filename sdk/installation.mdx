@@ -1,30 +1,30 @@
 ---
-title: "Install @hip4/sdk: setup and entry points"
+title: "Install the @outcome.xyz/hip4 SDK: setup and entry points"
 sidebarTitle: "Installation"
-description: "Install @hip4/sdk in a TypeScript project with pnpm, npm, or yarn, and learn the two entry points, ESM and CommonJS formats, and TypeScript compiler options."
+description: "Install @outcome.xyz/hip4 in a TypeScript project with pnpm, npm, or yarn, and learn the two entry points, ESM and CommonJS formats, and TypeScript compiler options."
 ---
 
-The SDK is published to npm as `@hip4/sdk`. It ships with full TypeScript types, supports both ESM and CommonJS, and has no runtime dependencies beyond your own project's dependencies.
+The SDK is published to npm as `@outcome.xyz/hip4`. It ships with full TypeScript types, supports both ESM and CommonJS, and has no runtime dependencies beyond your own project's dependencies.
 
 ## Install
 
 <CodeGroup>
 
 ```bash pnpm
-pnpm add @hip4/sdk
+pnpm add @outcome.xyz/hip4
 ```
 
 ```bash npm
-npm install @hip4/sdk
+npm install @outcome.xyz/hip4
 ```
 
 ```bash yarn
-yarn add @hip4/sdk
+yarn add @outcome.xyz/hip4
 ```
 
 </CodeGroup>
 
-Current version: **1.8.8**
+Current version: **1.0.0-beta**
 
 ## Entry points
 
@@ -41,7 +41,7 @@ import { createHIP4Adapter, formatPrice, getMinShares } from "@hip4/sdk";
 import type { DefaultBinaryMarket, PredictionOrderResult } from "@hip4/sdk";
 
 // Types-only entry - useful in shared type packages or when tree-shaking matters
-import type { HIP4Market, MarketType } from "@hip4/sdk/types";
+import type { HIP4Market, MarketType } from "@outcome.xyz/hip4/types";
 ```
 
 ## TypeScript requirements
