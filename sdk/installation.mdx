@@ -32,13 +32,13 @@ The package exposes two entry points:
 
 | Entry point | Use when |
 | --- | --- |
-| `@hip4/sdk` | Importing the adapter, utility functions, and types in the same file |
-| `@hip4/sdk/types` | Importing types only, without pulling in any runtime code |
+| `@outcome.xyz/hip4` | Importing the adapter, utility functions, and types in the same file |
+| `@outcome.xyz/hip4/types` | Importing types only, without pulling in any runtime code |
 
 ```typescript
 // Main entry - adapter, utilities, and types
-import { createHIP4Adapter, formatPrice, getMinShares } from "@hip4/sdk";
-import type { DefaultBinaryMarket, PredictionOrderResult } from "@hip4/sdk";
+import { createHIP4Adapter, formatPrice, getMinShares } from "@outcome.xyz/hip4";
+import type { DefaultBinaryMarket, PredictionOrderResult } from "@outcome.xyz/hip4";
 
 // Types-only entry - useful in shared type packages or when tree-shaking matters
 import type { HIP4Market, MarketType } from "@outcome.xyz/hip4/types";
