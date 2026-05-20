@@ -100,8 +100,7 @@ HIP-4 markets fall into four types, each with its own structure and set of field
 | --- | --- | --- |
 | `defaultBinary` | Recurring price binary (auto-generated) | `underlying`, `targetPrice`, `expiry`, `period` |
 | `labelledBinary` | Standalone binary with custom side names | Custom `sides[n].name` values |
-| `multiOutcome` | Grouped under a parent question | `questionId`, `questionName`, `isFallback` |
-| `priceBucket` | Multi-bucket price range (v2) | `priceThresholds`, `lowerBound`, `upperBound`, `bucketIndex` |
+| `priceBucket` | Grouped under a parent question | `questionId`, `questionName`, `isFallback` |
 
 ## Data hierarchy
 
@@ -146,7 +145,7 @@ Event IDs follow two formats depending on how the market was created:
 - **`q{n}`** - a question-based event grouping multiple named outcomes (e.g. `"q42"`)
 - **`o{n}`** - a standalone outcome that forms its own single-market event (e.g. `"o516"`)
 
-Recurring markets and labelled binary markets are typically standalone and use the `o{n}` format. Multi-outcome and price bucket markets are always question-based and use `q{n}`.
+Recurring markets and labelled binary markets are typically standalone and use the `o{n}` format. Price bucket markets are always question-based and use `q{n}`.
 
 ```typescript
 const questionEvent = await hip4.events.fetchEvent("q42");   // multi-outcome
