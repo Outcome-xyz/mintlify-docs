@@ -6,12 +6,14 @@
       --diagram-bg: #ededed;
       --pos: #166534;
       --neg: #991b1b;
+      --flash: rgba(23, 23, 23, 0.42);
     }
     @media (prefers-color-scheme: dark) {
       svg.root {
         --diagram-bg: #0a0a0a;
         --pos: #4ade80;
         --neg: #f87171;
+        --flash: rgba(250, 250, 250, 0.45);
       }
     }
 
@@ -99,12 +101,12 @@
       animation: maskGrow var(--dur) cubic-bezier(0.4, 0.05, 0.2, 1) var(--delay) forwards;
     }
 
-    /* Bet blips — short rows of small dots that travel along the dotted
+    /* Bet blips — short rows of dots that travel along the dotted
        connectors (using SMIL animateMotion + rotate="auto"). Multiple can
        be in flight at once, and each blip turns through the bend in the
        path so it actually follows the line into YES or NO. */
-    .bet-yes .blip-bar rect { fill: var(--pos); }
-    .bet-no  .blip-bar rect { fill: var(--neg); }
+    .bet-yes .blip-bar > * { fill: var(--pos); }
+    .bet-no  .blip-bar > * { fill: var(--neg); }
 
     /* Price stages — non-equal drops, settling at ¢40 to match the example.
        ¢48 → ¢45 → ¢43 → ¢41 → ¢40 (drops of 3, 2, 2, 1 — slowing as we
@@ -117,12 +119,38 @@
     .yes-p4, .no-p4 { animation: priceShow 350ms ease-out 5900ms forwards, priceHide 350ms ease-in 6700ms forwards; }
     .yes-p5, .no-p5 { animation: priceShow 350ms ease-out 6800ms forwards, priceHide 400ms ease-in 8700ms forwards; }
 
-    /* Settlement-stage values (the payout reveals) */
-    .yes-payout, .no-payout { animation: priceShow 600ms ease-out 8900ms forwards; }
+    /* Settlement-stage values (the payout reveals) — fire AFTER the
+       resolve-box price reveals so the order is: stop-flash → real price
+       appears in the bottom box → payouts populate in the YES/NO pools. */
+    .yes-payout, .no-payout { animation: priceShow 600ms ease-out 9200ms forwards; }
 
-    /* Subtitles — start with condition, swap to math at settlement */
+    /* Subtitles — start with condition, swap to math after the payout reveal */
     .yes-sub-cond, .no-sub-cond { animation: priceShow 800ms ease-out 1500ms forwards, priceHide 400ms ease-in 8700ms forwards; }
-    .yes-sub-math, .no-sub-math { animation: priceShow 600ms ease-out 9000ms forwards; }
+    .yes-sub-math, .no-sub-math { animation: priceShow 600ms ease-out 9400ms forwards; }
+
+    /* Stop-flash — brief half-second pulse on the clock (top layer, right
+       of the question) and on the bottom resolve box, indicating that
+       the market has stopped trading. Fires alongside the existing settle
+       sequence (pool dimming, center-fill, price hide). */
+    .clock-flash, .settle-flash {
+      fill: var(--flash);
+      opacity: 0;
+      pointer-events: none;
+      animation: stopFlash 500ms cubic-bezier(0.4, 0, 0.6, 1) 8500ms forwards;
+    }
+    @keyframes stopFlash {
+      0%   { opacity: 0; }
+      20%  { opacity: 1; }
+      45%  { opacity: 0.25; }
+      70%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Resolve-box price — starts as underscores (one per char of "$81,420")
+       and swaps to the real settlement price right after the half-second
+       flash ends. */
+    .resolve-text-post { opacity: 0; animation: priceShow 350ms ease-out 9000ms forwards; }
+    .resolve-text-pre  { animation: priceHide 350ms ease-in 9000ms forwards; }
 
     @keyframes priceShow { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes priceHide { to { opacity: 0; transform: translateY(-3px); } }
@@ -151,30 +179,31 @@
       animation: fadeIn 600ms cubic-bezier(0.22, 0.61, 0.36, 1) 8700ms forwards;
     }
 
-    /* Improved settlement reveal: glow burst + scale-in label */
+    /* Improved settlement reveal: glow burst + scale-in label.
+       Pushed to fire AFTER the resolve-box price reveals at 9000ms. */
     .center-glow {
       opacity: 0;
       transform-box: fill-box;
       transform-origin: center;
-      animation: summonGlow 1400ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 8800ms forwards;
+      animation: summonGlow 1400ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 9100ms forwards;
     }
 
     .center-label {
       opacity: 0;
       transform-box: fill-box;
       transform-origin: center;
-      animation: labelPop 700ms cubic-bezier(0.34, 1.4, 0.5, 1) 8800ms forwards;
+      animation: labelPop 700ms cubic-bezier(0.34, 1.4, 0.5, 1) 9100ms forwards;
     }
     .center-sublabel {
       opacity: 0;
-      animation: labelRise 700ms cubic-bezier(0.22, 0.61, 0.36, 1) 9200ms forwards;
+      animation: labelRise 700ms cubic-bezier(0.22, 0.61, 0.36, 1) 9500ms forwards;
       transform-box: fill-box;
       transform-origin: center;
     }
 
     .pool-yes-win {
       opacity: 0;
-      animation: winPulse 1600ms cubic-bezier(0.22, 0.61, 0.36, 1) 9100ms forwards;
+      animation: winPulse 1600ms cubic-bezier(0.22, 0.61, 0.36, 1) 9400ms forwards;
     }
     .pool-yes-win rect {
       stroke: var(--pos);
@@ -218,6 +247,9 @@
       .center-fill { opacity: 1; }
       .center-glow { opacity: 0; }
       .bet { opacity: 0; }
+      .clock-flash, .settle-flash { opacity: 0; }
+      .resolve-text-pre  { opacity: 0; }
+      .resolve-text-post { opacity: 1; }
       .yes-p1, .yes-p2, .yes-p3, .yes-p4, .yes-p5,
       .no-p1,  .no-p2,  .no-p3,  .no-p4,  .no-p5,
       .yes-sub-cond, .no-sub-cond { opacity: 0; }
@@ -326,11 +358,16 @@
     <text class="label" x="600" y="180" font-size="22" font-weight="500" text-anchor="middle">Will BTC be above $80,000 at 06:00 UTC?</text>
   </g>
 
-  <!-- Bottom spine: the resolution -->
+  <!-- Bottom spine: the resolution.
+       The price starts as 7 underscores ("$81,420" is 7 chars) and swaps
+       to the real number after the half-second stop-flash at 8500ms. -->
   <g class="spine-resolve">
     <rect class="bg-fill" x="302" y="645" width="596" height="70" rx="3"/>
     <rect class="stroke" stroke-width="1.5" x="302" y="645" width="596" height="70" rx="3"/>
-    <text class="label" x="600" y="690" font-size="22" font-weight="500" text-anchor="middle">Settled: BTC = $81,420 at 06:00 UTC</text>
+    <text class="resolve-text-pre  label" x="600" y="690" font-size="22" font-weight="500" text-anchor="middle">Settled: BTC = _______ at 06:00 UTC</text>
+    <text class="resolve-text-post label" x="600" y="690" font-size="22" font-weight="500" text-anchor="middle">Settled: BTC = $81,420 at 06:00 UTC</text>
+    <!-- Stop-flash overlay (half-second pulse at 8500ms) -->
+    <rect class="settle-flash" x="302" y="645" width="596" height="70" rx="3"/>
   </g>
 
   <!-- Connectors -->
@@ -345,63 +382,63 @@
        connector as they pass through it. Several are in flight at once. -->
   <g class="bet bet-no" opacity="0">
     <g class="blip-bar">
-      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+      <circle cx="-7" cy="0" r="2.6"/>
+      <circle cx="0"  cy="0" r="2.6"/>
+      <circle cx="7"  cy="0" r="2.6"/>
     </g>
     <animateMotion dur="1.4s" begin="2.7s" fill="freeze" rotate="auto"><mpath href="#bet-path-no"/></animateMotion>
     <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="2.7s" fill="freeze"/>
   </g>
   <g class="bet bet-yes" opacity="0">
     <g class="blip-bar">
-      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+      <circle cx="-7" cy="0" r="2.6"/>
+      <circle cx="0"  cy="0" r="2.6"/>
+      <circle cx="7"  cy="0" r="2.6"/>
     </g>
     <animateMotion dur="1.4s" begin="3.1s" fill="freeze" rotate="auto"><mpath href="#bet-path-yes"/></animateMotion>
     <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="3.1s" fill="freeze"/>
   </g>
   <g class="bet bet-no" opacity="0">
     <g class="blip-bar">
-      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+      <circle cx="-7" cy="0" r="2.6"/>
+      <circle cx="0"  cy="0" r="2.6"/>
+      <circle cx="7"  cy="0" r="2.6"/>
     </g>
     <animateMotion dur="1.4s" begin="3.5s" fill="freeze" rotate="auto"><mpath href="#bet-path-no"/></animateMotion>
     <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="3.5s" fill="freeze"/>
   </g>
   <g class="bet bet-no" opacity="0">
     <g class="blip-bar">
-      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+      <circle cx="-7" cy="0" r="2.6"/>
+      <circle cx="0"  cy="0" r="2.6"/>
+      <circle cx="7"  cy="0" r="2.6"/>
     </g>
     <animateMotion dur="1.4s" begin="4.0s" fill="freeze" rotate="auto"><mpath href="#bet-path-no"/></animateMotion>
     <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="4.0s" fill="freeze"/>
   </g>
   <g class="bet bet-yes" opacity="0">
     <g class="blip-bar">
-      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+      <circle cx="-7" cy="0" r="2.6"/>
+      <circle cx="0"  cy="0" r="2.6"/>
+      <circle cx="7"  cy="0" r="2.6"/>
     </g>
     <animateMotion dur="1.4s" begin="4.4s" fill="freeze" rotate="auto"><mpath href="#bet-path-yes"/></animateMotion>
     <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="4.4s" fill="freeze"/>
   </g>
   <g class="bet bet-no" opacity="0">
     <g class="blip-bar">
-      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+      <circle cx="-7" cy="0" r="2.6"/>
+      <circle cx="0"  cy="0" r="2.6"/>
+      <circle cx="7"  cy="0" r="2.6"/>
     </g>
     <animateMotion dur="1.4s" begin="4.9s" fill="freeze" rotate="auto"><mpath href="#bet-path-no"/></animateMotion>
     <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="4.9s" fill="freeze"/>
   </g>
   <g class="bet bet-yes" opacity="0">
     <g class="blip-bar">
-      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
-      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+      <circle cx="-7" cy="0" r="2.6"/>
+      <circle cx="0"  cy="0" r="2.6"/>
+      <circle cx="7"  cy="0" r="2.6"/>
     </g>
     <animateMotion dur="1.4s" begin="5.3s" fill="freeze" rotate="auto"><mpath href="#bet-path-yes"/></animateMotion>
     <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="5.3s" fill="freeze"/>
@@ -458,6 +495,8 @@
     <line class="stroke-faded" stroke-width="1.5" x1="1000" y1="166" x2="1000" y2="152"/>
     <line class="stroke-faded" stroke-width="1.5" x1="1000" y1="166" x2="990"  y2="170"/>
     <circle class="icon-fill-faded" cx="1000" cy="166" r="1.5"/>
+    <!-- Stop-flash overlay on the clock (half-second pulse at 8500ms) -->
+    <circle class="clock-flash" cx="1000" cy="166" r="24"/>
   </g>
 
 </svg>
