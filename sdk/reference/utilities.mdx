@@ -1,7 +1,7 @@
 ---
 title: "HIP-4 SDK Utilities: Pricing, Coins, and Orderbook"
 sidebarTitle: "Utilities"
-description: "Pure utility functions from @hip4/sdk for tick-aligned pricing, market discovery, coin name encoding, cost estimation, and price feed streams."
+description: "Pure utility functions from @outcome.xyz/hip4 for tick-aligned pricing, market discovery, coin name encoding, cost estimation, and price feed streams."
 ---
 
 The SDK exports a set of standalone utility functions alongside the main adapter. These functions have no side effects and no dependency on an initialized adapter instance - import and call them directly. They cover four areas: tick-aligned price formatting, market discovery and classification, coin name encoding, and orderbook cost estimation. Two stream constructors for live chart feeds are also covered here.
@@ -15,7 +15,7 @@ These functions handle Hyperliquid's magnitude-based decimal precision and minim
 Returns the tick size for a given price using 5 significant figures.
 
 ```typescript
-import { computeTickSize } from "@hip4/sdk";
+import { computeTickSize } from "@outcome.xyz/hip4";
 
 computeTickSize(0.55);    // 0.00001
 computeTickSize(1.25);    // 0.0001
@@ -27,7 +27,7 @@ computeTickSize(100);     // 0.001
 Rounds a price to the nearest tick boundary.
 
 ```typescript
-import { roundToTick } from "@hip4/sdk";
+import { roundToTick } from "@outcome.xyz/hip4";
 
 roundToTick(0.55123);    // 0.5512 (rounded to nearest 0.0001)
 ```
@@ -37,7 +37,7 @@ roundToTick(0.55123);    // 0.5512 (rounded to nearest 0.0001)
 Formats a price as a tick-aligned string with trailing zeros stripped. Prices below 1 receive 4 decimal places.
 
 ```typescript
-import { formatPrice } from "@hip4/sdk";
+import { formatPrice } from "@outcome.xyz/hip4";
 
 formatPrice(0.5500);     // "0.55"
 formatPrice(0.6512);     // "0.6512"
@@ -49,7 +49,7 @@ formatPrice(1.20);       // "1.2"
 Removes trailing zeros from a numeric string.
 
 ```typescript
-import { stripZeros } from "@hip4/sdk";
+import { stripZeros } from "@outcome.xyz/hip4";
 
 stripZeros("0.65000");   // "0.65"
 stripZeros("1.0000");    // "1"
@@ -60,7 +60,7 @@ stripZeros("1.0000");    // "1"
 Returns the minimum number of shares required to meet the 10 USDH minimum notional for a given mark price.
 
 ```typescript
-import { getMinShares } from "@hip4/sdk";
+import { getMinShares } from "@outcome.xyz/hip4";
 
 getMinShares(0.65);    // 29
 getMinShares(0.10);    // 100
@@ -71,7 +71,7 @@ getMinShares(0.10);    // 100
 The minimum order size in USDH. Currently `10`. Orders below this threshold are rejected before submission.
 
 ```typescript
-import { MIN_NOTIONAL } from "@hip4/sdk";
+import { MIN_NOTIONAL } from "@outcome.xyz/hip4";
 
 console.log(MIN_NOTIONAL);   // 10
 ```
@@ -85,7 +85,7 @@ These functions help you find and describe recurring HIP-4 markets from raw meta
 Parses a pipe-delimited recurring market description string into a structured object.
 
 ```typescript
-import { parseDescription } from "@hip4/sdk";
+import { parseDescription } from "@outcome.xyz/hip4";
 
 parseDescription(
   "class:priceBinary|underlying:BTC|expiry:20260311-0300|targetPrice:69070|period:1d"
@@ -104,7 +104,7 @@ parseDescription(
 Scans raw `outcomeMeta` and returns all outcomes that are recurring price binary markets.
 
 ```typescript
-import { discoverPriceBinaryMarkets } from "@hip4/sdk";
+import { discoverPriceBinaryMarkets } from "@outcome.xyz/hip4";
 
 const markets = discoverPriceBinaryMarkets(outcomeMeta);
 ```
@@ -114,7 +114,7 @@ const markets = discoverPriceBinaryMarkets(outcomeMeta);
 Converts a period string to its equivalent number of minutes.
 
 ```typescript
-import { periodMinutes } from "@hip4/sdk";
+import { periodMinutes } from "@outcome.xyz/hip4";
 
 periodMinutes("1d");    // 1440
 periodMinutes("1h");    // 60
@@ -126,7 +126,7 @@ periodMinutes("15m");   // 15
 Returns a short human-readable label for a market, combining the underlying asset and period.
 
 ```typescript
-import { formatMarketLabel } from "@hip4/sdk";
+import { formatMarketLabel } from "@outcome.xyz/hip4";
 
 formatMarketLabel(market);    // "BTC-1d"
 ```
@@ -136,7 +136,7 @@ formatMarketLabel(market);    // "BTC-1d"
 Returns a human-readable string describing how long until a market expires.
 
 ```typescript
-import { timeToExpiry } from "@hip4/sdk";
+import { timeToExpiry } from "@outcome.xyz/hip4";
 
 timeToExpiry(new Date("2026-03-11T03:00:00Z"));    // "2h 34m"
 ```
@@ -150,7 +150,7 @@ These functions classify raw HIP-4 outcomes into typed `HIP4Market` objects.
 Classifies a single outcome from the raw API response. Returns a `HIP4Market` with the appropriate `type` discriminant.
 
 ```typescript
-import { classifyOutcome } from "@hip4/sdk";
+import { classifyOutcome } from "@outcome.xyz/hip4";
 
 const market = classifyOutcome(outcome, questions);
 // market.type === "defaultBinary" | "labelledBinary" | "multiOutcome" | "priceBucket"
@@ -161,7 +161,7 @@ const market = classifyOutcome(outcome, questions);
 Classifies all outcomes from a full `outcomeMeta` response. Returns an array of `HIP4Market` objects.
 
 ```typescript
-import { classifyAllOutcomes } from "@hip4/sdk";
+import { classifyAllOutcomes } from "@outcome.xyz/hip4";
 
 const markets = classifyAllOutcomes(outcomeMeta);
 ```
@@ -171,15 +171,14 @@ const markets = classifyAllOutcomes(outcomeMeta);
 HIP-4 uses a specific coin naming convention for order book lookups and order placement. These helpers encode and decode those identifiers.
 
 | Helper | Example output | Description |
-|--------|---------------|-------------|
+| --- | --- | --- |
 | `sideCoin(outcomeId, sideIndex)` | `"#5160"` | Tradeable side coin string |
 | `sideAssetId(outcomeId, sideIndex)` | `100005160` | Numeric asset ID for order wire format |
 | `parseSideCoin(coin)` | `{ outcomeId: 516, sideIndex: 0 }` | Decode a side coin string |
 | `outcomeCoin(outcomeId)` | `"@516"` | Outcome-level coin for price lookups |
 
 ```typescript
-import { sideCoin, sideAssetId, parseSideCoin, outcomeCoin } from "@hip4/sdk";
-
+import { sideCoin, sideAssetId, parseSideCoin, outcomeCoin } from "@outcome.xyz/hip4"
 sideCoin(516, 0);          // "#5160"
 sideCoin(516, 1);          // "#5161"
 sideAssetId(516, 0);       // 100005160
@@ -201,7 +200,7 @@ These functions estimate trade cost and potential return from token amounts and 
 Estimates the USDH cost for a given token amount. For limit orders, uses `limitPriceCents`. For market orders, uses `marketPriceCents` when provided, otherwise returns `tokenAmount` as a fallback.
 
 ```typescript
-import { computeEstimatedCost } from "@hip4/sdk";
+import { computeEstimatedCost } from "@outcome.xyz/hip4";
 
 computeEstimatedCost(100, "limit", 65, undefined);     // 65 USDH
 computeEstimatedCost(100, "market", null, 65);          // 65 USDH
@@ -212,8 +211,8 @@ computeEstimatedCost(100, "market", null, 65);          // 65 USDH
 Returns a `TradeCostResult` with all three values needed to display a trade preview.
 
 ```typescript
-import { computeTradeCost } from "@hip4/sdk";
-import type { TradeCostResult } from "@hip4/sdk";
+import { computeTradeCost } from "@outcome.xyz/hip4";
+import type { TradeCostResult } from "@outcome.xyz/hip4";
 
 const result: TradeCostResult = computeTradeCost({
   tokenAmount: 100,
@@ -248,8 +247,8 @@ These constructors create continuously-updating chart feeds by merging historica
 Creates a live price feed for a single prediction market outcome. Returns an unsubscribe function.
 
 ```typescript
-import { createPriceFeed } from "@hip4/sdk";
-import type { PriceFeedSnapshot, PriceFeedOptions } from "@hip4/sdk";
+import { createPriceFeed } from "@outcome.xyz/hip4";
+import type { PriceFeedSnapshot, PriceFeedOptions } from "@outcome.xyz/hip4";
 
 const options: PriceFeedOptions = {
   interval: "1h",          // candle interval; default "1h"
@@ -275,10 +274,10 @@ unsub();
 `PriceFeedSnapshot` fields:
 
 | Field | Type | Description |
-|-------|------|-------------|
+| --- | --- | --- |
 | `marketId` | `string` | The market ID passed to the constructor |
-| `candles` | `PriceFeedCandle[]` | Full candle array (historical + live updates) |
-| `currentMid` | `number \| null` | Latest mid-price tick; may be newer than the last candle |
+| `candles` | `PriceFeedCandle[]` | Full candle array (historical \+ live updates) |
+| `currentMid` | `number | null` | Latest mid-price tick; may be newer than the last candle |
 | `ready` | `boolean` | `false` until the initial historical candle fetch completes |
 
 ### `createPerpPriceFeed(client, coin, onSnapshot, options?)`
@@ -286,8 +285,8 @@ unsub();
 Creates a live price feed for a perpetual market coin (e.g. `"BTC"`, `"ETH"`). Uses the `candle` WebSocket channel for authoritative OHLCV data and `allMids` for the initial mid-price.
 
 ```typescript
-import { HIP4Client, createPerpPriceFeed } from "@hip4/sdk";
-import type { PerpPriceFeedSnapshot } from "@hip4/sdk";
+import { HIP4Client, createPerpPriceFeed } from "@outcome.xyz/hip4";
+import type { PerpPriceFeedSnapshot } from "@outcome.xyz/hip4";
 
 const unsub = createPerpPriceFeed(
   hip4Client,
