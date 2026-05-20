@@ -226,32 +226,46 @@ html.dark #navigation-items li[data-active="true"] > a {
   }
 }
 
-/* ─── Dark-mode page background: charcoal canvas + recessed gridlines.
+/* ─── Dark-mode page background: charcoal canvas + recessed gridlines +
+   "big fat brush" oil-paint texture in black.
    Composition (back to front):
-     1. Charcoal base (#0c0c0e).
-     2. 64-px square grid (white hairlines at 5.5% alpha).
-     3. Centerward darkening blob — grid fades out in the middle, so the
-        center "recedes" while edges read as foreground.
-     4. Asymmetric secondary darkening, offset to lower-left — breaks
-        the radial symmetry so visibility varies across the page rather
-        than being a perfect ring.
-   All layers fixed-attachment so the grid stays locked to the viewport
-   as the article scrolls (no parallax drift). */
+     1. Charcoal base (#0a0a0a — slightly darker than before so the
+        black brush passes have room to darken further).
+     2. Broad uneven-coverage paint dabs (low-freq turbulence, ~38%
+        black alpha) — the fattest brush, varies coverage across whole
+        viewport in big organic patches.
+     3. Horizontal cross-stroke brush (~20% black alpha) — wide stripes
+        going across.
+     4. Vertical fat brush (~28% black alpha) — long down-strokes
+        applied LAST in paint, but layered UNDER the grid in CSS so the
+        grid still reads.
+     5. 64-px square grid (white hairlines at 5.5% alpha) sits on top
+        of the brush so the structure stays crisp.
+     6. Centerward darkening blob — grid + brush fade out in middle.
+     7. Asymmetric secondary darkening, lower-left.
+   All layers fixed-attachment so the brush stays anchored to the
+   viewport rather than scrolling with content. */
 html.dark #background-color {
-  background-color: #0c0c0e !important;
+  background-color: #0a0a0a !important;
   background-image:
-    /* Centerward fade — covers the grid in the middle */
-    radial-gradient(ellipse 70% 80% at 50% 50%, #0c0c0e 12%, transparent 92%),
-    /* Asymmetric secondary darkening, lower-left quadrant */
-    radial-gradient(ellipse 45% 38% at 28% 68%, rgba(12, 12, 14, 0.72) 0%, transparent 78%),
-    /* Vertical gridlines */
+    /* Centerward fade — covers grid + brush in the middle */
+    radial-gradient(ellipse 70% 80% at 50% 50%, #0a0a0a 12%, transparent 92%),
+    /* Asymmetric secondary darkening, lower-left */
+    radial-gradient(ellipse 45% 38% at 28% 68%, rgba(10, 10, 10, 0.72) 0%, transparent 78%),
+    /* Gridlines vertical */
     linear-gradient(to right, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
-    /* Horizontal gridlines */
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.055) 1px, transparent 1px) !important;
-  background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px !important;
-  background-repeat: no-repeat, no-repeat, repeat, repeat !important;
-  background-position: center, center, 0 0, 0 0 !important;
-  background-attachment: fixed, fixed, fixed, fixed !important;
+    /* Gridlines horizontal */
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    /* Vertical fat brush strokes (long down-strokes, black @ ~28% alpha) */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1800' height='1100'><filter id='v'><feTurbulence type='fractalNoise' baseFrequency='0.024 0.006' numOctaves='3' seed='17' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.28 0 0 0 0'/></filter><rect width='100%25' height='100%25' filter='url(%23v)'/></svg>"),
+    /* Horizontal cross-stroke brush (~20% alpha) */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1800' height='1100'><filter id='h'><feTurbulence type='fractalNoise' baseFrequency='0.006 0.024' numOctaves='3' seed='29' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.20 0 0 0 0'/></filter><rect width='100%25' height='100%25' filter='url(%23h)'/></svg>"),
+    /* Broad oil dabs — biggest, most prominent brush layer (~38% alpha) */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1800' height='1100'><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='0.0045' numOctaves='2' seed='5' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.38 0 0 0 0'/></filter><rect width='100%25' height='100%25' filter='url(%23b)'/></svg>") !important;
+  background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px, cover, cover, cover !important;
+  background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat, no-repeat, no-repeat !important;
+  background-position: center, center, 0 0, 0 0, center, center, center !important;
+  background-attachment: fixed, fixed, fixed, fixed, fixed, fixed, fixed !important;
 }
 
 /* ─── Light-mode page background: off-white canvas + recessed gridlines.

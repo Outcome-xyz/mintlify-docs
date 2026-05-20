@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg class="root" viewBox="38 78 1124 694" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Outcome prediction market example: seven bets stream from a question into the YES and NO pools; the YES price decays from ¢48 down to ¢40 in non-equal steps. The market resolves YES — 100 shares × 1 USDH each = 100 USDH payout; NO settles to 0.">
+
+  <style>
+    svg.root {
+      --diagram-bg: #ededed;
+      --pos: #166534;
+      --neg: #991b1b;
+    }
+    @media (prefers-color-scheme: dark) {
+      svg.root {
+        --diagram-bg: #0a0a0a;
+        --pos: #4ade80;
+        --neg: #f87171;
+      }
+    }
+
+    .bg-fill            { fill: var(--diagram-bg); }
+    .stroke             { stroke: #171717; fill: none; }
+    .stroke-faded       { stroke: #171717; opacity: 0.75; fill: none; }
+    .stroke-band-bright { stroke: #171717; opacity: 0.78; fill: none; }
+    .stroke-band-faded  { stroke: #171717; opacity: 0.90; fill: none; }
+
+    .label          { fill: #171717; font-family: ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
+    .label-faded    { fill: #171717; opacity: 0.85; font-family: ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
+    .label-mute     { fill: #171717; opacity: 0.45; font-family: ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
+    .label-pos      { fill: var(--pos); font-family: ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
+    .label-neg      { fill: var(--neg); font-family: ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
+    .grid-dot       { fill: #171717; }
+    .icon-fill      { fill: #171717; }
+    .icon-fill-faded { fill: #171717; opacity: 0.85; }
+
+    .connector-dotted {
+      stroke: #171717;
+      stroke-width: 1;
+      stroke-dasharray: 3 4;
+      fill: none;
+      opacity: 0.75;
+    }
+    .reveal-mask {
+      stroke: #fff;
+      stroke-width: 4;
+      fill: none;
+      stroke-linecap: square;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .stroke             { stroke: #e5e5e5; }
+      .stroke-faded       { stroke: #e5e5e5; opacity: 0.32; }
+      .stroke-band-bright { stroke: #e5e5e5; opacity: 0.7; }
+      .stroke-band-faded  { stroke: #e5e5e5; opacity: 0.28; }
+      .connector-dotted   { stroke: #e5e5e5; opacity: 0.55; }
+      .label              { fill: #fafafa; }
+      .label-faded        { fill: #fafafa; opacity: 0.55; }
+      .label-mute         { fill: #fafafa; opacity: 0.40; }
+      .grid-dot           { fill: #fafafa; }
+      .icon-fill          { fill: #e5e5e5; }
+      .icon-fill-faded    { fill: #e5e5e5; opacity: 0.6; }
+    }
+
+    .grid-layer { animation: fadeIn 500ms cubic-bezier(0.2, 0.8, 0.2, 1) 0ms both; }
+    .corner-ticks {
+      animation: drawIn 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 0ms both;
+      stroke-dasharray: 80; stroke-dashoffset: 80;
+    }
+
+    .layer-band-apps  { opacity: 0; animation: fadeInBandFaded 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms forwards; }
+    .layer-band-trade { opacity: 0; animation: fadeInBandBright 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 300ms forwards; }
+    .layer-band-resolve { opacity: 0; animation: fadeInBandFaded 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 400ms forwards; }
+
+    .spine-question { opacity: 0; animation: fadeIn 500ms ease-out 600ms forwards; }
+    .spine-resolve  { opacity: 0; animation: fadeIn 500ms ease-out 700ms forwards; }
+    .app-side-left  { opacity: 0; animation: fadeInFaded 700ms ease-out 800ms forwards; }
+    .app-side-right { opacity: 0; animation: fadeInFaded 700ms ease-out 900ms forwards; }
+
+    .pool-box {
+      opacity: 0;
+      animation: fadeIn 700ms cubic-bezier(0.25, 0.7, 0.3, 1) 1000ms forwards;
+    }
+    .pool-content {
+      opacity: 0;
+      animation: fadeIn 500ms ease-out 1300ms forwards;
+    }
+    .pool-no-content {
+      animation: fadeIn 500ms ease-out 1300ms forwards,
+                 dimDown 800ms ease-out 8600ms forwards;
+    }
+    @keyframes dimDown { to { opacity: 0.32; } }
+
+    /* Trunk + branches */
+    .m-trunk      { --len: 85;  --dur: 500ms;  --delay: 1400ms; }
+    .m-branch-yes { --len: 370; --dur: 900ms;  --delay: 1700ms; }
+    .m-branch-no  { --len: 370; --dur: 900ms;  --delay: 1700ms; }
+    .m-resolve    { --len: 130; --dur: 1500ms; --delay: 7300ms; }
+
+    .reveal-mask {
+      stroke-dasharray: var(--len);
+      stroke-dashoffset: var(--len);
+      animation: maskGrow var(--dur) cubic-bezier(0.4, 0.05, 0.2, 1) var(--delay) forwards;
+    }
+
+    /* Bet blips — short rows of small dots that travel along the dotted
+       connectors (using SMIL animateMotion + rotate="auto"). Multiple can
+       be in flight at once, and each blip turns through the bend in the
+       path so it actually follows the line into YES or NO. */
+    .bet-yes .blip-bar rect { fill: var(--pos); }
+    .bet-no  .blip-bar rect { fill: var(--neg); }
+
+    /* Price stages — non-equal drops, settling at ¢40 to match the example.
+       ¢48 → ¢45 → ¢43 → ¢41 → ¢40 (drops of 3, 2, 2, 1 — slowing as we
+       approach the example's entry price). NO mirrors. */
+    .price-stage { opacity: 0; }
+
+    .yes-p1, .no-p1 { animation: priceShow 800ms ease-out 1500ms forwards, priceHide 350ms ease-in 3900ms forwards; }
+    .yes-p2, .no-p2 { animation: priceShow 350ms ease-out 4000ms forwards, priceHide 350ms ease-in 4800ms forwards; }
+    .yes-p3, .no-p3 { animation: priceShow 350ms ease-out 4900ms forwards, priceHide 350ms ease-in 5800ms forwards; }
+    .yes-p4, .no-p4 { animation: priceShow 350ms ease-out 5900ms forwards, priceHide 350ms ease-in 6700ms forwards; }
+    .yes-p5, .no-p5 { animation: priceShow 350ms ease-out 6800ms forwards, priceHide 400ms ease-in 8700ms forwards; }
+
+    /* Settlement-stage values (the payout reveals) */
+    .yes-payout, .no-payout { animation: priceShow 600ms ease-out 8900ms forwards; }
+
+    /* Subtitles — start with condition, swap to math at settlement */
+    .yes-sub-cond, .no-sub-cond { animation: priceShow 800ms ease-out 1500ms forwards, priceHide 400ms ease-in 8700ms forwards; }
+    .yes-sub-math, .no-sub-math { animation: priceShow 600ms ease-out 9000ms forwards; }
+
+    @keyframes priceShow { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes priceHide { to { opacity: 0; transform: translateY(-3px); } }
+
+    /* Settlement centerpiece — fires after the trading concludes */
+    .center-edge {
+      stroke: #171717;
+      stroke-width: 2;
+      fill: none;
+      stroke-dasharray: var(--len);
+      stroke-dashoffset: var(--len);
+      animation: maskGrow var(--dur) cubic-bezier(0.25, 0.46, 0.45, 0.94) var(--delay) forwards;
+    }
+    @media (prefers-color-scheme: dark) {
+      .center-edge { stroke: #e5e5e5; }
+    }
+    .center-edge-top-left  { --len: 120; --dur: 450ms;  --delay: 7400ms; }
+    .center-edge-top-right { --len: 120; --dur: 450ms;  --delay: 7400ms; }
+    .center-edge-left      { --len: 180; --dur: 650ms;  --delay: 7850ms; }
+    .center-edge-right     { --len: 180; --dur: 650ms;  --delay: 7850ms; }
+    .center-edge-bot-left  { --len: 120; --dur: 650ms;  --delay: 8500ms; }
+    .center-edge-bot-right { --len: 120; --dur: 650ms;  --delay: 8500ms; }
+
+    .center-fill {
+      opacity: 0;
+      animation: fadeIn 600ms cubic-bezier(0.22, 0.61, 0.36, 1) 8700ms forwards;
+    }
+
+    /* Improved settlement reveal: glow burst + scale-in label */
+    .center-glow {
+      opacity: 0;
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: summonGlow 1400ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 8800ms forwards;
+    }
+
+    .center-label {
+      opacity: 0;
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: labelPop 700ms cubic-bezier(0.34, 1.4, 0.5, 1) 8800ms forwards;
+    }
+    .center-sublabel {
+      opacity: 0;
+      animation: labelRise 700ms cubic-bezier(0.22, 0.61, 0.36, 1) 9200ms forwards;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .pool-yes-win {
+      opacity: 0;
+      animation: winPulse 1600ms cubic-bezier(0.22, 0.61, 0.36, 1) 9100ms forwards;
+    }
+    .pool-yes-win rect {
+      stroke: var(--pos);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    @keyframes fadeIn            { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeInBandBright  { from { opacity: 0; } to { opacity: 0.7; } }
+    @keyframes fadeInBandFaded   { from { opacity: 0; } to { opacity: 0.55; } }
+    @keyframes fadeInFaded       { from { opacity: 0; } to { opacity: 0.75; } }
+    @keyframes maskGrow          { to { stroke-dashoffset: 0; } }
+    @keyframes drawIn            { to { stroke-dashoffset: 0; } }
+    @keyframes summonGlow {
+      0%   { opacity: 0; transform: scale(1); }
+      25%  { opacity: 0.45; transform: scale(1.02); }
+      100% { opacity: 0; transform: scale(1.08); }
+    }
+    @keyframes labelPop {
+      0%   { opacity: 0; transform: scale(0.86); }
+      60%  { opacity: 1; transform: scale(1.04); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes labelRise {
+      0%   { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes winPulse {
+      0%   { opacity: 0; }
+      30%  { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; animation-delay: 0ms !important; }
+      .reveal-mask { stroke-dashoffset: 0; }
+      .app-side-left, .app-side-right { opacity: 0.75; }
+      .layer-band-apps, .layer-band-resolve { opacity: 0.55; }
+      .layer-band-trade { opacity: 0.7; }
+      .center-edge { stroke-dashoffset: 0; }
+      .center-fill { opacity: 1; }
+      .center-glow { opacity: 0; }
+      .bet { opacity: 0; }
+      .yes-p1, .yes-p2, .yes-p3, .yes-p4, .yes-p5,
+      .no-p1,  .no-p2,  .no-p3,  .no-p4,  .no-p5,
+      .yes-sub-cond, .no-sub-cond { opacity: 0; }
+      .yes-payout, .no-payout, .yes-sub-math, .no-sub-math { opacity: 1; }
+      .pool-yes-win { opacity: 0.7; }
+      .pool-no-content { opacity: 0.32; }
+    }
+  </style>
+
+  <defs>
+    <pattern id="dots-bg" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle class="grid-dot" cx="1" cy="1" r="1" opacity="0.06"/>
+    </pattern>
+
+    <mask id="mask-trunk" maskUnits="userSpaceOnUse" x="0" y="0" width="1200" height="820">
+      <rect x="0" y="0" width="1200" height="820" fill="black"/>
+      <path class="reveal-mask m-trunk" d="M 600 210 L 600 295"/>
+    </mask>
+    <mask id="mask-branch-yes" maskUnits="userSpaceOnUse" x="0" y="0" width="1200" height="820">
+      <rect x="0" y="0" width="1200" height="820" fill="black"/>
+      <path class="reveal-mask m-branch-yes" d="M 600 295 L 270 295 L 270 335"/>
+    </mask>
+    <mask id="mask-branch-no" maskUnits="userSpaceOnUse" x="0" y="0" width="1200" height="820">
+      <rect x="0" y="0" width="1200" height="820" fill="black"/>
+      <path class="reveal-mask m-branch-no" d="M 600 295 L 930 295 L 930 335"/>
+    </mask>
+    <mask id="mask-resolve" maskUnits="userSpaceOnUse" x="0" y="0" width="1200" height="820">
+      <rect x="0" y="0" width="1200" height="820" fill="black"/>
+      <path class="reveal-mask m-resolve" d="M 600 645 L 600 515"/>
+    </mask>
+
+    <!-- Motion paths the bet blips follow. They start at the bottom-middle
+         of the question box (y=210), hit the branch point (600,295), then
+         turn into the top-middle of the YES (270,335) or NO (930,335) box. -->
+    <path id="bet-path-yes" d="M 600 210 L 600 295 L 270 295 L 270 335"/>
+    <path id="bet-path-no"  d="M 600 210 L 600 295 L 930 295 L 930 335"/>
+  </defs>
+
+  <g class="grid-layer">
+    <rect fill="url(#dots-bg)" x="12" y="52" width="1176" height="746"/>
+  </g>
+
+  <g class="corner-ticks stroke" stroke-width="2" opacity="0.85" stroke-linecap="square">
+    <path d="M 40 120 L 40 80 L 80 80"/>
+    <path d="M 1120 80 L 1160 80 L 1160 120"/>
+    <path d="M 40 730 L 40 770 L 80 770"/>
+    <path d="M 1120 770 L 1160 770 L 1160 730"/>
+  </g>
+
+  <g class="layer-band-apps">
+    <rect class="stroke-band-faded" stroke-width="1.5" x="60" y="100" width="1080" height="140" rx="3"/>
+  </g>
+  <g class="layer-band-trade">
+    <rect class="stroke-band-bright" stroke-width="1.5" x="60" y="290" width="1080" height="270" rx="3"/>
+  </g>
+  <g class="layer-band-resolve">
+    <rect class="stroke-band-faded" stroke-width="1.5" x="60" y="610" width="1080" height="140" rx="3"/>
+  </g>
+
+  <!-- YES pool (left) -->
+  <g class="pool-box">
+    <rect class="bg-fill" x="80" y="335" width="380" height="180" rx="4"/>
+    <rect class="stroke-faded" stroke-width="1.5" x="80" y="335" width="380" height="180" rx="4"/>
+  </g>
+  <g class="pool-content">
+    <text class="label-mute" x="270" y="368" font-size="13" font-weight="500" text-anchor="middle" letter-spacing="0.16em">YES</text>
+    <!-- Trading price stages (cents, no decimals) — decaying ¢48 → ¢40 -->
+    <text class="price-stage yes-p1 label" x="270" y="437" font-size="48" font-weight="500" text-anchor="middle">¢48</text>
+    <text class="price-stage yes-p2 label" x="270" y="437" font-size="48" font-weight="500" text-anchor="middle">¢45</text>
+    <text class="price-stage yes-p3 label" x="270" y="437" font-size="48" font-weight="500" text-anchor="middle">¢43</text>
+    <text class="price-stage yes-p4 label" x="270" y="437" font-size="48" font-weight="500" text-anchor="middle">¢41</text>
+    <text class="price-stage yes-p5 label" x="270" y="437" font-size="48" font-weight="500" text-anchor="middle">¢40</text>
+    <!-- Settlement payout -->
+    <text class="price-stage yes-payout label-pos" x="270" y="437" font-size="44" font-weight="500" text-anchor="middle">100 USDH</text>
+    <!-- Sublabel -->
+    <text class="price-stage yes-sub-cond label-mute" x="270" y="490" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="0.1em">BTC &gt; $80K</text>
+    <text class="price-stage yes-sub-math label-mute" x="270" y="490" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="0.1em">100 SHARES × 1 USDH</text>
+  </g>
+
+  <!-- YES win highlight -->
+  <g class="pool-yes-win">
+    <rect x="80" y="335" width="380" height="180" rx="4"/>
+  </g>
+
+  <!-- NO pool (right) -->
+  <g class="pool-box">
+    <rect class="bg-fill" x="740" y="335" width="380" height="180" rx="4"/>
+    <rect class="stroke-faded" stroke-width="1.5" x="740" y="335" width="380" height="180" rx="4"/>
+  </g>
+  <g class="pool-no-content" style="opacity:0">
+    <text class="label-mute" x="930" y="368" font-size="13" font-weight="500" text-anchor="middle" letter-spacing="0.18em">NO</text>
+    <text class="price-stage no-p1 label" x="930" y="437" font-size="48" font-weight="500" text-anchor="middle">¢52</text>
+    <text class="price-stage no-p2 label" x="930" y="437" font-size="48" font-weight="500" text-anchor="middle">¢55</text>
+    <text class="price-stage no-p3 label" x="930" y="437" font-size="48" font-weight="500" text-anchor="middle">¢57</text>
+    <text class="price-stage no-p4 label" x="930" y="437" font-size="48" font-weight="500" text-anchor="middle">¢59</text>
+    <text class="price-stage no-p5 label" x="930" y="437" font-size="48" font-weight="500" text-anchor="middle">¢60</text>
+    <text class="price-stage no-payout label-mute" x="930" y="437" font-size="44" font-weight="500" text-anchor="middle">0 USDH</text>
+    <text class="price-stage no-sub-cond label-mute" x="930" y="490" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="0.1em">BTC ≤ $80K</text>
+    <text class="price-stage no-sub-math label-mute" x="930" y="490" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="0.1em">LOSING SIDE</text>
+  </g>
+
+  <!-- Top spine: the question -->
+  <g class="spine-question">
+    <rect class="bg-fill" x="302" y="130" width="596" height="80" rx="3"/>
+    <rect class="stroke" stroke-width="1.5" x="302" y="130" width="596" height="80" rx="3"/>
+    <text class="label" x="600" y="180" font-size="22" font-weight="500" text-anchor="middle">Will BTC be above $80,000 at 06:00 UTC?</text>
+  </g>
+
+  <!-- Bottom spine: the resolution -->
+  <g class="spine-resolve">
+    <rect class="bg-fill" x="302" y="645" width="596" height="70" rx="3"/>
+    <rect class="stroke" stroke-width="1.5" x="302" y="645" width="596" height="70" rx="3"/>
+    <text class="label" x="600" y="690" font-size="22" font-weight="500" text-anchor="middle">Settled: BTC = $81,420 at 06:00 UTC</text>
+  </g>
+
+  <!-- Connectors -->
+  <path class="connector-dotted" d="M 600 210 L 600 295" mask="url(#mask-trunk)"/>
+  <path class="connector-dotted" d="M 600 295 L 270 295 L 270 335" mask="url(#mask-branch-yes)"/>
+  <path class="connector-dotted" d="M 600 295 L 930 295 L 930 335" mask="url(#mask-branch-no)"/>
+  <path class="connector-dotted" d="M 600 645 L 600 515" mask="url(#mask-resolve)"/>
+
+  <!-- BET BLIPS — short rows of dots that travel down the trunk and turn
+       into YES (green) or NO (red). Each blip uses SMIL animateMotion with
+       rotate="auto" so the dots reorient at the bend and overlay the dotted
+       connector as they pass through it. Several are in flight at once. -->
+  <g class="bet bet-no" opacity="0">
+    <g class="blip-bar">
+      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+    </g>
+    <animateMotion dur="1.4s" begin="2.7s" fill="freeze" rotate="auto"><mpath href="#bet-path-no"/></animateMotion>
+    <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="2.7s" fill="freeze"/>
+  </g>
+  <g class="bet bet-yes" opacity="0">
+    <g class="blip-bar">
+      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+    </g>
+    <animateMotion dur="1.4s" begin="3.1s" fill="freeze" rotate="auto"><mpath href="#bet-path-yes"/></animateMotion>
+    <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="3.1s" fill="freeze"/>
+  </g>
+  <g class="bet bet-no" opacity="0">
+    <g class="blip-bar">
+      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+    </g>
+    <animateMotion dur="1.4s" begin="3.5s" fill="freeze" rotate="auto"><mpath href="#bet-path-no"/></animateMotion>
+    <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="3.5s" fill="freeze"/>
+  </g>
+  <g class="bet bet-no" opacity="0">
+    <g class="blip-bar">
+      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+    </g>
+    <animateMotion dur="1.4s" begin="4.0s" fill="freeze" rotate="auto"><mpath href="#bet-path-no"/></animateMotion>
+    <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="4.0s" fill="freeze"/>
+  </g>
+  <g class="bet bet-yes" opacity="0">
+    <g class="blip-bar">
+      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+    </g>
+    <animateMotion dur="1.4s" begin="4.4s" fill="freeze" rotate="auto"><mpath href="#bet-path-yes"/></animateMotion>
+    <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="4.4s" fill="freeze"/>
+  </g>
+  <g class="bet bet-no" opacity="0">
+    <g class="blip-bar">
+      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+    </g>
+    <animateMotion dur="1.4s" begin="4.9s" fill="freeze" rotate="auto"><mpath href="#bet-path-no"/></animateMotion>
+    <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="4.9s" fill="freeze"/>
+  </g>
+  <g class="bet bet-yes" opacity="0">
+    <g class="blip-bar">
+      <rect x="-7" y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="0"  y="-1.5" width="3" height="3" rx="1"/>
+      <rect x="7"  y="-1.5" width="3" height="3" rx="1"/>
+    </g>
+    <animateMotion dur="1.4s" begin="5.3s" fill="freeze" rotate="auto"><mpath href="#bet-path-yes"/></animateMotion>
+    <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.08;0.5;0.92;1" dur="1.4s" begin="5.3s" fill="freeze"/>
+  </g>
+
+  <!-- Settlement centerpiece -->
+  <rect class="center-fill bg-fill" x="481" y="336" width="238" height="178" rx="3"/>
+  <path class="center-edge center-edge-top-left"  d="M 600 335 L 480 335"/>
+  <path class="center-edge center-edge-top-right" d="M 600 335 L 720 335"/>
+  <path class="center-edge center-edge-left"      d="M 480 335 L 480 515"/>
+  <path class="center-edge center-edge-right"     d="M 720 335 L 720 515"/>
+  <path class="center-edge center-edge-bot-left"  d="M 480 515 L 600 515"/>
+  <path class="center-edge center-edge-bot-right" d="M 720 515 L 600 515"/>
+
+  <g class="center-glow">
+    <rect class="stroke" stroke-width="1.5" x="468" y="323" width="264" height="204" rx="4"/>
+  </g>
+
+  <g class="center-label">
+    <text class="label" x="600" y="432" font-size="40" font-weight="500" text-anchor="middle" letter-spacing="2">1 USDH</text>
+  </g>
+  <g class="center-sublabel">
+    <text class="label-mute" x="600" y="470" font-size="13" font-weight="500" text-anchor="middle" letter-spacing="0.1em">PER WINNING SHARE</text>
+  </g>
+
+  <!-- Side icons -->
+  <g class="app-side-left">
+    <rect class="stroke-faded" stroke-width="1.5" x="155" y="135" width="90" height="62" rx="3"/>
+    <rect class="stroke-faded" stroke-width="1" x="163" y="143" width="74" height="46" rx="1"/>
+    <line class="stroke-faded" stroke-width="1.5" x1="200" y1="197" x2="200" y2="208"/>
+    <line class="stroke-faded" stroke-width="1.5" x1="185" y1="208" x2="215" y2="208"/>
+    <line class="stroke-faded" stroke-width="0.5" x1="168" y1="158" x2="232" y2="158" opacity="0.3"/>
+    <line class="stroke-faded" stroke-width="0.5" x1="168" y1="170" x2="232" y2="170" opacity="0.3"/>
+    <line class="stroke-faded" stroke-width="0.5" x1="168" y1="182" x2="232" y2="182" opacity="0.3"/>
+    <line class="stroke-faded" stroke-width="0.75" x1="174" y1="158" x2="174" y2="184"/>
+    <rect class="icon-fill-faded" x="171" y="166" width="6" height="12"/>
+    <line class="stroke-faded" stroke-width="0.75" x1="186" y1="154" x2="186" y2="182"/>
+    <rect class="stroke-faded" stroke-width="1" fill="none" x="183" y="162" width="6" height="14"/>
+    <line class="stroke-faded" stroke-width="0.75" x1="198" y1="160" x2="198" y2="180"/>
+    <rect class="icon-fill-faded" x="195" y="166" width="6" height="10"/>
+    <line class="stroke-faded" stroke-width="0.75" x1="210" y1="152" x2="210" y2="176"/>
+    <rect class="stroke-faded" stroke-width="1" fill="none" x="207" y="156" width="6" height="16"/>
+    <line class="stroke-faded" stroke-width="0.75" x1="222" y1="148" x2="222" y2="172"/>
+    <rect class="icon-fill-faded" x="219" y="152" width="6" height="14"/>
+  </g>
+
+  <g class="app-side-right">
+    <rect class="stroke-faded" stroke-width="1.5" x="955" y="135" width="90" height="62" rx="3"/>
+    <circle class="stroke-faded" stroke-width="1.5" fill="none" cx="1000" cy="166" r="22"/>
+    <line class="stroke-faded" stroke-width="1" x1="1000" y1="146" x2="1000" y2="150"/>
+    <line class="stroke-faded" stroke-width="1" x1="1000" y1="182" x2="1000" y2="186"/>
+    <line class="stroke-faded" stroke-width="1" x1="980"  y1="166" x2="984"  y2="166"/>
+    <line class="stroke-faded" stroke-width="1" x1="1016" y1="166" x2="1020" y2="166"/>
+    <line class="stroke-faded" stroke-width="1.5" x1="1000" y1="166" x2="1000" y2="152"/>
+    <line class="stroke-faded" stroke-width="1.5" x1="1000" y1="166" x2="990"  y2="170"/>
+    <circle class="icon-fill-faded" cx="1000" cy="166" r="1.5"/>
+  </g>
+
+</svg>
