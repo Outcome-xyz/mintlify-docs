@@ -12,6 +12,8 @@ HIP-4 markets fall into four types, each with its own structure and set of field
 
 <Tabs>
   <Tab title="defaultBinary">
+    (aka `priceBinary`)
+
     Recurring price binary markets are auto-generated on a schedule and ask whether an asset's price will exceed a target by a given expiry. They always use "Yes" / "No" sides.
 
     <Info>
@@ -61,38 +63,6 @@ HIP-4 markets fall into four types, each with its own structure and set of field
     market.sides[0].name;  // e.g. "Hypurr"
     market.sides[1].name;  // e.g. "Usain Bolt"
     market.sides[0].coin;  // "#900"
-    ```
-  </Tab>
-  <Tab title="multiOutcome">
-    Markets grouped under a parent question, where multiple outcomes compete. Each outcome is a separate `multiOutcome` market with two sides, and one outcome is designated as the fallback ("Other / None of the above"). The parent question is shared across all sibling markets.
-
-    <Info>
-      e.g. "Who will win the world cup?"
-    </Info>
-
-    **Distinguishing fields:** `questionId`, `questionName`, `questionDescription`, `isFallback`
-
-    ```typescript
-    import type { MultiOutcomeMarket } from "@hip4/sdk";
-    
-    const market = markets[0] as MultiOutcomeMarket;
-    
-    market.type;                 // "multiOutcome"
-    market.questionId;           // 42
-    market.questionName;         // "Which team wins the championship?"
-    market.isFallback;           // false (true for the "Other" outcome)
-    market.sides[0].name;        // "Yes"
-    market.sides[1].name;        // "No"
-    ```
-
-    Group multi-outcome markets by their parent question:
-
-    ```typescript
-    const byQuestion = await hip4.events.fetchMarkets({
-      type: "multiOutcome",
-      groupBy: "question",
-    });
-    // byQuestion["42"] → MultiOutcomeMarket[]
     ```
   </Tab>
   <Tab title="priceBucket">
