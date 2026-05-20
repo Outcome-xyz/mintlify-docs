@@ -232,7 +232,7 @@ const result: TradeCostResult = computeTradeCost({
 Returns the maximum payout for a given number of shares. Each share pays 1 USDH if the outcome resolves in your favor.
 
 ```typescript
-import { computePotentialReturn } from "@hip4/sdk";
+import { computePotentialReturn } from "@outcome.xyz/hip4";
 
 computePotentialReturn(100);    // 100
 computePotentialReturn(0);      // 0
@@ -273,12 +273,12 @@ unsub();
 
 `PriceFeedSnapshot` fields:
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `marketId` | `string` | The market ID passed to the constructor |
-| `candles` | `PriceFeedCandle[]` | Full candle array (historical \+ live updates) |
-| `currentMid` | `number | null` | Latest mid-price tick; may be newer than the last candle |
-| `ready` | `boolean` | `false` until the initial historical candle fetch completes |
+| Field | Type | Description |  |
+| --- | --- | --- | --- |
+| `marketId` | `string` | The market ID passed to the constructor |  |
+| `candles` | `PriceFeedCandle[]` | Full candle array (historical \+ live updates) |  |
+| `currentMid` | \`number | null\` | Latest mid-price tick; may be newer than the last candle |
+| `ready` | `boolean` | `false` until the initial historical candle fetch completes |  |
 
 ### `createPerpPriceFeed(client, coin, onSnapshot, options?)`
 
