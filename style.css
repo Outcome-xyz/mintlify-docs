@@ -438,3 +438,110 @@ html:not(.dark) div[class*="rounded-2xl"][class*="bg-gray-50"] {
 html:not(.dark) div[class*="rounded-md"][class*="bg-white"] {
   background-color: #ededed !important;
 }
+
+/* ─── SDK install CTA panel (top of SDK Reference pages).
+   Row of: package name (mono) + outline links (npm, GitHub), then the
+   install command code block beneath. The <pre> inside picks up its
+   surface color from the existing code-block rules; this wrapper just
+   provides a polished container around it with the package name and
+   external links surfaced as proper buttons. */
+.sdk-install-cta {
+  margin: 0.5rem auto 1.5rem;
+  max-width: 1200px;
+}
+.sdk-install-cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  padding: 0 0.125rem;
+}
+.sdk-install-cta-pkg {
+  font-family: ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--outcome-purple);
+  letter-spacing: -0.005em;
+}
+.sdk-install-cta-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+.sdk-install-cta-links a {
+  color: var(--outcome-purple);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(23, 23, 23, 0.12);
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+html.dark .sdk-install-cta-links a {
+  border-color: rgba(245, 245, 245, 0.14);
+}
+.sdk-install-cta-links a:hover {
+  border-color: rgba(23, 23, 23, 0.32);
+  background-color: rgba(23, 23, 23, 0.04);
+}
+html.dark .sdk-install-cta-links a:hover {
+  border-color: rgba(245, 245, 245, 0.32);
+  background-color: rgba(245, 245, 245, 0.04);
+}
+.sdk-install-cta-sep {
+  color: rgba(23, 23, 23, 0.32);
+  user-select: none;
+}
+html.dark .sdk-install-cta-sep {
+  color: rgba(245, 245, 245, 0.32);
+}
+/* Tighten the code block inside the CTA — kills its default top margin
+   so it sits flush under the meta row. */
+.sdk-install-cta > div:has(> pre),
+.sdk-install-cta > pre {
+  margin-top: 0 !important;
+}
+
+/* ─── Navbar GitHub link → render as icon (images/github.png) instead
+   of the text "GitHub". Target the navbar link whose href points at
+   the GitHub repo; hide its text via font-size 0, paint the PNG via
+   ::before. Dark-mode inverts the icon's luminance since the source
+   PNG is a dark-on-transparent logo. The <li> wrapper is flexed so
+   the icon vertically centers within the navbar row. */
+.navbar-link:has(> a[href*="github.com/Outcome-xyz"]) {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+}
+.navbar-link a[href*="github.com/Outcome-xyz"] {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  font-size: 0;
+  line-height: 0;
+  color: transparent !important;
+  opacity: 0.75;
+  transition: opacity 120ms ease;
+  vertical-align: middle;
+}
+.navbar-link a[href*="github.com/Outcome-xyz"]:hover {
+  opacity: 1;
+}
+.navbar-link a[href*="github.com/Outcome-xyz"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/images/github.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+html.dark .navbar-link a[href*="github.com/Outcome-xyz"]::before {
+  filter: invert(1);
+}

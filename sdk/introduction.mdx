@@ -6,25 +6,29 @@ description: "A typed TypeScript SDK for building on HIP-4 - fetch markets, stre
 
 `@outcome.xyz/hip4` — a modular stack of HIP-4 & its financial primitives.
 
+```bash
+pnpm add @outcome.xyz/hip4
+```
+
 <div className="hero-frame">
-  <img src="/images/sdk-architecture.svg" alt="HIP-4 SDK stack: outcome.xyz consumes the SDK, which composes six sub-adapters atop a single HIP-4 client" />
+  <img
+    src="/images/sdk-architecture.svg"
+    alt="HIP-4 SDK stack: outcome.xyz consumes the SDK, which composes six sub-adapters atop a single HIP-4 client"
+  />
 </div>
 
 ## Key features
 
 <CardGroup cols={2}>
   <Card title="Market discovery" icon="search" href="/sdk/guides/fetch-markets">
-    Fetch and filter prediction markets by type (`defaultBinary`, `labelledBinary`, `multiOutcome`, `priceBucket`), category, or status. Paginate results and group by type or parent question.
+    Fetch and filter prediction markets by type (`defaultBinding`, `labelledBinding`, `priceBucket`), category, or status. Paginate results and group by type or parent question.
   </Card>
-
   <Card title="Real-time data" icon="activity" href="/sdk/guides/real-time-data">
     Subscribe to live order books, mid prices, and trade streams via WebSocket. The SDK handles connection management and auto-reconnect with exponential backoff.
   </Card>
-
   <Card title="Order trading" icon="arrow-left-right" href="/sdk/guides/trading">
     Place limit and market orders with tick-aligned pricing, min-notional validation, and optional builder fee configuration. Cancel resting orders by ID.
   </Card>
-
   <Card title="Fund management" icon="wallet" href="/sdk/guides/wallet-funding">
     Deposit USDC to your prediction account, buy USDH, and withdraw funds back to your wallet. Uses EIP-712 signing for transfers and L1 agent signing for spot trades.
   </Card>
@@ -35,7 +39,7 @@ description: "A typed TypeScript SDK for building on HIP-4 - fetch markets, stre
 The SDK is organized around a single `HIP4Client` that handles HTTP routing, 5xx retry logic, and WebSocket connection management. Six sub-adapters wrap that client and expose domain-specific methods:
 
 | Adapter | Property | Responsibility |
-| --- | --- | --- |
+|---------|----------|----------------|
 | `HIP4EventAdapter` | `hip4.events` | Market discovery and event listing |
 | `HIP4MarketDataAdapter` | `hip4.marketData` | Order books, prices, trades, candles |
 | `HIP4AccountAdapter` | `hip4.account` | Positions, balances, open orders |
@@ -58,7 +62,7 @@ const status  = hip4.auth.getAuthStatus();
 ```
 
 <Note>
-  The SDK has zero runtime dependencies. All signing - including L1 agent signing (MessagePack \+ keccak-256 \+ EIP-712) and user-signed EIP-712 operations - is implemented from scratch in TypeScript with no third-party libraries.
+  The SDK has zero runtime dependencies. All signing - including L1 agent signing (MessagePack + keccak-256 + EIP-712) and user-signed EIP-712 operations - is implemented from scratch in TypeScript with no third-party libraries.
 </Note>
 
 <Note>

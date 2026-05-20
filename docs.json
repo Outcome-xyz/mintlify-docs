@@ -8,6 +8,12 @@
     "dark": "#171717"
   },
   "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/Outcome-xyz/hip4"
+      }
+    ],
     "primary": {
       "type": "button",
       "label": "Open App",
@@ -18,21 +24,26 @@
     "tabs": [
       {
         "tab": "Documentation",
-        "pages": [
-          "introduction",
-          "how-prediction-markets-work",
-          "outcome-and-hyperliquid",
+        "groups": [
           {
             "group": "Get started",
             "icon": "rocket",
             "pages": [
+              "introduction",
               "wallets-and-accounts",
               "funding-your-account",
-              "placing-your-first-trade",
-              "closing-a-position",
-              "trading-fee-discount",
-              "withdrawing-funds",
-              "builder-codes"
+              "placing-your-first-trade"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "icon": "lightbulb",
+            "pages": [
+              "how-prediction-markets-work",
+              "outcome-and-hyperliquid",
+              "outcome-tokens-and-pricing",
+              "market-types",
+              "recurring-markets"
             ]
           },
           {
@@ -42,29 +53,30 @@
               "reading-the-order-book",
               "order-types",
               "order-lifecycle",
-              "managing-your-positions"
-            ]
-          },
-          {
-            "group": "How markets work",
-            "icon": "align-horizontal-distribute-center",
-            "pages": [
-              "market-types",
-              "recurring-markets",
-              "outcome-tokens-and-pricing",
+              "managing-your-positions",
+              "closing-a-position",
               "resolution-and-settlement"
             ]
           },
           {
-            "group": "Profile and Community",
+            "group": "Platform",
+            "icon": "settings",
             "pages": [
-              "leaderboard",
-              "badges-and-cards"
-            ],
-            "icon": "smile"
+              "withdrawing-funds",
+              "trading-fee-discount",
+              "builder-codes",
+              "badges-and-cards",
+              "leaderboard"
+            ]
           },
-          "fees",
-          "risks"
+          {
+            "group": "Reference",
+            "icon": "receipt",
+            "pages": [
+              "fees",
+              "risks"
+            ]
+          }
         ]
       },
       {
@@ -112,20 +124,21 @@
       },
       {
         "tab": "Guides",
-        "icon": "list-checks",
         "pages": [
           "sdk/guides/fetch-markets",
           "sdk/guides/trading",
           "sdk/guides/conversions",
           "sdk/guides/real-time-data",
-          "sdk/guides/wallet-funding"
+          "sdk/guides/wallet-funding",
+          {
+            "group": "Untitled Group",
+            "pages": []
+          }
         ]
       },
       {
         "tab": "Support",
-        "pages": [
-          "faq"
-        ]
+        "href": "https://discord.com/invite/outcome"
       }
     ]
   },
@@ -135,7 +148,7 @@
     "dark": "/images/lockup-dark-gray.svg"
   },
   "appearance": {
-    "default": "light",
+    "default": "dark",
     "strict": false
   },
   "fonts": {
