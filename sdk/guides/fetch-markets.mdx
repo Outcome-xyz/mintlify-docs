@@ -11,8 +11,8 @@ The events adapter gives you structured access to every HIP-4 prediction market 
 `hip4.events.fetchMarkets()` returns a flat `HIP4Market[]` array covering all active outcomes.
 
 ```typescript
-import { createHIP4Adapter } from "@hip4/sdk";
-import type { HIP4Market } from "@hip4/sdk";
+import { createHIP4Adapter } from "@outcome.xyz/hip4";
+import type { HIP4Market } from "@outcome.xyz/hip4";
 
 const hip4 = createHIP4Adapter({ testnet: true });
 await hip4.initialize();
@@ -44,12 +44,20 @@ const buckets = await hip4.events.fetchMarkets({ type: "priceBucket" });
 Use `groupBy: "type"` to receive a `MarketsByType` object with one key per market category.
 
 ```typescript
-import type { MarketsByType, DefaultBinaryMarket, MultiOutcomeMarket } from "@hip4/sdk";
+import type {
+  MarketsByType,
+  DefaultBinaryMarket,
+  MultiOutcomeMarket,
+} from "@outcome.xyz/hip4";
 
-const grouped = await hip4.events.fetchMarkets({ groupBy: "type" }) as MarketsByType;
+const grouped = (await hip4.events.fetchMarkets({
+  groupBy: "type",
+})) as MarketsByType;
 
-const defaultBinaryMarkets = (grouped.defaultBinary ?? []) as DefaultBinaryMarket[];
-const multiOutcomeMarkets  = (grouped.multiOutcome ?? []) as MultiOutcomeMarket[];
+const defaultBinaryMarkets = (grouped.defaultBinary ??
+  []) as DefaultBinaryMarket[];
+const multiOutcomeMarkets = (grouped.multiOutcome ??
+  []) as MultiOutcomeMarket[];
 ```
 
 ## Group multi-outcome markets by question
@@ -57,12 +65,12 @@ const multiOutcomeMarkets  = (grouped.multiOutcome ?? []) as MultiOutcomeMarket[
 Multi-outcome markets share a parent question. Grouping by question returns a `MarketsByQuestion` object keyed by question ID (or `"standalone"` for unclaimed outcomes).
 
 ```typescript
-import type { MultiOutcomeMarket } from "@hip4/sdk";
+import type { MultiOutcomeMarket } from "@outcome.xyz/hip4";
 
-const byQuestion = await hip4.events.fetchMarkets({
+const byQuestion = (await hip4.events.fetchMarkets({
   type: "multiOutcome",
   groupBy: "question",
-}) as Record<string, MultiOutcomeMarket[]>;
+})) as Record<string, MultiOutcomeMarket[]>;
 
 for (const [questionId, options] of Object.entries(byQuestion)) {
   if (questionId === "standalone") continue;
@@ -73,7 +81,9 @@ for (const [questionId, options] of Object.entries(byQuestion)) {
   for (const option of options) {
     const tag = option.isFallback ? " (fallback)" : "";
     console.log(`  [${option.outcomeId}] ${option.name}${tag}`);
-    console.log(`    Yes: ${option.sides[0].coin} | No: ${option.sides[1].coin}`);
+    console.log(
+      `    Yes: ${option.sides[0].coin} | No: ${option.sides[1].coin}`,
+    );
   }
 }
 ```
@@ -107,23 +117,25 @@ const byNewest = await hip4.events.fetchMarkets({ sortBy: "newest" });
 Each market type exposes fields specific to its category. `DefaultBinaryMarket` includes the parsed description fields you need for display and filtering.
 
 ```typescript
-import type { DefaultBinaryMarket } from "@hip4/sdk";
+import type { DefaultBinaryMarket } from "@outcome.xyz/hip4";
 
-const markets = await hip4.events.fetchMarkets({ type: "defaultBinary" }) as DefaultBinaryMarket[];
+const markets = (await hip4.events.fetchMarkets({
+  type: "defaultBinary",
+})) as DefaultBinaryMarket[];
 const m = markets[0];
 
-m.underlying;        // "BTC"
-m.targetPrice;       // 69070
-m.expiry;            // Date (UTC)
-m.period;            // "1d"
+m.underlying; // "BTC"
+m.targetPrice; // 69070
+m.expiry; // Date (UTC)
+m.period; // "1d"
 
-m.sides[0].name;     // "Yes"
-m.sides[0].coin;     // "#5160"  - use this in placeOrder
-m.sides[0].asset;    // 100005160
-m.sides[1].name;     // "No"
-m.sides[1].coin;     // "#5161"
+m.sides[0].name; // "Yes"
+m.sides[0].coin; // "#5160"  - use this in placeOrder
+m.sides[0].asset; // 100005160
+m.sides[1].name; // "No"
+m.sides[1].coin; // "#5161"
 
-m.raw;               // original HLOutcome for direct API access
+m.raw; // original HLOutcome for direct API access
 ```
 
 ## Fetch events and categories
@@ -152,5 +164,6 @@ const categories = await hip4.events.fetchCategories();
 ```
 
 <Note>
-  Event and outcome metadata is cached for 30 seconds. Subsequent calls within that window return the cached result without hitting the network.
+  Event and outcome metadata is cached for 30 seconds. Subsequent calls within
+  that window return the cached result without hitting the network.
 </Note>

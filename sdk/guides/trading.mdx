@@ -17,7 +17,7 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     Generate or load an agent key and pass it to `initAuth`. The agent key signs orders silently on behalf of the user's wallet.
 
     ```typescript
-    import { createHIP4Adapter } from "@hip4/sdk";
+    import { createHIP4Adapter } from "@outcome.xyz/hip4";
     import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
     const hip4 = createHIP4Adapter({ testnet: true });
@@ -33,13 +33,14 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     <Note>
       The agent must be approved on-chain before trading. See the `auth-eoa.ts` example in the SDK repository for the full approval flow using `getAgentApprovalTypedData` and `submitAgentApproval`.
     </Note>
+
   </Step>
 
   <Step title="Fetch the market and side">
     Retrieve the market you want to trade. The `sides` array on each market object carries the pre-computed coin identifier you pass to `placeOrder`.
 
     ```typescript
-    import type { DefaultBinaryMarket } from "@hip4/sdk";
+    import type { DefaultBinaryMarket } from "@outcome.xyz/hip4";
 
     const markets = await hip4.events.fetchMarkets({
       type: "defaultBinary",
@@ -49,13 +50,14 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     const yesSide = market.sides[0]; // { name: "Yes", coin: "#5160", asset: 100005160 }
     const noSide  = market.sides[1]; // { name: "No",  coin: "#5161", asset: 100005161 }
     ```
+
   </Step>
 
   <Step title="Place the limit order">
     Call `hip4.trading.placeOrder` with the market ID, the side coin, and your price and amount. Pass `markPx` to enable pre-submission min-shares validation.
 
     ```typescript
-    import { getMinShares } from "@hip4/sdk";
+    import { getMinShares } from "@outcome.xyz/hip4";
 
     // Fetch current mid price for validation
     const priceData = await hip4.marketData.fetchPrice(String(market.outcomeId));
@@ -73,6 +75,7 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
       builderFee: 100,                   // optional: 0.1% (100 tenths of a basis point)
     });
     ```
+
   </Step>
 
   <Step title="Check the result">
@@ -87,6 +90,7 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
       console.error("Order rejected:", result.error);
     }
     ```
+
   </Step>
 </Steps>
 
@@ -97,14 +101,16 @@ For a market order, set `type: "market"` and omit `price`. The SDK uses the `Fro
 ```typescript
 const result = await hip4.trading.placeOrder({
   marketId: String(market.outcomeId),
-  outcome:  market.sides[0].coin,
-  side:     "buy",
-  type:     "market",
-  amount:   "20",
+  outcome: market.sides[0].coin,
+  side: "buy",
+  type: "market",
+  amount: "20",
 });
 
 if (result.success) {
-  console.log(`Filled ${result.shares ?? "?"} shares - status: ${result.status}`);
+  console.log(
+    `Filled ${result.shares ?? "?"} shares - status: ${result.status}`,
+  );
 } else {
   console.error("Failed:", result.error);
 }
@@ -118,30 +124,31 @@ Pass an array of cancel targets to `hip4.trading.cancelOrder`. Each target requi
 await hip4.trading.cancelOrder([
   {
     marketId: "516",
-    orderId:  "12345",
-    outcome:  "#5160",
+    orderId: "12345",
+    outcome: "#5160",
   },
 ]);
 ```
 
 <Note>
-  `cancelOrder` throws on failure. Wrap it in a try/catch if you need to handle errors gracefully.
+  `cancelOrder` throws on failure. Wrap it in a try/catch if you need to handle
+  errors gracefully.
 </Note>
 
 ## Order params reference
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `marketId` | `string` | Yes | Outcome ID as a string (e.g. `"516"`) |
-| `outcome` | `string` | Yes | Side coin (e.g. `"#5160"`) |
-| `side` | `"buy" \| "sell"` | Yes | Direction |
-| `type` | `"limit" \| "market"` | Yes | Order type |
-| `price` | `string` | Limit only | Limit price (e.g. `"0.65"`) |
-| `amount` | `string` | Yes | Number of shares |
-| `timeInForce` | `"GTC" \| "GTD" \| "FOK" \| "FAK"` | No | Default: `"GTC"` |
-| `markPx` | `number` | No | Current mark price; enables min-shares validation |
-| `builderAddress` | `string` | No | Builder referral address (required when using `builderFee`) |
-| `builderFee` | `number` | No | Fee in tenths of basis points - `100` = 0.1% |
+| Field            | Type                               | Required   | Description                                                 |
+| ---------------- | ---------------------------------- | ---------- | ----------------------------------------------------------- |
+| `marketId`       | `string`                           | Yes        | Outcome ID as a string (e.g. `"516"`)                       |
+| `outcome`        | `string`                           | Yes        | Side coin (e.g. `"#5160"`)                                  |
+| `side`           | `"buy" \| "sell"`                  | Yes        | Direction                                                   |
+| `type`           | `"limit" \| "market"`              | Yes        | Order type                                                  |
+| `price`          | `string`                           | Limit only | Limit price (e.g. `"0.65"`)                                 |
+| `amount`         | `string`                           | Yes        | Number of shares                                            |
+| `timeInForce`    | `"GTC" \| "GTD" \| "FOK" \| "FAK"` | No         | Default: `"GTC"`                                            |
+| `markPx`         | `number`                           | No         | Current mark price; enables min-shares validation           |
+| `builderAddress` | `string`                           | No         | Builder referral address (required when using `builderFee`) |
+| `builderFee`     | `number`                           | No         | Fee in tenths of basis points - `100` = 0.1%                |
 
 ## Pricing rules
 
@@ -151,12 +158,12 @@ await hip4.trading.cancelOrder([
 
 ## Time-in-force options
 
-| Value | Behavior |
-|-------|-----------|
-| `GTC` | Good Til Cancelled - default for limit orders; rests on the book until filled or cancelled |
+| Value | Behavior                                                                                                |
+| ----- | ------------------------------------------------------------------------------------------------------- |
+| `GTC` | Good Til Cancelled - default for limit orders; rests on the book until filled or cancelled              |
 | `GTD` | Good Til Date - currently behaves like GTC (expiration field accepted but not enforced by the exchange) |
-| `FOK` | Fill or Kill - mapped to IOC; may result in partial fills |
-| `FAK` | Fill and Kill - mapped to IOC |
+| `FOK` | Fill or Kill - mapped to IOC; may result in partial fills                                               |
+| `FAK` | Fill and Kill - mapped to IOC                                                                           |
 
 Market orders always use `FrontendMarket` regardless of the `timeInForce` field.
 

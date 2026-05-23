@@ -35,7 +35,8 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="outcomeName" type="string" required>
-  Human-readable side name resolved from `sideSpecs` (e.g. `"Yes"`, `"Hypurr"`). Use this for display.
+  Human-readable side name resolved from `sideSpecs` (e.g. `"Yes"`, `"Hypurr"`).
+  Use this for display.
 </ResponseField>
 
 <ResponseField name="shares" type="string" required>
@@ -43,7 +44,8 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="avgCost" type="string" required>
-  Average cost per token (`entryNtl / totalShares`), formatted to 6 decimal places.
+  Average cost per token (`entryNtl / totalShares`), formatted to 6 decimal
+  places.
 </ResponseField>
 
 <ResponseField name="currentPrice" type="string" required>
@@ -55,15 +57,18 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="potentialPayout" type="string" required>
-  Maximum payout if the outcome resolves in your favor. Equal to `shares` (each token pays out 1 USDH).
+  Maximum payout if the outcome resolves in your favor. Equal to `shares` (each
+  token pays out 1 USDH).
 </ResponseField>
 
 <ResponseField name="eventStatus" type="string" required>
-  Always `"active"` in the current implementation. No settlement status check is performed.
+  Always `"active"` in the current implementation. No settlement status check is
+  performed.
 </ResponseField>
 
 <ResponseField name="eventTitle" type="string" required>
-  Always `""`. Positions are not enriched with event metadata in the current implementation.
+  Always `""`. Positions are not enriched with event metadata in the current
+  implementation.
 </ResponseField>
 
 <ResponseField name="marketQuestion" type="string" required>
@@ -71,7 +76,9 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <Note>
-  `eventTitle` and `marketQuestion` are always empty strings. If you need these values, call `adapter.events.fetchEvent()` using the `marketId` and cross-reference the result.
+  `eventTitle` and `marketQuestion` are always empty strings. If you need these
+  values, call `adapter.events.fetchEvent()` using the `marketId` and
+  cross-reference the result.
 </Note>
 
 ### Example
@@ -153,8 +160,8 @@ const activity = await adapter.account.fetchActivity("0xYourAddress");
 for (const entry of activity) {
   console.log(
     `${new Date(entry.timestamp).toISOString()} | ` +
-    `${entry.side} ${entry.size} @ ${entry.price} | ` +
-    `coin: ${entry.outcome}`
+      `${entry.side} ${entry.size} @ ${entry.price} | ` +
+      `coin: ${entry.outcome}`,
   );
 }
 ```
@@ -179,13 +186,13 @@ const balances = await adapter.account.fetchBalance("0xYourAddress");
 
 `Promise<HLSpotClearinghouseState>` - an object with a `balances` array. Each balance entry contains:
 
-| Field      | Type     | Description                               |
-|------------|----------|-------------------------------------------|
+| Field      | Type     | Description                                  |
+| ---------- | -------- | -------------------------------------------- |
 | `coin`     | `string` | Token coin string (e.g. `"USDH"`, `"#5160"`) |
-| `token`    | `number` | Internal token index                      |
-| `hold`     | `string` | Amount currently on hold (in open orders) |
-| `total`    | `string` | Total balance including held amount       |
-| `entryNtl` | `string` | Total entry notional (cost basis)         |
+| `token`    | `number` | Internal token index                         |
+| `hold`     | `string` | Amount currently on hold (in open orders)    |
+| `total`    | `string` | Total balance including held amount          |
+| `entryNtl` | `string` | Total entry notional (cost basis)            |
 
 ### Example
 
@@ -219,17 +226,17 @@ const orders = await adapter.account.fetchOpenOrders("0xYourAddress");
 
 `Promise<HLFrontendOrder[]>` - each order contains:
 
-| Field       | Type            | Description                                        |
-|-------------|-----------------|----------------------------------------------------|
-| `coin`      | `string`        | Coin string (e.g. `"#5160"`)                       |
-| `side`      | `"B"` \| `"A"` | `"B"` = buy, `"A"` = sell (ask)                    |
-| `limitPx`   | `string`        | Limit price                                        |
-| `sz`        | `string`        | Remaining unfilled size                            |
-| `oid`       | `number`        | Order ID - use this in `cancelOrder`               |
-| `timestamp` | `number`        | Order creation time in milliseconds                |
-| `origSz`    | `string`        | Original order size                                |
-| `orderType` | `string`        | Order type label                                   |
-| `tif`       | `string \| null`| Time-in-force                                      |
+| Field       | Type             | Description                          |
+| ----------- | ---------------- | ------------------------------------ |
+| `coin`      | `string`         | Coin string (e.g. `"#5160"`)         |
+| `side`      | `"B"` \| `"A"`   | `"B"` = buy, `"A"` = sell (ask)      |
+| `limitPx`   | `string`         | Limit price                          |
+| `sz`        | `string`         | Remaining unfilled size              |
+| `oid`       | `number`         | Order ID - use this in `cancelOrder` |
+| `timestamp` | `number`         | Order creation time in milliseconds  |
+| `origSz`    | `string`         | Original order size                  |
+| `orderType` | `string`         | Order type label                     |
+| `tif`       | `string \| null` | Time-in-force                        |
 
 ### Example
 
@@ -239,12 +246,12 @@ const orders = await adapter.account.fetchOpenOrders("0xYourAddress");
 for (const order of orders) {
   console.log(
     `${order.coin} ${order.side === "B" ? "buy" : "sell"} ` +
-    `${order.sz} @ ${order.limitPx} (oid: ${order.oid})`
+      `${order.sz} @ ${order.limitPx} (oid: ${order.oid})`,
   );
 }
 
 // Cancel all open orders
-import { parseSideCoin } from "@hip4/sdk";
+import { parseSideCoin } from "@outcome.xyz/hip4";
 
 const cancels = orders.map((o) => {
   const parsed = parseSideCoin(o.coin);
@@ -272,7 +279,7 @@ const unsubscribe = adapter.account.subscribePositions(
     for (const pos of positions) {
       console.log(pos.outcomeName, pos.shares, pos.unrealizedPnl);
     }
-  }
+  },
 );
 
 // Stop polling when done
@@ -286,7 +293,8 @@ unsubscribe();
 </ParamField>
 
 <ParamField path="cb" type="(positions: PredictionPosition[]) => void" required>
-  Callback invoked after each successful poll. Receives the current `PredictionPosition[]`.
+  Callback invoked after each successful poll. Receives the current
+  `PredictionPosition[]`.
 </ParamField>
 
 ### Return type
@@ -294,7 +302,10 @@ unsubscribe();
 `Unsubscribe` - a `() => void` function. Call it to stop the polling loop.
 
 <Note>
-  The polling interval is fixed at 10 seconds. The first delivery occurs after the initial 10-second delay, not immediately on subscription. If you need the current positions right away, call `fetchPositions()` directly first, then subscribe.
+  The polling interval is fixed at 10 seconds. The first delivery occurs after
+  the initial 10-second delay, not immediately on subscription. If you need the
+  current positions right away, call `fetchPositions()` directly first, then
+  subscribe.
 </Note>
 
 ### Example
@@ -304,9 +315,12 @@ unsubscribe();
 const initial = await adapter.account.fetchPositions("0xYourAddress");
 renderPositions(initial);
 
-const unsubscribe = adapter.account.subscribePositions("0xYourAddress", (positions) => {
-  renderPositions(positions);
-});
+const unsubscribe = adapter.account.subscribePositions(
+  "0xYourAddress",
+  (positions) => {
+    renderPositions(positions);
+  },
+);
 
 // Clean up when the component unmounts or session ends
 window.addEventListener("beforeunload", unsubscribe);
