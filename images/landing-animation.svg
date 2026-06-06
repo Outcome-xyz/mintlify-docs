@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg class="root" viewBox="38 78 1124 694" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Outcome prediction market example: seven bets stream from a question into the YES and NO pools; the YES price decays from ¢48 down to ¢40 in non-equal steps. The market resolves YES — 100 shares × 1 USDH each = 100 USDH payout; NO settles to 0.">
+<svg class="root" viewBox="38 78 1124 694" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Outcome prediction market example: seven bets stream from a question into the YES and NO pools; the YES price decays from ¢48 down to ¢40 in non-equal steps. The market resolves YES — 100 shares × 1 USDC each = 100 USDC payout; NO settles to 0.">
 
   <style>
     svg.root {
@@ -323,10 +323,10 @@
     <text class="price-stage yes-p4 label" x="270" y="437" font-size="48" font-weight="500" text-anchor="middle">¢41</text>
     <text class="price-stage yes-p5 label" x="270" y="437" font-size="48" font-weight="500" text-anchor="middle">¢40</text>
     <!-- Settlement payout -->
-    <text class="price-stage yes-payout label-pos" x="270" y="437" font-size="44" font-weight="500" text-anchor="middle">100 USDH</text>
+    <text class="price-stage yes-payout label-pos" x="270" y="437" font-size="44" font-weight="500" text-anchor="middle">100 USDC</text>
     <!-- Sublabel -->
     <text class="price-stage yes-sub-cond label-mute" x="270" y="490" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="0.1em">BTC &gt; $80K</text>
-    <text class="price-stage yes-sub-math label-mute" x="270" y="490" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="0.1em">100 SHARES × 1 USDH</text>
+    <text class="price-stage yes-sub-math label-mute" x="270" y="490" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="0.1em">100 SHARES × 1 USDC</text>
   </g>
 
   <!-- YES win highlight -->
@@ -346,7 +346,7 @@
     <text class="price-stage no-p3 label" x="930" y="437" font-size="48" font-weight="500" text-anchor="middle">¢57</text>
     <text class="price-stage no-p4 label" x="930" y="437" font-size="48" font-weight="500" text-anchor="middle">¢59</text>
     <text class="price-stage no-p5 label" x="930" y="437" font-size="48" font-weight="500" text-anchor="middle">¢60</text>
-    <text class="price-stage no-payout label-mute" x="930" y="437" font-size="44" font-weight="500" text-anchor="middle">0 USDH</text>
+    <text class="price-stage no-payout label-mute" x="930" y="437" font-size="44" font-weight="500" text-anchor="middle">0 USDC</text>
     <text class="price-stage no-sub-cond label-mute" x="930" y="490" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="0.1em">BTC ≤ $80K</text>
     <text class="price-stage no-sub-math label-mute" x="930" y="490" font-size="11" font-weight="500" text-anchor="middle" letter-spacing="0.1em">LOSING SIDE</text>
   </g>
@@ -458,7 +458,7 @@
   </g>
 
   <g class="center-label">
-    <text class="label" x="600" y="432" font-size="40" font-weight="500" text-anchor="middle" letter-spacing="2">1 USDH</text>
+    <text class="label" x="600" y="432" font-size="40" font-weight="500" text-anchor="middle" letter-spacing="2">1 USDC</text>
   </g>
   <g class="center-sublabel">
     <text class="label-mute" x="600" y="470" font-size="13" font-weight="500" text-anchor="middle" letter-spacing="0.1em">PER WINNING SHARE</text>
