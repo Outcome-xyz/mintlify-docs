@@ -1,7 +1,7 @@
 ---
 title: "Market resolution and settlement on Outcome explained"
 sidebarTitle: "Resolution and settlement"
-description: "How Outcome markets resolve and settle: on-chain HyperCore oracles, automatic token redemption at 1 or 0 USDH, open order cancellation, and balance updates."
+description: "How Outcome markets resolve and settle: on-chain HyperCore oracles, automatic token redemption at 1 or 0 USDC, open order cancellation, and balance updates."
 ---
 
 Every market on Outcome resolves at a specific time defined by the market's spec. This page explains what happens at that moment.
@@ -16,10 +16,10 @@ For price-based markets like the BTC daily binary, the data source is the underl
 
 Once resolution is determined:
 
-- Tokens for the resolved outcome become redeemable at 1 USDH each.
+- Tokens for the resolved outcome become redeemable at 1 USDC each.
 - Tokens for any other outcome become worth 0.
 
-Settlement happens automatically. Your USDH balance updates with the redemption proceeds (minus the settlement fee, see Fees).
+Settlement happens automatically. Your USDC balance updates with the redemption proceeds (minus the settlement fee, see Fees).
 
 There's no claim step. You don't need to do anything; the protocol automatically redeems tokens for the resolved outcome.
 
@@ -39,4 +39,4 @@ This is structurally different from prediction markets that rely on off-chain or
 
 ### **When settlement appears in your balance**
 
-Settlement proceeds appear in your USDH balance immediately after the resolution timestamp passes and the protocol processes the settlement. You can see them in your portfolio on [outcome.xyz](http://outcome.xyz).
+Settlement proceeds appear in your USDC balance immediately after the resolution timestamp passes and the protocol processes the settlement. You can see them in your portfolio on [outcome.xyz](http://outcome.xyz).

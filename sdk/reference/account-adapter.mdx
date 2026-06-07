@@ -4,7 +4,7 @@ sidebarTitle: "Account"
 description: "Reference for PredictionAccountAdapter: read positions, 30-day trade history, balances, and open orders for any wallet, plus subscribe to updates via polling."
 ---
 
-The Account Adapter (`adapter.account`) gives you read access to a wallet's state on HIP-4 prediction markets. You can fetch open positions (held outcome tokens), the last 30 days of trade activity, raw spot balances including USDH, and currently resting orders. You can also subscribe to live position updates, which the adapter delivers by polling every 10 seconds - there is no WebSocket channel for spot balances on Hyperliquid. All methods accept a wallet `address` parameter, so you can query any account without authentication.
+The Account Adapter (`adapter.account`) gives you read access to a wallet's state on HIP-4 prediction markets. You can fetch open positions (held outcome tokens), the last 30 days of trade activity, raw spot balances including USDC, and currently resting orders. You can also subscribe to live position updates, which the adapter delivers by polling every 10 seconds - there is no WebSocket channel for spot balances on Hyperliquid. All methods accept a wallet `address` parameter, so you can query any account without authentication.
 
 ---
 
@@ -58,7 +58,7 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 
 <ResponseField name="potentialPayout" type="string" required>
   Maximum payout if the outcome resolves in your favor. Equal to `shares` (each
-  token pays out 1 USDH).
+  token pays out 1 USDC).
 </ResponseField>
 
 <ResponseField name="eventStatus" type="string" required>
@@ -170,7 +170,7 @@ for (const entry of activity) {
 
 ## `fetchBalance(address)`
 
-Returns the raw spot clearinghouse balances for a wallet, including USDH and all outcome tokens. Use this when you need the full picture of what the wallet holds, not just open prediction positions.
+Returns the raw spot clearinghouse balances for a wallet, including USDC and all outcome tokens. Use this when you need the full picture of what the wallet holds, not just open prediction positions.
 
 ```typescript
 const balances = await adapter.account.fetchBalance("0xYourAddress");
@@ -188,7 +188,7 @@ const balances = await adapter.account.fetchBalance("0xYourAddress");
 
 | Field      | Type     | Description                                  |
 | ---------- | -------- | -------------------------------------------- |
-| `coin`     | `string` | Token coin string (e.g. `"USDH"`, `"#5160"`) |
+| `coin`     | `string` | Token coin string (e.g. `"USDC"`, `"#5160"`) |
 | `token`    | `number` | Internal token index                         |
 | `hold`     | `string` | Amount currently on hold (in open orders)    |
 | `total`    | `string` | Total balance including held amount          |
@@ -201,7 +201,7 @@ const state = await adapter.account.fetchBalance("0xYourAddress");
 
 for (const bal of state.balances) {
   console.log(`${bal.coin}: total=${bal.total} hold=${bal.hold}`);
-  // "USDH: total=250.000000 hold=0.000000"
+  // "USDC: total=250.000000 hold=0.000000"
   // "#5160: total=100.000000 hold=0.000000"
 }
 ```

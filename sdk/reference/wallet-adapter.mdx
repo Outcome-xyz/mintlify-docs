@@ -6,6 +6,10 @@ description: "Deposit USDC, buy and sell USDH, move funds between spot and perps
 
 The wallet adapter (`hip4.wallet`) handles all fund management for HIP-4 prediction trading: moving USDC between your perp and spot accounts, buying and selling USDH on the spot market, and withdrawing funds to external addresses. It relies on two distinct signers - one for user-authorized EIP-712 operations, and one for L1 agent-signed spot orders - so you need to configure both before using the full method surface.
 
+<Note>
+  Outcome is migrating to native USDC settlement. `buyUsdh` and `sellUsdh` are still used today for USDH-denominated balances (mainnet still defaults to USDH) and are phased out per-outcome as USDC rolls out.
+</Note>
+
 ## Two signers
 
 The wallet adapter uses two separate signing keys depending on the operation:
