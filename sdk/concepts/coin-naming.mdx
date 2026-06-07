@@ -153,6 +153,10 @@ market.sides[1].name; // "Usain Bolt"
 
 ## USDH: the collateral token
 
+<Note>
+  Outcome is migrating to native USDC settlement, but mainnet still defaults to USDH per outcome (each outcome carries its own `quoteToken`, exposed as `market.raw.quoteToken`). The USDH collateral token and `buyUsdh` / `sellUsdh` described below remain in use during the transition.
+</Note>
+
 USDH is the collateral token used for all HIP-4 prediction market trading. It is a spot token - not a HIP-4 outcome - traded on the USDH/USDC pair.
 
 | Property       | Value                     |

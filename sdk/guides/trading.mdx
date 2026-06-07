@@ -154,7 +154,7 @@ await hip4.trading.cancelOrder([
 
 **Tick-aligned prices** - limit order prices are rounded to 5 significant figures before signing. For example, `0.55001` becomes `0.55001` and `0.550012` becomes `0.55001`. You don't need to pre-format prices yourself.
 
-**Min-notional** - orders below 10 USDH notional value are rejected client-side before the order is signed or sent. Notional is calculated as `price × amount`. Pass `markPx` to enable this check; omit it to skip it.
+**Min-notional** - orders below 10 USDC notional value are rejected client-side before the order is signed or sent. Notional is calculated as `price × amount`. Pass `markPx` to enable this check; omit it to skip it.
 
 ## Time-in-force options
 

@@ -43,14 +43,14 @@ type WalletActionResult = {
 
 None of the conversion methods throw - branch on `result.success`.
 
-## Split: USDH → Yes + No
+## Split: USDC → Yes + No
 
-`splitOutcome` burns `X` USDH and mints `X` Yes + `X` No of one outcome. Use it when you want exposure to both sides of an outcome, or to seed paired shares before a negate.
+`splitOutcome` burns `X` USDC and mints `X` Yes + `X` No of one outcome. Use it when you want exposure to both sides of an outcome, or to seed paired shares before a negate.
 
 ```typescript
 const result = await hip4.trading.splitOutcome({
   outcome: 5160, // numeric outcome ID
-  amount: "100", // 100 USDH burned, 100 Yes + 100 No minted
+  amount: "100", // 100 USDC burned, 100 Yes + 100 No minted
 });
 
 if (!result.success) {
@@ -60,14 +60,14 @@ if (!result.success) {
 
 The `outcome` field is the numeric outcome ID (matches `market.outcomeId` on a fetched market). The `amount` is a decimal string - the SDK strips trailing zeros to match Hyperliquid's wire format.
 
-## Merge outcome: Yes + No → USDH
+## Merge outcome: Yes + No → USDC
 
-`mergeOutcome` is the inverse of split - burn `X` Yes + `X` No of one outcome and mint `X` USDH. Use it to recover collateral from a paired position.
+`mergeOutcome` is the inverse of split - burn `X` Yes + `X` No of one outcome and mint `X` USDC. Use it to recover collateral from a paired position.
 
 ```typescript
 const result = await hip4.trading.mergeOutcome({
   outcome: 5160,
-  amount: "100", // 100 paired shares burned, 100 USDH minted
+  amount: "100", // 100 paired shares burned, 100 USDC minted
 });
 ```
 
@@ -77,14 +77,14 @@ Pass `amount: null` to merge the maximum available - the protocol will burn `min
 await hip4.trading.mergeOutcome({ outcome: 5160, amount: null });
 ```
 
-## Merge question: full Yes-bundle → USDH
+## Merge question: full Yes-bundle → USDC
 
-`mergeQuestion` burns `X` Yes shares from every outcome of a question (named outcomes plus the fallback) and mints `X` USDH. Useful when you hold the full bundle and want to redeem before settlement - the bundle is already worth exactly 1 USDH by the bundle equivalence.
+`mergeQuestion` burns `X` Yes shares from every outcome of a question (named outcomes plus the fallback) and mints `X` USDC. Useful when you hold the full bundle and want to redeem before settlement - the bundle is already worth exactly 1 USDC by the bundle equivalence.
 
 ```typescript
 const result = await hip4.trading.mergeQuestion({
   question: 42, // numeric question ID
-  amount: "10", // 10 USDH minted; 10 Yes burned from each outcome
+  amount: "10", // 10 USDC minted; 10 Yes burned from each outcome
 });
 ```
 
@@ -128,7 +128,7 @@ const result = await hip4.trading.splitOutcome({
 
 if (!result.success) {
   // "Not authenticated. Call auth.initAuth() first." - no agent key
-  // "Insufficient USDH balance" - not enough collateral to split
+  // "Insufficient USDC balance" - not enough collateral to split
   // "Insufficient shares" - not enough Yes/No to merge or negate
   // ...or any other exchange error message
   console.error(result.error);
@@ -139,7 +139,7 @@ If `success: true`, the conversion settled and your spot balances now reflect th
 
 ## Putting it together: lock in profit on a Yes bundle
 
-You hold `100` Yes shares across every outcome of question 42 - a full bundle worth exactly 1 USDH each by equivalence. Instead of waiting for settlement, redeem now:
+You hold `100` Yes shares across every outcome of question 42 - a full bundle worth exactly 1 USDC each by equivalence. Instead of waiting for settlement, redeem now:
 
 ```typescript
 const redeem = await hip4.trading.mergeQuestion({
@@ -148,7 +148,7 @@ const redeem = await hip4.trading.mergeQuestion({
 });
 
 if (redeem.success) {
-  console.log("Redeemed full Yes-bundle for USDH");
+  console.log("Redeemed full Yes-bundle for USDC");
 }
 ```
 

@@ -6,6 +6,10 @@ description: "Use the HIP-4 wallet adapter to bridge USDC to Hyperliquid, conver
 
 USDH is the collateral token used for all HIP-4 prediction market activity on Hyperliquid. The wallet adapter handles every step of fund management-moving USDC between your perp account and spot account, converting to and from USDH, and withdrawing to an external address. Two different signers are involved: your wallet for EIP-712 transfer and withdrawal operations, and the agent key for USDH spot trades.
 
+<Note>
+  Outcome is migrating to native USDC settlement. On mainnet, USDH is still the default quote token, so the `buyUsdh` / `sellUsdh` spot steps below remain in use during the transition and are phased out per-outcome as USDC rolls out.
+</Note>
+
 <Warning>
   EIP-712 transfer, withdrawal, and send operations must be signed by the user's
   actual wallet. These calls will fail if you pass an agent key to `setSigner`.

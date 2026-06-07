@@ -1,30 +1,30 @@
 ---
 title: "Outcome tokens and pricing: mint, burn, probabilities"
 sidebarTitle: "Outcome tokens and pricing"
-description: "How outcome token prices stay coherent: mint and burn complete sets for 1 USDH, why prices sum to 1, and how to read each price as implied probability."
+description: "How outcome token prices stay coherent: mint and burn complete sets for 1 USDC, why prices sum to 1, and how to read each price as implied probability."
 ---
 
-This page explains the mechanics behind outcome tokens: where they come from, why their prices always sum to C100 (which equals 1 USDH), and what those prices represent.
+This page explains the mechanics behind outcome tokens: where they come from, why their prices always sum to C100 (which equals 1 USDC), and what those prices represent.
 
 ### Outcome tokens
 
 Every market on Outcome is made up of outcome tokens, one per possible outcome. In a binary market, that's two tokens (YES and NO, or UP and DOWN). In a multi-outcome market, it's one token per possibility.
 
-Each token has a single defining property: it pays 1 USDH at settlement if its outcome resolves, and 0 otherwise. That's the entire payoff structure. The price you pay for the token before settlement is what determines your gain or loss.
+Each token has a single defining property: it pays 1 USDC at settlement if its outcome resolves, and 0 otherwise. That's the entire payoff structure. The price you pay for the token before settlement is what determines your gain or loss.
 
 ### Minting and burning
 
-The reason a complete set of outcome tokens always sums to 1 USDH is a process called minting and burning.
+The reason a complete set of outcome tokens always sums to 1 USDC is a process called minting and burning.
 
-**Minting.** Anyone can deposit 1 USDH to the protocol and receive a complete set of outcome tokens in exchange. For a binary market, that's one YES and one NO. For a multi-outcome market, it's one token for each possible outcome. Because exactly one of those tokens will pay 1 USDH at settlement, the complete set is always worth 1 USDH.
+**Minting.** Anyone can deposit 1 USDC to the protocol and receive a complete set of outcome tokens in exchange. For a binary market, that's one YES and one NO. For a multi-outcome market, it's one token for each possible outcome. Because exactly one of those tokens will pay 1 USDC at settlement, the complete set is always worth 1 USDC.
 
-**Burning.** Anyone holding a complete set of outcome tokens can return them to the protocol and receive 1 USDH in exchange. This is the reverse of minting.
+**Burning.** Anyone holding a complete set of outcome tokens can return them to the protocol and receive 1 USDC in exchange. This is the reverse of minting.
 
-Most users never mint or burn directly. They buy and sell individual tokens on the order book. But minting and burning are what guarantee that a complete set is always worth 1 USDH, regardless of how the individual tokens are trading. If any single token gets too cheap or too expensive relative to the others, traders can mint or burn to capture the arbitrage, which keeps the prices coherent.
+Most users never mint or burn directly. They buy and sell individual tokens on the order book. But minting and burning are what guarantee that a complete set is always worth 1 USDC, regardless of how the individual tokens are trading. If any single token gets too cheap or too expensive relative to the others, traders can mint or burn to capture the arbitrage, which keeps the prices coherent.
 
 ### Why prices sum to 1
 
-Because a complete set always burns back to 1 USDH, the prices of the tokens in a market always sum to approximately C100. Otherwise, arbitrage would be available.
+Because a complete set always burns back to 1 USDC, the prices of the tokens in a market always sum to approximately C100. Otherwise, arbitrage would be available.
 
 For a binary market: YES \+ NO ≈ C100 at any time.
 
