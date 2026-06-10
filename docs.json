@@ -66,7 +66,8 @@
               "trading-fee-discount",
               "builder-codes",
               "badges-and-cards",
-              "leaderboard"
+              "leaderboard",
+              "world-cup-campaign"
             ]
           },
           {
@@ -74,8 +75,7 @@
             "icon": "receipt",
             "pages": [
               "fees",
-              "risks",
-              "world-cup-campaign"
+              "risks"
             ]
           }
         ]
