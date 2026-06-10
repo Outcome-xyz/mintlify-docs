@@ -24,7 +24,8 @@
     "tabs": [
       {
         "tab": "Documentation",
-        "groups": [
+        "pages": [
+          "world-cup-campaign",
           {
             "group": "Get started",
             "icon": "rocket",
@@ -66,8 +67,7 @@
               "trading-fee-discount",
               "builder-codes",
               "badges-and-cards",
-              "leaderboard",
-              "world-cup-campaign"
+              "leaderboard"
             ]
           },
           {
