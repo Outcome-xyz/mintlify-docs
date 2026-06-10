@@ -35,9 +35,11 @@ The fields:
 
 The contract settles to YES if the underlying's settlement price is at or above the target price. The settlement price is computed using linear interpolation between the mark price updates immediately before and immediately after the settlement timestamp:
 
-\$\$ \\text{settlement price} = \\text{markPrice}\_0 \+ \\frac{\\text{settlementTime} - t\_0}{t\_1 - t\_0} \\times (\\text{markPrice}\_1 - \\text{markPrice}\_0) \$\$
+$$
+\text{settlement price} = \text{markPrice}_0 + \frac{\text{settlementTime} - t_0}{t_1 - t_0} \times (\text{markPrice}_1 - \text{markPrice}_0)
+$$
 
-Where \$t\_0\$ and \$t\_1\$ are the timestamps of the mark price updates immediately before and after the settlement time.
+Where $t_0$ and $t_1$ are the timestamps of the mark price updates immediately before and after the settlement time.
 
 ### Multi-outcome markets
 
@@ -71,6 +73,6 @@ Exactly one of the three outcomes settles to 1 USDC, the others to 0. The settle
 
 Event markets resolve on real-world occurrences rather than a price reading: sports results, macroeconomic data releases, central bank decisions, and similar. The market page states what the market resolves on and when.
 
-Mechanically, event markets trade exactly like price-based markets: same order book, same outcome tokens, same settlement to 1 or 0 USDC. The difference is in how the resolution is determined. Price-based markets settle against HyperCore mark prices automatically; event markets are resolved within the Hyperliquid network by its validator set. See [Resolution and settlement](06d-resolution-and-settlement.md) for how both paths work.
+Mechanically, event markets trade exactly like price-based markets: same order book, same outcome tokens, same settlement to 1 or 0 USDC. The difference is in how the resolution is determined. Price-based markets settle against HyperCore mark prices automatically; event markets are resolved within the Hyperliquid network by its validator set. See [Resolution and settlement](/resolution-and-settlement) for how both paths work.
 
-For more on what prices mean and why they sum the way they do, see [Outcome tokens and pricing](06c-outcome-tokens-and-pricing.md).
+For more on what prices mean and why they sum the way they do, see [Outcome tokens and pricing](/outcome-tokens-and-pricing).
