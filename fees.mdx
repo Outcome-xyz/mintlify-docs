@@ -7,30 +7,30 @@ icon: "dollar-sign"
   **Note:** Trading fees on Outcome are currently set to zero while HIP-4 is in testing. This page describes the fee structure that will apply after testing concludes.
 </Info>
 
-Outcome charges no fees on opening a position. Fees apply only when you close (sell back into the order book) or when the market settles.
+### Trading fees
 
-### **When you pay**
+Trading on Outcome uses Hyperliquid's protocol-wide fee schedule. Fees depend on whether your order is a maker (rests on the book before being filled) or a taker (fills immediately against an existing order). See Hyperliquid's [fees page](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees) for current rates.
 
-**Opening.** No fee. Opening trades don't count toward your 14-day volume.
+### Discounts
 
-**Closing.** When you sell your tokens back, the fee depends on which side of the trade you're on. Maker orders (those that rest on the book until matched) pay zero. Taker orders (those that match an existing order immediately) pay the standard taker fee.
+Multiple discounts can apply:
 
-**Settlement.** When the market resolves and your position settles automatically, a settlement fee is deducted from the payout.
+- **Tier-based.** Your rate decreases as your trailing 14-day volume across all Hyperliquid products grows.
+- **HYPE staking.** Linking a HYPE stake further reduces your rate.
+- **Referral discount.** If you activated Outcome's referral code (see [Trading fee discount](04e-referral-discount.md)), you receive an additional 4% discount on taker fees for your first \$25 million of trading volume across all Hyperliquid products. After \$25M, the referral discount no longer applies, though other discounts continue.
 
-### **Discounts**
+### Builder code fee
 
-Outcome trading uses Hyperliquid's protocol-wide fee tiers. Your taker rate decreases as your trailing 14-day volume across all Hyperliquid products grows and as your linked HYPE stake increases.
+Outcome's builder code charges a fee on trades placed through [outcome.xyz](http://outcome.xyz). This fee goes to Outcome and supports the platform.
 
-Because USDH is the quote currency for outcome markets, taker fees are 20% lower than the standard rate, and outcome volume counts 20% more toward your Hyperliquid fee tier.
+The builder code fee is currently set to **zero**. This may change in the future. See [Builder code](04g-builder-code.md) for details.
 
-### **Maker rebates**
+### Settlement fee
 
-Outcome markets do not pay maker rebates. Maker orders pay zero fees, but unlike perpetuals or spot, they don't earn a rebate either.
+When a market resolves and your position settles, a settlement fee is deducted from the payout. The exact fee is shown in the market spec.
 
-### **Bridging fees**
+### Bridging fees
 
-When you deposit from another chain through Outcome's built-in bridge, an Across bridging fee applies. This fee is set by Across and is separate from Outcome and Hyperliquid trading fees. The amount is shown in the deposit interface before you confirm the transfer.
+Depositing USDC uses Circle's CCTP, and depositing another asset routes through Across, which charges a bridge fee that varies by source chain and asset. Either way, the cost is shown in the deposit interface before you confirm.
 
-### **For exact rates**
-
-The full fee schedule, including tier breakpoints, the USDH discount, and the settlement fee, is on Hyperliquid's [<u>fees page</u>](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees).
+Withdrawing USDC also uses CCTP, with network costs shown before you confirm. Withdrawing to fiat is powered by [Meld](https://meld.io/), whose fees depend on the payment method and region. See [Funding your account](04b-funding-your-account.md) and [Withdrawing funds](04f-withdrawing-funds.md) for details.

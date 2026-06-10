@@ -1,26 +1,23 @@
 ---
-title: "Withdrawing USDH from Outcome to Arbitrum"
+title: "Withdrawing USDC from Outcome to Arbitrum"
 sidebarTitle: "Withdrawing funds"
 description: "Withdraw your USDH balance from Outcome: convert to USDC on Hyperliquid, then bridge to any EVM address on Arbitrum. Minimums, fees, and timing explained."
 ---
 
-You can withdraw your USDH balance from Outcome at any time. Withdrawals happen in two steps: your USDH is converted to USDC on Hyperliquid, then bridged out via Hyperliquid's native bridge to an EVM address on Arbitrum.
+You can withdraw your USDC balance from Outcome at any time. There are two ways out: bridge USDC to another chain, or cash out to fiat.
 
-### **How to withdraw**
+### Withdraw USDC to Arbitrum
 
-Open the Withdraw flow in your [<u>outcome.xyz</u>](http://outcome.xyz) profile page, enter the amount, choose the destination address, and confirm. Outcome walks you through the USDH-to-USDC conversion and the bridge step. The minimum withdrawal amount is 10 USDH.
+USDC withdrawals are powered by Circle's Cross-Chain Transfer Protocol (CCTP), which moves native USDC across chains. Open the Withdraw flow in [outcome.xyz](http://outcome.xyz), enter the amount, choose the destination chain (currently set as Arbitrum by default) and address, and confirm.
 
-### **Destination**
+You can send to your connected wallet's address or any other EVM address you specify. Double-check the destination before confirming. Crypto transactions cannot be reversed if you send to the wrong address.
 
-Withdrawals land on Arbitrum. You can send them to:
+### Withdraw to fiat (coming soon)
 
-- Your connected wallet's address (the default).
-- Any other EVM address you specify.
+If you want to cash out to fiat currency, withdrawals are powered by [Meld](https://meld.io/), a crypto off-ramp aggregator. Meld converts your USDC to fiat and sends it to your chosen payment method. This requires identity verification (KYC). Availability, supported currencies, and payment methods depend on your region.
 
-Double-check the destination before confirming. Crypto transactions cannot be reversed if you send to the wrong address.
+### Fees and timing
 
-### **Fees and timing**
+**Fees.** USDC withdrawals via CCTP incur network costs, shown before you confirm. Fiat withdrawals via Meld incur Meld's fees, which depend on the payment method and region.
 
-**Fees.** Hyperliquid charges a flat fee on the bridge withdrawal. The fee is shown before you confirm.
-
-**Timing.** Withdrawals typically complete within a few minutes once both steps are submitted.
+**Timing.** USDC withdrawals typically complete within a few minutes. Fiat withdrawals depend on the payment rail and may take longer.

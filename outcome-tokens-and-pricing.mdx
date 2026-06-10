@@ -4,40 +4,42 @@ sidebarTitle: "Outcome tokens and pricing"
 description: "How outcome token prices stay coherent: mint and burn complete sets for 1 USDH, why prices sum to 1, and how to read each price as implied probability."
 ---
 
-This page explains the mechanics behind outcome tokens: where they come from, why their prices always sum to C100 (which equals 1 USDH), and what those prices represent.
+# Outcome tokens and pricing
+
+This page explains the mechanics behind outcome tokens: where they come from, why their prices always sum to 100 cents (which equals 1 USDC), and what those prices represent.
 
 ### Outcome tokens
 
-Every market on Outcome is made up of outcome tokens, one per possible outcome. In a binary market, that's two tokens (YES and NO, or UP and DOWN). In a multi-outcome market, it's one token per possibility.
+Every outcome on Outcome has two tokens: YES and NO (or UP and DOWN for directional markets). Each token has a single defining property: it pays 1 USDC at settlement if its side resolves, and 0 otherwise. That's the entire payoff structure. The price you pay for the token before settlement is what determines your gain or loss.
 
-Each token has a single defining property: it pays 1 USDH at settlement if its outcome resolves, and 0 otherwise. That's the entire payoff structure. The price you pay for the token before settlement is what determines your gain or loss.
+In a multi-outcome market, each individual outcome has its own YES and NO pair. Holding YES on an outcome means you're positioned for that outcome to resolve; the YES prices across all outcomes of the market are what sum to approximately 100 cents.
 
-### Minting and burning
+### Splitting and merging
 
-The reason a complete set of outcome tokens always sums to 1 USDH is a process called minting and burning.
+The reason a YES and NO pair always sums to 1 USDC is a pair of protocol operations called splitting and merging.
 
-**Minting.** Anyone can deposit 1 USDH to the protocol and receive a complete set of outcome tokens in exchange. For a binary market, that's one YES and one NO. For a multi-outcome market, it's one token for each possible outcome. Because exactly one of those tokens will pay 1 USDH at settlement, the complete set is always worth 1 USDH.
+**Splitting.** 1 USDC can be split into one YES and one NO token of the same outcome. Because exactly one of the two will pay 1 USDC at settlement, the pair is always worth 1 USDC.
 
-**Burning.** Anyone holding a complete set of outcome tokens can return them to the protocol and receive 1 USDH in exchange. This is the reverse of minting.
+**Merging.** A YES and NO pair of the same outcome can be merged back into 1 USDC. This is the reverse of splitting.
 
-Most users never mint or burn directly. They buy and sell individual tokens on the order book. But minting and burning are what guarantee that a complete set is always worth 1 USDH, regardless of how the individual tokens are trading. If any single token gets too cheap or too expensive relative to the others, traders can mint or burn to capture the arbitrage, which keeps the prices coherent.
+Most users never split or merge directly. They buy and sell tokens on the order book, and the protocol's merged book handles the equivalence automatically (buying YES at 40 cents is the same trade as selling NO at 60 cents). But split and merge are what anchor the pair to 1 USDC: if YES \+ NO ever drifted meaningfully away from 100 cents, traders could split or merge to capture the difference, which keeps prices coherent.
+
+In multi-outcome markets, the outcomes of the same question are linked by additional protocol operations, so positions across outcomes stay consistent. One practical consequence: holding NO tokens across different outcomes of the same question is equivalent to a redeemable combination, and the protocol lets you redeem the corresponding USDC before the market settles.
 
 ### Why prices sum to 1
 
-Because a complete set always burns back to 1 USDH, the prices of the tokens in a market always sum to approximately C100. Otherwise, arbitrage would be available.
+Because a YES and NO pair always merges back to 1 USDC, YES \+ NO ≈ 100 cents for every outcome at any time.
 
-For a binary market: YES \+ NO ≈ C100 at any time.
+For a multi-outcome market, exactly one outcome resolves YES, so a set containing the YES token of every outcome pays exactly 1 USDC at settlement. That anchors the sum of YES prices across the market to approximately 100 cents.
 
-For a multi-outcome market: the sum of all outcome prices ≈ C100 at any time.
-
-The word "approximately" matters. In practice, prices sum to slightly less than C100 because of the spread (there's always a gap between the best bid and best ask on each side). But the bound is tight enough that the probability interpretation works.
+The word "approximately" matters. In practice, prices sum to slightly less than 100 cents because of the spread (there's always a gap between the best bid and best ask on each side). But the bound is tight enough that the probability interpretation works.
 
 ### Prices as probabilities
 
-Because the prices sum to approximately C100, each price can be read as the market's implied probability for that specific outcome.
+Because the prices sum to approximately 100 cents, each price can be read as the market's implied probability for that specific outcome.
 
-A YES at C40 means the market is collectively pricing the event at 40% likely. A NO at C60 means the market is pricing the event at 60% likely _not_ to happen. They sum to C100, which corresponds to 100% probability that something happens.
+A YES at 40 cents means the market is collectively pricing the event at 40% likely. A NO at 60 cents means the market is pricing the event at 60% likely _not_ to happen. They sum to 100 cents, which corresponds to 100% probability that something happens.
 
-In a multi-outcome market, the same applies. If candidate A trades at C50, candidate B at C30, and candidate C at C20, the market is pricing A at 50% likely, B at 30%, and C at 20%. The three sum to 100%.
+In a multi-outcome market, the same applies. If candidate A trades at 50 cents, candidate B at 30 cents, and candidate C at 20 cents, the market is pricing A at 50% likely, B at 30%, and C at 20%. The three sum to 100%.
 
 This is what makes prediction markets useful as a forecasting tool, even for people who don't trade. The prices aggregate the views of everyone buying and selling, producing a probability estimate based on collective belief and money at stake.

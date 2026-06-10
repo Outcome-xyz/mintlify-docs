@@ -24,7 +24,7 @@ If you've traded the same outcome multiple times at different prices, the positi
 
 ## Cost basis and average entry
 
-Your **cost basis** is the total amount you've paid for a position. If you bought 100 tokens at ¢40, your cost basis is 40 USDH. If you then bought 50 more tokens at ¢50, your cost basis is 65 USDH (40 + 25), and your average entry price is ¢43.333.
+Your **cost basis** is the total amount you've paid for a position. If you bought 100 tokens at 40 cents, your cost basis is 40 USDC. If you then bought 50 more tokens at 50 cents, your cost basis is 65 USDC (40 \+ 25), and your average entry price is 43.333 cents.
 
 Cost basis is what you'd need to recover to break even at settlement.
 
@@ -32,9 +32,9 @@ Cost basis is what you'd need to recover to break even at settlement.
 
 **Unrealized** gains and losses are the difference between your average entry price and the current market price, applied to your remaining position size. These move continuously as the market price moves and don't reflect any actual proceeds.
 
-**Realized** gains and losses are locked in when you close a position (in full or in part) or when a market settles. They become real changes to your USDH balance.
+**Realized** gains and losses are locked in when you close a position (in full or in part) or when a market settles. They become real changes to your USDC balance.
 
-If you bought 100 tokens at ¢40 and the price is now ¢60, your unrealized gain is 20 USDH. If you sell those 100 tokens at ¢60, that 20 USDH becomes realized.
+If you bought 100 tokens at 40 cents and the price is now 60 cents, your unrealized gain is 20 USDC. If you sell those 100 tokens at 60 cents, that 20 USDC becomes realized.
 
 <Warning>
   A market close can realize a different amount than the unrealized figure shows. If your order walks through multiple levels of the book, the average fill price is lower (or higher) than the best price displayed, and your realized gain or loss differs from the unrealized estimate. See [Order lifecycle](/order-lifecycle) for slippage detail.
@@ -44,7 +44,7 @@ If you bought 100 tokens at ¢40 and the price is now ¢60, your unrealized gain
 
 You don't have to close a full position at once. Selling fewer tokens than you hold leaves the rest open.
 
-For example, if you hold 100 tokens with an average entry of ¢40 and sell 60 at ¢60, you realize a gain of 12 USDH on the 60 sold (60 × (¢60 − ¢40) ÷ 100). The remaining 40 tokens stay open at the same ¢40 average entry, with their own unrealized gain or loss based on the current market price.
+For example, if you hold 100 tokens with an average entry of 40 cents and sell 60 at 60 cents, you realize a gain of 12 USDC on the 60 sold (60 tokens × 20 cents = 1,200 cents = 12 USDC). The remaining 40 tokens stay open at the same 40 cents average entry, with their own unrealized gain or loss based on the current market price
 
 Partial closes are useful for:
 
@@ -56,7 +56,7 @@ Partial closes are useful for:
 
 For recurring markets like the daily BTC binary, each instance is a separate market with separate tokens. When today's instance settles, the next instance is already open with new tokens.
 
-Holding a position through settlement does not extend into the new instance. Your tokens settle (at 1 or 0 per token), proceeds go to your USDH balance, and any further exposure requires a new trade in the next instance's market.
+Holding a position through settlement does not extend into the new instance. Your tokens settle (at 1 or 0 per token), proceeds go to your USDC balance, and any further exposure requires a new trade in the next instance's market.
 
 <Tip>
   See [Recurring markets](/recurring-markets) for more on how these markets work.
@@ -67,10 +67,15 @@ Holding a position through settlement does not extend into the new instance. You
 For each open position, the math behind what you see in your portfolio.
 
 <Note>
-  **Note on units:** the UI displays prices in cents (e.g., ¢40). In the formulas below, prices are expressed as decimal USDH values: ¢40 = 0.40, ¢99.999 = 0.99999. All resulting amounts (cost basis, PnL, payoff) are in USDH.
+  **Note on units:** the UI displays prices in cents (e.g., 40 cents). In the formulas below, prices are expressed as decimal USDC values: 40 cents = 0.40, 99.999 cents = 0.99999. All resulting amounts (cost basis, PnL, payoff) are in USDC.
 </Note>
 
 **Average entry price**
+
+$$
+
+\text{average entry} = \frac{\text{total spent on buys}}{\text{total tokens bought}}
+$$
 
 $$
 \text{average entry} = \frac{\text{total spent on buys}}{\text{total tokens bought}}
@@ -81,12 +86,22 @@ The size-weighted average across all your buys of the same outcome.
 **Cost basis (of current position)**
 
 $$
+
+\text{cost basis} = \text{average entry} \times \text{tokens held}
+$$
+
+$$
 \text{cost basis} = \text{average entry} \times \text{tokens held}
 $$
 
 What you've paid for the tokens you still hold.
 
 **Unrealized gain or loss**
+
+$$
+
+\text{unrealized PnL} = (\text{current price} - \text{average entry}) \times \text{tokens held}
+$$
 
 $$
 \text{unrealized PnL} = (\text{current price} - \text{average entry}) \times \text{tokens held}
@@ -97,6 +112,11 @@ The paper value of your position right now.
 **Realized gain or loss on a sale**
 
 $$
+
+\text{realized PnL} = (\text{sale price} - \text{average entry}) \times \text{tokens sold}
+$$
+
+$$
 \text{realized PnL} = (\text{sale price} - \text{average entry}) \times \text{tokens sold}
 $$
 
@@ -105,7 +125,16 @@ Locked in when you close part or all of a position.
 **Settlement payoff**
 
 $$
-\text{payoff per token} = \begin{cases} 1 \text{ USDH} & \text{if your outcome resolves} \\ 0 & \text{otherwise} \end{cases}
+\text{payoff per token} = \begin{cases} 1 \text{ USDC} & \text{if your outcome resolves} \\ 0 & \text{otherwise} \end{cases}
+$$
+
+$$
+\text{payoff per token} = \begin{cases} 1 \text{ USDC} & \text{if your outcome resolves} \\ 0 & \text{otherwise} \end{cases}
+$$
+
+$$
+
+\text{total payoff} = \text{tokens held} \times \text{payoff per token}
 $$
 
 $$

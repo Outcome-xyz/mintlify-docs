@@ -6,7 +6,7 @@ description: "Recurring markets like the daily BTC binary auto-deploy a new inst
 
 Some markets on Outcome are deployed automatically by the protocol on a fixed cadence. When one instance settles, the next instance is already live for trading. This is the structure behind the daily BTC binary and any similar markets that follow a regular pattern.
 
-### **How a recurring market works**
+### How a recurring market works
 
 A recurring market is defined by a specification that includes:
 
@@ -17,7 +17,7 @@ A recurring market is defined by a specification that includes:
 
 The protocol uses this specification to auto-deploy new instances on a regular schedule. There's no manual market creation; the contract terms are encoded directly in the protocol.
 
-### **The redeploy cycle**
+### The redeploy cycle
 
 When a recurring market reaches its expiry time:
 
@@ -28,12 +28,18 @@ When a recurring market reaches its expiry time:
 
 The cycle continues for as long as the recurring market is enabled at the protocol level.
 
-### **Positions don't carry over**
+### Positions don't carry over
 
-Each instance of a recurring market is its own separate market with its own tokens. When today's BTC daily binary settles, that day's YES and NO tokens redeem at 1 or 0 USDH and the position is closed out.
+Each instance of a recurring market is its own separate market with its own tokens. When today's BTC daily binary settles, that day's YES and NO tokens redeem at 1 or 0 USDC and the position is closed out.
 
 If you want exposure to tomorrow's instance, you have to buy into tomorrow's tokens. The protocol doesn't auto-extend positions across instances. Each instance is a complete, self-contained market.
 
-### **Finding the current spec**
+### Uniqueness
+
+Hyperliquid guarantees there is at most one recurring series for each combination of series type, underlying asset, and period. So only one daily BTC binary can exist at a time; there can't be two competing daily BTC binaries running in parallel.
+
+### Finding the current spec
 
 The current instance's spec (target, expiry, period, underlying) is shown on the market page. Because the values change with each redeployment, the market page is the canonical source for what's live right now.
+
+For more on what happens when a recurring instance reaches its expiry, see [Resolution and settlement](06d-resolution-and-settlement.md).

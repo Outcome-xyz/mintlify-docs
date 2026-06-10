@@ -10,7 +10,7 @@ Outcome supports two order types: limit orders and market orders. Each makes a d
 
 A limit order specifies the worst price you're willing to accept. For a buy, that's the maximum price you'll pay. For a sell, the minimum price you'll accept.
 
-A limit buy at C40 only fills if someone is willing to sell at C40 or lower. If no one matches, the order rests on the book at C40 until either the price moves to where someone will trade with you, or you cancel.
+A limit buy at 40 cents only fills if someone is willing to sell at 40 cents or lower. If no one matches, the order rests on the book at 40 cents until either the price moves to where someone will trade with you, or you cancel.
 
 **Use limit orders when:**
 
@@ -24,7 +24,7 @@ The tradeoff is fill uncertainty. If the market moves away from your price, your
 
 A market order takes whatever price is currently available, starting at the best price and walking through deeper levels of the book if needed.
 
-A market buy of 100 tokens with a best ask of C40 (for 50 tokens) and next ask of C41 (for 50 tokens) would fill at an average price of C40.5: 50 tokens at C40 and 50 tokens at C41.
+A market buy of 100 tokens with a best ask of 40 cents (for 50 tokens) and next ask of 41 cents (for 50 tokens) would fill at an average price of 40.5 cents: 50 tokens at 40 cents and 50 tokens at 41 cents.
 
 **Use market orders when:**
 
@@ -42,13 +42,13 @@ Limit orders that fill immediately (because the price you set matches an existin
 
 Market orders are always taker orders.
 
-The fee schedule differs between makers and takers. See [Fees](/fees) for current rates.
+The fee schedule differs between makers and takers. See [Fees](07-fees.md) for current rates.
 
 ### Tick size and minimum order
 
-Prices on Outcome are quoted in cents and range from C0.001 to C99.999. The tick size is 0.001 cents, meaning prices move in increments of one one-thousandth of a cent. You can place a limit order at C40.001, C40.002, or C40.003, but not at C40.0015.
+Prices on Outcome are quoted in cents and range from 0.001 cents to 99.999 cents. The tick size is 0.001 cents, meaning prices move in increments of one one-thousandth of a cent. You can place a limit order at 40.001 cents, 40.002 cents, or 40.003 cents, but not at 40.0015 cents.
 
-The minimum order size is 10 USDH in value. For a buy at C40 per token, that's at least 25 tokens. For a buy at C10 per token, at least 100 tokens. The minimum scales with the price so the total value stays at least 10 USDH.
+The minimum order size is 10 USDC in value. For a buy at 40 cents per token, that's at least 25 tokens. For a buy at 10 cents per token, at least 100 tokens. The minimum scales with the price so the total value stays at least 10 USDC.
 
 ### Choosing between them
 

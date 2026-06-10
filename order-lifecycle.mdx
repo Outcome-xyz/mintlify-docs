@@ -20,19 +20,19 @@ An order that rests stays open on the book at its specified price. Other traders
 - You cancel it.
 - The market reaches its resolution time, at which point any open orders are cancelled automatically.
 
-There's no time limit on how long a resting order stays open. If you place a limit order at C30 and the market trades at C50 for the next 12 hours, your order is still sitting there at C30.
+There's no time limit on how long a resting order stays open. If you place a limit order at 30 cents and the market trades at 50 cents for the next 12 hours, your order is still sitting there at 30 cents.
 
 ### Matching and filling
 
 When a new order arrives that crosses the best price on the opposite side, the matching engine pairs it with the resting order. The resting order is the **maker** (it was there first) and the incoming order is the **taker**.
 
-Fills happen at the maker's price, not the taker's. If you have a limit buy at C40 and someone submits a market sell, your buy fills at C40, even if they would have accepted less.
+Fills happen at the maker's price, not the taker's. If you have a limit buy at 40 cents and someone submits a market sell, your buy fills at 40 cents, even if they would have accepted less.
 
 ### Partial fills
 
 If your order is larger than the volume available at your price, it can partially fill. The portion that has a matching counterparty fills immediately. The rest continues to rest on the book.
 
-A limit buy of 1,000 tokens at C40 with only 600 tokens available to sell at C40 fills 600 immediately. The remaining 400 stays on the book at C40, waiting for more sellers.
+A limit buy of 1,000 tokens at 40 cents with only 600 tokens available to sell at 40 cents fills 600 immediately. The remaining 400 stays on the book at 40 cents, waiting for more sellers.
 
 Market orders can also partially fill if the book runs out of liquidity before your full size is satisfied. In that case, the unfilled portion is cancelled, since market orders don't rest on the book.
 
@@ -46,6 +46,6 @@ Cancelling has no fee and is generally instant. However, if a fill arrives at th
 
 When a market order walks through multiple price levels of the book, the average price you pay can differ significantly from the best price you saw before submitting. This is **slippage**.
 
-Slippage is most pronounced in thin markets or when submitting a large order. For example, a market buy of 1,000 tokens with 100 at C40, 200 at C41, and 700 at C43 results in an average fill price of around C42.3. The best price on screen (C40) was only the starting point.
+Slippage is most pronounced in thin markets or when submitting a large order. For example, a market buy of 1,000 tokens with 100 at 40 cents, 200 at 41 cents, and 700 at 43 cents results in an average fill price of around 42.3 cents. The best price on screen (40 cents) was only the starting point.
 
-To avoid slippage, use a limit order with a price you're willing to accept as your worst-case fill. See [Order types](/order-types) for the difference between limit and market orders.
+To avoid slippage, use a limit order with a price you're willing to accept as your worst-case fill. See [Order types](05b-order-types.md) for the difference between limit and market orders.

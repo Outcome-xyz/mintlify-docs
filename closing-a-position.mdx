@@ -6,26 +6,26 @@ description: "Exit an Outcome position early with limit or market orders, hold t
 
 You don't have to wait for a market to resolve to exit your position. As long as the market is open, you can close at any time by selling your tokens on the order book. Or you can hold to settlement and let the protocol resolve your position automatically.
 
-### **Close before settlement**
+### Close before settlement
 
-To exit before the market resolves, sell your tokens on the order book. Choose between a market order (sell immediately at the best available price) or a limit order (set the price you want and wait for someone to take it). When the sale fills, the proceeds return to your USDH balance.
+To exit before the market resolves, sell your tokens on the order book. Choose between a market order (sell immediately at the best available price) or a limit order (set the price you want and wait for someone to take it). When the sale fills, the proceeds return to your USDC balance.
 
-Closes incur the standard taker fee if you take the best available price, or no fee if your limit order rests until someone takes it. See Fees for details.
+Whether the close incurs a taker fee or a maker fee depends on which side your order ends up on. See [Order types](05b-order-types.md) for the maker/taker distinction, and [Fees](07-fees.md) for current rates.
 
-### **Closing all positions at once**
+### Closing all positions at once
 
 If you have multiple open positions and want to exit them all at once, the Positions tab has a Close All function. This places market orders to close every open position simultaneously, at the best available price for each.
 
-### **Hold to settlement**
+### Hold to settlement
 
 If you do nothing, your position holds to the market's resolution time. The protocol settles automatically based on how the market resolves:
 
-- Tokens for the resolved outcome pay 1 USDH each.
+- Tokens for the resolved outcome pay 1 USDC each.
 - Tokens for any other outcome pay 0.
 
-A settlement fee is deducted from the payout. Your USDH balance updates automatically, with no action required from you.
+A settlement fee is deducted from the payout. Your USDC balance updates automatically, with no action required from you.
 
-### **Which path makes sense**
+### Which path makes sense
 
 Closing early locks in whatever the current market price gives you, regardless of how the market ultimately resolves. Useful if your view has changed, if you want to free up capital, or if you want to take a gain or limit a loss before resolution.
 
