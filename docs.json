@@ -114,11 +114,25 @@
             ]
           },
           {
+            "group": "Rewards",
+            "icon": "trophy",
+            "pages": [
+              "sdk/reference/liquidity-rewards"
+            ]
+          },
+          {
             "group": "Utilities",
             "icon": "wrench",
             "pages": [
               "sdk/reference/utilities",
               "sdk/reference/types"
+            ]
+          },
+          {
+            "group": "Changelog",
+            "icon": "history",
+            "pages": [
+              "sdk/changelog"
             ]
           }
         ]

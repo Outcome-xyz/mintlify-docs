@@ -1,0 +1,157 @@
+---
+title: "Check liquidity-reward eligibility and wallet rewards"
+sidebarTitle: "Liquidity Rewards"
+description: "Query which HIP-4 books are eligible for liquidity rewards and what each wallet has earned, by season, using the liquidityRewards module in @outcome.xyz/hip4."
+tag: "NEW"
+---
+
+The `liquidityRewards` module queries reward eligibility and per-wallet reward scores for Outcome liquidity-reward campaigns. It is a standalone export - it does not require `createHIP4Adapter`, a signer, or any authentication. Data comes from the public Monarch rewards API and is normalized to camelCase by the SDK.
+
+Season `s1` is the World Cup 2026 campaign (June 11 - July 19, 2026). This page covers the SDK surface only - for how rewards are earned and paid out, see the [World Cup campaign](/world-cup-campaign) page.
+
+## Season handle
+
+Everything is scoped by season. `liquidityRewards.season(id)` returns a `LiquidityRewardsSeasonHandle`:
+
+```typescript
+import { liquidityRewards } from "@outcome.xyz/hip4";
+
+const s1 = liquidityRewards.season("s1");
+
+s1.seasonId;   // "s1"
+s1.campaignId; // "world-cup-2026"
+```
+
+Unknown season ids throw a plain `Error` immediately, listing the known seasons. When a new season launches, it ships as an SDK update - season ids and their campaign mappings live in code (`LIQUIDITY_REWARDS_CONFIG`), never in environment variables.
+
+## `checkEligibility`
+
+Checks which books are eligible for liquidity rewards on a scoring day. Scoring days roll at 09:00 UTC. The `subject` parameter selects what to check, and the return type narrows with it:
+
+```typescript
+const teams = await s1.checkEligibility({ subject: "teams" });    // TeamsEligibility
+const matches = await s1.checkEligibility({ subject: "matches" }); // MatchesEligibility
+
+// A past scoring day (defaults to the current epoch)
+const past = await s1.checkEligibility({ subject: "teams", date: "2026-06-08" });
+```
+
+<Warning>
+Orders and trades only count toward rewards when they are placed with the `builderCode` returned in every eligibility result.
+</Warning>
+
+Both result shapes share the epoch fields:
+
+| Field | Description |
+|-------|-------------|
+| `season` / `campaignId` | Season id (`"s1"`) and upstream campaign id (`"world-cup-2026"`) |
+| `epochDate` | Scoring day this result belongs to (`YYYY-MM-DD`, rolls 09:00 UTC) |
+| `epochStatus` | `"upcoming"`, `"provisional"` (live), or `"final"` |
+| `epochStartTime` / `epochEndTime` | Epoch window timestamps, or `null` |
+| `snapshot` | Data freshness: `status` (`"preview"` / `"live"` / `"final"`), `asOf`, `finalizedAt` |
+| `builderCode` | Orders only earn rewards when placed with this builder code |
+
+### `subject: "teams"` - winner books
+
+Returns which countries' winner books are inside the 1%-99% eligibility band on the scoring day:
+
+| Field | Description |
+|-------|-------------|
+| `eligible` | `LiquidityRewardsChampionMarket[]` - books earning rewards that day |
+| `ineligible` | Books outside the band - displayed but not earning |
+
+Each `LiquidityRewardsChampionMarket` carries `teamName`, `hyperliquidOutcomeId` (the outcome id from Hyperliquid `outcomeMeta` - join on this to address the book through the adapter), and optionally `eligibilityMid` with its per-source `mids` (the API does not always include them).
+
+### `subject: "matches"` - match books
+
+Returns the match books inside the day's incentive window as `eligible: LiquidityRewardsMatchMarket[]`:
+
+| Field | Description |
+|-------|-------------|
+| `matchId` / `matchName` | Match identifiers |
+| `hyperliquidQuestionId` | Question id from Hyperliquid `outcomeMeta` |
+| `scheduledKickoffTime` | Scheduled kickoff |
+| `incentiveStartTime` / `incentiveEndRule` | When orders and trades start scoring, and the rule that ends the window |
+| `matchRewardAmountUsdc` | Total reward assigned to the match (decimal USDC string) |
+| `liveMultiplier` | Score multiplier during the live match window (decimal string) |
+| `publicationStatus` | `"published"` or `"unpublished"` |
+| `scoredOutcomes` | The scored YES books: `outcomeName` + `hyperliquidOutcomeId` |
+
+## `checkRewards`
+
+Checks per-wallet reward scores for a scoring day. Omit `wallet` to get every scored wallet; the wallet filter is case-insensitive:
+
+```typescript
+const rewards = await s1.checkRewards({ wallet: "0x..." });
+
+// All wallets, for a past day
+const all = await s1.checkRewards({ date: "2026-06-12" });
+```
+
+The result carries the same epoch fields as `checkEligibility` plus `scores: LiquidityRewardsScore[]` - one row per (wallet, scored book):
+
+| Field | Description |
+|-------|-------------|
+| `scoreScope` | `"champion"` (winner books) or `"match"` (daily match books) |
+| `wallet` | Hypercore address being scored |
+| `hyperliquidOutcomeId` | Outcome id of the scored book |
+| `teamName` / `teamScoringWeight` | Champion rows only |
+| `matchId` / `hyperliquidQuestionId` / `matchName` / `outcomeName` | Match rows only |
+| `quoteDepthScore` | Quote-depth component of the score |
+| `makerFillVolumeUsdc` / `takerFillVolumeUsdc` | Fill volume components |
+| `totalScore` | Provisional score - the wallet's relative share of the day's pot while `epochStatus` is `"provisional"` |
+| `dailyRewardUsdc` | Final reward for the day; `null` until the epoch finalizes (once daily) |
+| `cumulativeRewardUsdc` | Total earned through this epoch; `null` until finalized |
+
+All numeric values are decimal strings, consistent with the rest of the SDK.
+
+<Note>
+An empty `scores` array for an upcoming epoch is normal "no scores yet", not an error.
+</Note>
+
+## Request options
+
+`checkEligibility` and `checkRewards` accept the same request options:
+
+| Option | Description |
+|--------|-------------|
+| `date` | Scoring day (`YYYY-MM-DD`). Omitted = current epoch |
+| `baseUrl` | Override the rewards API base URL from `LIQUIDITY_REWARDS_CONFIG` for this call |
+| `signal` | `AbortSignal`. Defaults to a 15-second timeout |
+
+## Errors and retries
+
+Requests retry once on 5xx and network errors, matching the rest of the SDK. 4xx responses throw a `LiquidityRewardsError` immediately, which carries the HTTP status:
+
+```typescript
+import { LiquidityRewardsError } from "@outcome.xyz/hip4";
+
+try {
+  await s1.checkRewards({ wallet });
+} catch (err) {
+  if (err instanceof LiquidityRewardsError) {
+    console.error(err.status, err.message);
+  }
+}
+```
+
+## Exports
+
+Runtime exports and all liquidity-rewards types come from the main entry point (they are not part of `@outcome.xyz/hip4/types`):
+
+```typescript
+import {
+  liquidityRewards,
+  LIQUIDITY_REWARDS_CONFIG,
+  LiquidityRewardsError,
+  type LiquidityRewardsSeasonHandle,
+  type CheckEligibilityParams,
+  type CheckRewardsParams,
+  type TeamsEligibility,
+  type MatchesEligibility,
+  type RewardsCheckResult,
+  type LiquidityRewardsScore,
+  type LiquidityRewardsChampionMarket,
+  type LiquidityRewardsMatchMarket,
+} from "@outcome.xyz/hip4";
+```
