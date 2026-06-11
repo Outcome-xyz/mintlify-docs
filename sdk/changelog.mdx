@@ -7,37 +7,32 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
 <Update label="1.0.1-beta" description="June 11, 2026">
+  ### Added
 
-### Added
+  - **`liquidityRewards` module** - season-scoped liquidity-reward checks, starting with `s1` (World Cup 2026). See [Liquidity Rewards](/sdk/reference/liquidity-rewards).
+    - `checkEligibility({ subject })` - eligible team and match books per scoring day
+    - `checkRewards({ wallet, date })` - per-wallet reward scores
+    - `LIQUIDITY_REWARDS_CONFIG`, `LiquidityRewardsError`, and typed results exported from the main entry point
+  - **`quoteToken` on outcomes** - `HLOutcome` and `HLWsOutcomeSpec` carry an optional `quoteToken` symbol. The field is optional on the wire; SDK fetch helpers (`outcomeMeta`, settled-outcome lookups, and WebSocket `outcomeCreated` updates) default it to `"USDH"` when absent.
 
-- **`liquidityRewards` module** - season-scoped liquidity-reward checks, starting with `s1` (World Cup 2026). See [Liquidity Rewards](/sdk/reference/liquidity-rewards).
-  - `checkEligibility({ subject })` - eligible team and match books per scoring day
-  - `checkRewards({ wallet, date })` - per-wallet reward scores
-  - `LIQUIDITY_REWARDS_CONFIG`, `LiquidityRewardsError`, and typed results exported from the main entry point
-- **`quoteToken` on outcomes** - `HLOutcome` and `HLWsOutcomeSpec` carry an optional `quoteToken` symbol. The field is optional on the wire; SDK fetch helpers (`outcomeMeta`, settled-outcome lookups, and WebSocket `outcomeCreated` updates) default it to `"USDH"` when absent.
-
-[Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.0.0-beta...v1.0.1-beta)
-
+  [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.0.0-beta...v1.0.1-beta)
 </Update>
 
 <Update label="1.0.0-beta" description="May 20, 2026">
+  Initial public beta release.
 
-Initial public beta release.
+  ### Added
 
-### Added
+  - `createHIP4Adapter()` - single entry point for HIP-4 prediction market access on Hyperliquid (events, market data, account state, trading, wallet, auth)
+  - Typed sub-modules: `events`, `marketData`, `account`, `trading`, `wallet`, `auth`, `ramp`
+  - WebSocket subscriptions for prices, order books, fills, and positions (return an unsubscribe function)
+  - Internal L1 agent \+ EIP-712 signing - no external crypto dependencies
+  - Decimal-precision math helpers under `lib/precision` for safe price/size arithmetic
+  - Stream helpers: `createPriceFeed`, `createPerpPriceFeed`
+  - Type-only entry point: `import type { ... } from "@outcome.xyz/hip4/types"`
 
-- `createHIP4Adapter()` - single entry point for HIP-4 prediction market access on Hyperliquid (events, market data, account state, trading, wallet, auth)
-- Typed sub-modules: `events`, `marketData`, `account`, `trading`, `wallet`, `auth`, `ramp`
-- WebSocket subscriptions for prices, order books, fills, and positions (return an unsubscribe function)
-- Internal L1 agent + EIP-712 signing - no external crypto dependencies
-- Decimal-precision math helpers under `lib/precision` for safe price/size arithmetic
-- Stream helpers: `createPriceFeed`, `createPerpPriceFeed`
-- Type-only entry point: `import type { ... } from "@outcome.xyz/hip4/types"`
+  ### Notes
 
-### Notes
-
-- Zero runtime dependencies
-- Node 18+ required
-- React bindings live in a separate package (`@outcome.xyz/hip4-react`)
-
+  - Zero runtime dependencies
+  - Node 18\+ required
 </Update>

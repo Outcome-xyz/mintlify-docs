@@ -1,5 +1,5 @@
 ---
-title: "Check liquidity-reward eligibility and wallet rewards"
+title: "Liquidity rewards - check eligibility and rewards"
 sidebarTitle: "Liquidity Rewards"
 description: "Query which HIP-4 books are eligible for liquidity rewards and what each wallet has earned, by season, using the liquidityRewards module in @outcome.xyz/hip4."
 tag: "NEW"
@@ -37,13 +37,13 @@ const past = await s1.checkEligibility({ subject: "teams", date: "2026-06-08" })
 ```
 
 <Warning>
-Orders and trades only count toward rewards when they are placed with the `builderCode` returned in every eligibility result.
+  Orders and trades only count toward rewards when they are placed with the `builderCode` returned in every eligibility result.
 </Warning>
 
 Both result shapes share the epoch fields:
 
 | Field | Description |
-|-------|-------------|
+| --- | --- |
 | `season` / `campaignId` | Season id (`"s1"`) and upstream campaign id (`"world-cup-2026"`) |
 | `epochDate` | Scoring day this result belongs to (`YYYY-MM-DD`, rolls 09:00 UTC) |
 | `epochStatus` | `"upcoming"`, `"provisional"` (live), or `"final"` |
@@ -56,7 +56,7 @@ Both result shapes share the epoch fields:
 Returns which countries' winner books are inside the 1%-99% eligibility band on the scoring day:
 
 | Field | Description |
-|-------|-------------|
+| --- | --- |
 | `eligible` | `LiquidityRewardsChampionMarket[]` - books earning rewards that day |
 | `ineligible` | Books outside the band - displayed but not earning |
 
@@ -67,7 +67,7 @@ Each `LiquidityRewardsChampionMarket` carries `teamName`, `hyperliquidOutcomeId`
 Returns the match books inside the day's incentive window as `eligible: LiquidityRewardsMatchMarket[]`:
 
 | Field | Description |
-|-------|-------------|
+| --- | --- |
 | `matchId` / `matchName` | Match identifiers |
 | `hyperliquidQuestionId` | Question id from Hyperliquid `outcomeMeta` |
 | `scheduledKickoffTime` | Scheduled kickoff |
@@ -75,7 +75,7 @@ Returns the match books inside the day's incentive window as `eligible: Liquidit
 | `matchRewardAmountUsdc` | Total reward assigned to the match (decimal USDC string) |
 | `liveMultiplier` | Score multiplier during the live match window (decimal string) |
 | `publicationStatus` | `"published"` or `"unpublished"` |
-| `scoredOutcomes` | The scored YES books: `outcomeName` + `hyperliquidOutcomeId` |
+| `scoredOutcomes` | The scored YES books: `outcomeName` \+ `hyperliquidOutcomeId` |
 
 ## `checkRewards`
 
@@ -91,7 +91,7 @@ const all = await s1.checkRewards({ date: "2026-06-12" });
 The result carries the same epoch fields as `checkEligibility` plus `scores: LiquidityRewardsScore[]` - one row per (wallet, scored book):
 
 | Field | Description |
-|-------|-------------|
+| --- | --- |
 | `scoreScope` | `"champion"` (winner books) or `"match"` (daily match books) |
 | `wallet` | Hypercore address being scored |
 | `hyperliquidOutcomeId` | Outcome id of the scored book |
@@ -106,7 +106,7 @@ The result carries the same epoch fields as `checkEligibility` plus `scores: Liq
 All numeric values are decimal strings, consistent with the rest of the SDK.
 
 <Note>
-An empty `scores` array for an upcoming epoch is normal "no scores yet", not an error.
+  An empty `scores` array for an upcoming epoch is normal "no scores yet", not an error.
 </Note>
 
 ## Request options
@@ -114,7 +114,7 @@ An empty `scores` array for an upcoming epoch is normal "no scores yet", not an 
 `checkEligibility` and `checkRewards` accept the same request options:
 
 | Option | Description |
-|--------|-------------|
+| --- | --- |
 | `date` | Scoring day (`YYYY-MM-DD`). Omitted = current epoch |
 | `baseUrl` | Override the rewards API base URL from `LIQUIDITY_REWARDS_CONFIG` for this call |
 | `signal` | `AbortSignal`. Defaults to a 15-second timeout |
