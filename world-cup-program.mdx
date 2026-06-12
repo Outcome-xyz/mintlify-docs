@@ -1,0 +1,399 @@
+---
+title: "World Cup Liquidity Program"
+---
+
+_How Outcome rewards two-sided liquidity and trading across the World Cup champion market and every World Cup match market._
+
+This page is the technical reference for Outcome's World Cup liquidity rewards. It explains how rewards are scored and paid so that makers and takers can reason about the program and update their strategies with confidence.
+
+The program runs from the opening match on June 11 through the final on July 19. It has two independent reward programs:
+
+1. **The champion market**, covering the single "2026 World Cup champion?" market for the full tournament.
+2. **The match markets**, covering every World Cup match, with rewards published per match each day.
+
+Both programs share the same core philosophy and the same building blocks. They differ in how reward budget is allocated and in a small number of scoring parameters. Rewards are paid in USDC on Hyperliquid. All trading takes place on [Outcome.xyz](http://Outcome.xyz), and the reward computation infrastructure is operated by Monarch.
+
+## Core philosophy
+
+The program pays for liquidity that is genuinely useful to traders: deep depth posted close to fair value, with more reward weight directed to the markets and moments that need liquidity most. It stays simple enough that makers can reason about it and continuously adjust.
+
+Three ideas apply across the program:
+
+- **Near fair value.** Only orders inside a scored band around the current mid earn, and orders closer to the mid earn more.
+- **Two-sided earns more.** One-sided liquidity can score, but balanced two-sided liquidity receives a multiplier of up to 3x.
+- **Useful.** Quotes that actually get filled earn an additional reward, and a smaller share is set aside for the takers who use that liquidity.
+
+## Shared concepts
+
+### Settlement and price convention
+
+Each market is a binary outcome book. A YES contract settles at 1.00 if the outcome occurs and at 0.00 if it does not. A price is equivalent to the implied probability, where one cent equals one percentage point: 56 cents reads as a 56% implied probability.
+
+### Reference mid
+
+`hyperliquid_mid` is the mid price of the market's order book on Hyperliquid. It is the reference price used for distance scoring, quote depth scoring, maker fill scoring, taker fill scoring, and probability-weighted scoring.
+
+### Reward split
+
+Within each reward budget, the same split applies:
+
+| Component | Share | What it pays for |
+| :-- | :-- | :-- |
+| Quote rewards | 50% | Sustained displayed depth near fair value. |
+| Maker fill rewards | 40% | Maker-side fills, proving the displayed liquidity was actually useful. |
+| Taker fill rewards | 10% | Taker-side fills, to bootstrap real usage. |
+
+Maker fill rewards pay the execution of resting orders. Combined with the quote rewards, the large majority of every budget flows to liquidity providers, with a smaller taker incentive on top.
+
+### Builder code eligibility
+
+Only orders and trades placed on [Outcome.xyz](http://Outcome.xyz) are eligible for rewards. Eligible activity must use the `Outcomexyz`builder code attached to all orders:
+
+```text
+0xab5dbc057628bc18523c4cdfc0e1e2ebdbecb704
+```
+
+There is currently no additional fee for using the builder code. This keeps attribution simple and makes reward accounting auditable without adding any trading cost. Activity that does not carry the builder code does not score.
+
+### Scoring data
+
+Quote scoring is calculated by recording the live order book during the incentivized period. The score is summed individually for each maker over every block, applying the scoring criteria relative to that block's mid price.
+
+### Quote depth scoring
+
+Quote rewards are based on scored bid depth and scored ask depth. One-sided liquidity can score, but balanced two-sided liquidity earns more.
+
+A block only scores if the maker has at least 50 USD of raw displayed bid-plus-ask order notional inside the scored band, before any multipliers:
+
+```text
+raw_bid_notional_usd + raw_ask_notional_usd >= 50 USD
+```
+
+Side scores are weighted by the distance multiplier and combined with a two-sided multiplier driven by how balanced the book is:
+
+```text
+bid_side_score  = sum(bid_order_notional_usd * distance_multiplier)
+ask_side_score  = sum(ask_order_notional_usd * distance_multiplier)
+depth_score     = bid_side_score + ask_side_score
+
+balance_ratio   = min(bid_side_score, ask_side_score) / max(bid_side_score, ask_side_score)
+                  (0 if one side scores nothing)
+two_sided_multiplier = 1 + 2 * balance_ratio
+
+block_score     = depth_score * two_sided_multiplier   if the 50 USD minimum is met, else 0
+```
+
+The two-sided multiplier ranges from 1.00x for fully one-sided liquidity to 3.00x for fully balanced liquidity. It is evaluated independently for every market a maker quotes; balanced liquidity in one market does not improve the score in another. Because the balance ratio uses distance-weighted side scores, balance means matching useful depth near the mid on both sides, not just matching raw size.
+
+---
+
+# Reward program 1: The champion market
+
+## Market structure
+
+"2026 World Cup champion?" is a multi-outcome market. The program scores each team's selected YES winner book once. The scored book is the outcome YES-frame book: the selected YES child plus its sibling NO placement stream, with sibling prices mirrored as `1 - price` and bid/ask flipped, scored once as merged liquidity under the selected YES child. NO books are not separate reward surfaces, but NO-placed liquidity and fills on the selected sibling contribute once after normalization.
+
+## Reward budget
+
+```text
+daily_pool        = 600 USD
+reward_period     = 1 day
+quote_reward_pool = 50%
+maker_fill_pool   = 40%
+taker_fill_pool   = 10%
+payout_method     = pro-rata by probability-weighted score
+```
+
+There is one shared daily pool for the full champion campaign and no fixed budget per team.
+
+## Team eligibility
+
+Eligibility is set once per reward day using a blended mid, which is used only for daily eligibility, not intraday scoring. The eligible team list is published before the start of each reward day, targeted for 09:00 UTC, on the Outcome frontend and via Monarch's API.
+
+```text
+eligibility_mid = internal blended mid
+team is day-eligible if eligibility_mid > 5.00% and eligibility_mid <= 99.00%
+```
+
+The day-start list avoids constant eligibility churn during the day. If a team is eliminated, scoring for that team stops immediately.
+
+## Scoreable blocks
+
+During the day, quote depth, maker fills, and taker fills only score in blocks where the reference mid stays inside the scoring thresholds:
+
+```text
+block is scoreable if current_hyperliquid_mid > 5.00% and current_hyperliquid_mid <= 99.00%
+```
+
+If a team starts above 5.00% but the Hyperliquid mid moves to 5.00% or below, those blocks score zero, and scoring resumes if the mid moves back above 5.00%. The same applies symmetrically at 99.00%. Eliminated teams stop scoring immediately.
+
+## Distance multiplier
+
+The champion program uses a fixed 2.00 cent depth cutoff on both bid and ask sides with the shared spread curve. Orders only score inside the 1.00% to 99.00% rewardable price range:
+
+```text
+distance_cents      = abs(order_price - hyperliquid_mid) * 100
+max_distance        = 0.02
+max_distance_cents  = 2.00
+lower_scored_bound  = max(0.01, hyperliquid_mid - max_distance)
+upper_scored_bound  = min(0.99, hyperliquid_mid + max_distance)
+
+if lower_scored_bound <= order_price <= upper_scored_bound:
+    distance_multiplier = (2 - distance_cents) ^ 2
+else:
+    distance_multiplier = 0
+```
+
+An order at the mid earns a multiplier of 4.00x, falling to zero at exactly 2.00 cents away. Orders outside the scored band receive zero score. The fixed curve keeps the same multiplier across all champion teams.
+
+Worked cutoffs:
+
+| Reference mid | Max distance | Scored band |
+| :-- | :-- | :-- |
+| 16.00% | 2.00 cents | 14.00% to 18.00% |
+| 6.00% | 2.00 cents | 4.00% to 8.00% |
+| 98.50% | 2.00 cents | 96.50% to 99.00% |
+
+## Probability-weighted scoring
+
+At the end of the daily reward period, each eligible team's average daily Hyperliquid mid is converted into a normalized probability weight:
+
+```text
+daily_mean_hyperliquid_mid = average hyperliquid_mid across valid blocks for the team
+probability_weight         = daily_mean_hyperliquid_mid
+normalization_total        = sum(probability_weight across eligible teams)
+team_score_weightage       = probability_weight / normalization_total
+
+final_team_block_score     = block_score * team_score_weightage
+```
+
+Reward weight follows the market's own probability distribution, so attention flows to eligible teams with more trading interest. Probability weights can sum to more than 100% before normalization, but `team_score_weightage` is the actual normalized weight and always sums to 1.00 across eligible teams.
+
+The eligible team list is published each day. Example weightings may be published alongside it for reference; those figures are illustrative and are not a guaranteed per-team budget.
+
+## Rewards
+
+Quote reward, per maker:
+
+```text
+maker_quote_score  = sum(final_team_block_score across eligible teams and blocks)
+maker_quote_reward = quote_reward_pool * daily_pool * maker_quote_score / total_maker_quote_score
+```
+
+Maker fill reward, per maker-side fill on an eligible, non-eliminated team while the Hyperliquid mid is inside the scoring thresholds and the builder code is used:
+
+```text
+maker_fill_score  = maker_fill_notional_usd * team_score_weightage
+maker_fill_reward = maker_fill_pool * daily_pool * maker_fill_score / total_maker_fill_score
+```
+
+Taker fill reward, per taker-side fill under the same conditions:
+
+```text
+taker_fill_score  = taker_fill_notional_usd * team_score_weightage
+taker_fill_reward = taker_fill_pool * daily_pool * taker_fill_score / total_taker_fill_score
+```
+
+Final payout, per wallet:
+
+```text
+total_reward = maker_quote_reward + maker_fill_reward + taker_fill_reward
+```
+
+---
+
+# Reward program 2: The match markets
+
+## Market structure
+
+Daily match campaigns apply to all World Cup match markets for that reward day. For each match the program scores the mutually exclusive YES outcome books.
+
+Group-stage matches score three YES books:
+
+```text
+Team 1 wins YES
+Team 2 wins YES
+Draw YES
+```
+
+Knockout matches score one selected YES-frame book. The sibling NO placement stream is normalized into that book before scoring, but NO books are not scored as separate reward surfaces:
+
+```text
+Team 1 wins/progresses YES (equivalent to Team 2 loses/knocked out)
+```
+
+## Reward budget
+
+For each match, Monarch publishes the match list, reward amount, scheduled kickoff time, and incentive window at the 09:00 UTC update before the incentive window begins.
+
+```text
+reward_period     = match incentive window
+quote_reward_pool = 50%
+maker_fill_pool   = 40%
+taker_fill_pool   = 10%
+payout_method     = pro-rata by score
+```
+
+Match reward amounts are set by tournament stage:
+
+| Stage | Reward amount |
+| :-- | :-- |
+| Group stage | 320 USD per match |
+| Round of 32 | 200 USD per match |
+| Round of 16 | 400 USD per match |
+| Quarter finals | 600 USD per match |
+| Semi finals | 1,000 USD per match |
+| Third place | 600 USD for the match |
+| Final | 2,000 USD for the match |
+
+The match reward is split equally across all match outcomes, so the program buys liquidity across the full match surface:
+
+```text
+match_outcome_count     = number of match outcomes
+outcome_reward_amount   = match_reward_amount / match_outcome_count
+outcome_quote_pool      = 50% * outcome_reward_amount
+outcome_maker_fill_pool = 40% * outcome_reward_amount
+outcome_taker_fill_pool = 10% * outcome_reward_amount
+```
+
+## Incentive window
+
+```text
+incentive_start_time = scheduled_kickoff_time - 24 hours
+incentive_end_time   = final whistle, or when penalties are resolved if the match goes to penalties
+```
+
+Orders and trades only score inside the window. This gives makers time to build pre-match liquidity while keeping rewards focused on markets close enough to kickoff to matter. The 09:00 UTC publication includes the match id, reward amount, scheduled kickoff time, incentive start time, incentive end rule, status, live multiplier, and scored outcomes.
+
+## Scoreable blocks
+
+A block scores only where the market can support useful trading and the mid is inside the scoring thresholds:
+
+```text
+block is inside the match incentive window
+market is active and not resolved
+hyperliquid_mid is available
+current_hyperliquid_mid >= 1.00% and current_hyperliquid_mid <= 99.00%
+```
+
+Blocks before the start time or after the end time score zero. If the mid leaves the 1.00% to 99.00% band, those blocks score zero and resume when it returns. If a market is paused, halted, cancelled, stale, or missing a reliable mid, those blocks score zero. If a market resolves or becomes impossible to trade normally, scoring stops immediately.
+
+## Live match multiplier
+
+Liquidity and fills during the live match receive a 3x multiplier, directing rewards toward the period when match markets need liquidity most:
+
+```text
+if the match is live:
+    live_multiplier = 3
+else:
+    live_multiplier = 1
+```
+
+The live window runs from the kickoff whistle to the final whistle, or until penalties are resolved. It does not apply before kickoff, after the match ends, while the market is paused or halted, or when normal live trading is not supported.
+
+## Distance multiplier
+
+Match markets move quickly, so the program uses a fixed 2.00 cent depth cutoff on both bid and ask sides with a spread curve that still pays more for liquidity closer to fair value:
+
+```text
+distance_cents     = abs(order_price - hyperliquid_mid) * 100
+max_distance_cents = 2.00
+
+if distance_cents <= max_distance_cents:
+    distance_multiplier = (2 - distance_cents) ^ 2
+else:
+    distance_multiplier = 0
+```
+
+An order at the mid earns a multiplier of 4.00x, falling to zero at exactly 2.00 cents away. Orders more than 2.00 cents from the mid score zero.
+
+## Quote depth score with the live multiplier
+
+The live multiplier is applied to each side score before the balance ratio:
+
+```text
+base_bid_side_score = sum(bid_order_notional_usd * distance_multiplier)
+base_ask_side_score = sum(ask_order_notional_usd * distance_multiplier)
+
+bid_side_score = base_bid_side_score * live_multiplier
+ask_side_score = base_ask_side_score * live_multiplier
+
+depth_score          = bid_side_score + ask_side_score
+balance_ratio        = min(bid_side_score, ask_side_score) / max(bid_side_score, ask_side_score)
+                       (0 if one side scores nothing)
+two_sided_multiplier = 1 + 2 * balance_ratio
+
+match_block_score    = depth_score * two_sided_multiplier   if the 50 USD minimum is met, else 0
+```
+
+## Rewards
+
+Quote reward, per maker, summed over scored outcomes:
+
+```text
+maker_outcome_quote_score  = sum(match_block_score across eligible blocks)
+maker_outcome_quote_reward = outcome_quote_pool * maker_outcome_quote_score / total_maker_outcome_quote_score
+maker_quote_reward         = sum(maker_outcome_quote_reward across matches and scored outcomes)
+```
+
+Maker fill reward, per maker-side fill on a scored outcome under the block conditions and builder code:
+
+```text
+maker_outcome_fill_score  = maker_fill_notional_usd * live_multiplier
+maker_outcome_fill_reward = outcome_maker_fill_pool * maker_outcome_fill_score / total_maker_outcome_fill_score
+maker_fill_reward         = sum(maker_outcome_fill_reward across matches and scored outcomes)
+```
+
+Taker fill reward, per taker-side fill under the same conditions:
+
+```text
+taker_outcome_fill_score  = taker_fill_notional_usd * live_multiplier
+taker_outcome_fill_reward = outcome_taker_fill_pool * taker_outcome_fill_score / total_taker_outcome_fill_score
+taker_fill_reward         = sum(taker_outcome_fill_reward across matches and scored outcomes)
+```
+
+Final payout, per wallet:
+
+```text
+total_reward = maker_quote_reward + maker_fill_reward + taker_fill_reward
+```
+
+---
+
+# Exclusions
+
+Across both programs, the following do not score:
+
+- Markets that are paused, halted, cancelled, stale, or resolved.
+- Blocks outside the eligible period (the reward day for the champion market, the incentive window for matches).
+- Blocks without a reliable reference mid.
+- Champion blocks where the Hyperliquid mid is 5.00% or below, or above 99.00%.
+- Match blocks where the Hyperliquid mid is below 1.00% or above 99.00%.
+- Orders outside the scored band (2.00 cents for both the champion market and match markets).
+- Teams that were not eligible at reward-day start, and eliminated teams (champion market).
+- NO books as separate reward surfaces; NO-placed liquidity and fills score once when they belong to the selected sibling and are normalized into the selected YES-frame book.
+- Orders or trades that do not use the `Outcomexyz` builder code.
+- Self-trades, related-wallet churn, wash trading, and circular volume.
+
+These exclusions remove the most obvious ways to be paid for liquidity that is stale, duplicated, fake, unattributable, or not useful.
+
+# Payout and settlement
+
+Rewards are paid in USDC on Hyperliquid, pro-rata within each reward pool, based on each wallet's share of the scored activity. There are no fixed per-wallet caps. Champion rewards are calculated each day; match rewards are calculated per incentive window. Only orders and trades placed on [Outcome.xyz](http://Outcome.xyz) with the `Outcomexyz` builder code are eligible.
+
+# Quick reference
+
+|  | Champion market | Match markets |
+| :-- | :-- | :-- |
+| Scope | One market, full tournament, eligible teams published daily | Every match, published daily |
+| Reward period | 1 day | Match incentive window |
+| Budget | 600 USD per day | Per-match amount set by stage table |
+| Split | 50 / 40 / 10 | 50 / 40 / 10 |
+| Scored books | Each team's YES-frame book | Mutually exclusive match outcome books |
+| Distance cutoff | Fixed 2.00 cents | Fixed 2.00 cents |
+| At-mid multiplier | 4.00x | 4.00x |
+| Live multiplier | None | 3x during live play |
+| Weighting | Probability-weighted over eligible teams, normalized | Equal split across all match outcomes |
+| Scoring thresholds | Above 5.00%, up to 99.00% | 1.00% to 99.00% |
+| Minimum depth | 50 USD raw in-band bid\+ask notional | 50 USD raw in-band bid\+ask notional |
+| Two-sided multiplier | 1.00x to 3.00x | 1.00x to 3.00x |

@@ -7,8 +7,7 @@ description: "Subscribe to live order book updates, price ticks, and trade strea
 The SDK maintains a single shared WebSocket connection to Hyperliquid and multiplexes all subscriptions over it. You subscribe to a market, receive a callback on every update, and call the returned unsubscribe function when you're done. Reconnection and subscription restoration happen automatically in the background.
 
 <Note>
-  All subscriptions-order book, price, and trades-share one WebSocket
-  connection. Opening multiple subscriptions does not open multiple connections.
+  All subscriptions-order book, price, and trades-share one WebSocket connection. Opening multiple subscriptions does not open multiple connections.
 </Note>
 
 ## Subscribe to the order book
@@ -17,6 +16,12 @@ The SDK maintains a single shared WebSocket connection to Hyperliquid and multip
 
 ```typescript
 import { createHIP4Adapter } from "@outcome.xyz/hip4";
+
+const hip4 = createHIP4Adapter({ testnet: true });
+await hip4.initialize();
+
+const unsub = hip4.marketData.subscribeOrderBook("516", (book) => {
+  console.log("Bids:", book.bids.slice(0, 3));outcome.xyz/hip4";
 
 const hip4 = createHIP4Adapter({ testnet: true });
 await hip4.initialize();
@@ -54,6 +59,8 @@ unsub();
 const unsub = hip4.marketData.subscribeTrades("516", (trade) => {
   console.log(
     `${trade.side} ${trade.size} @ ${trade.price} - ${new Date(trade.timestamp).toISOString()}`,
+  
+    `${trade.side} ${trade.size} @ ${trade.price} - ${new Date(trade.timestamp).toISOString()}`,
   );
 });
 
@@ -62,8 +69,7 @@ unsub();
 ```
 
 <Tip>
-  Call your unsubscribe function when a component unmounts or a view is hidden
-  to prevent memory leaks and avoid processing updates for stale data.
+  Call your unsubscribe function when a component unmounts or a view is hidden to prevent memory leaks and avoid processing updates for stale data.
 </Tip>
 
 ## Auto-reconnect
@@ -89,6 +95,20 @@ const unsub = createPriceFeed(
   {
     interval: "1h", // candle interval - default: "1h"
     lookbackMs: 7 * 24 * 60 * 60 * 1000, // 7 days of history - default: 14 days
+    sideIndex: 0,outcome.xyz/hip4";
+
+const unsub = createPriceFeed(
+  hip4.marketData,
+  "516",
+  (snap) => {
+    if (!snap.ready) return; // still loading historical candles
+
+    renderChart(snap.candles); // full candle array (historical + live)
+    console.log("Current mid:", snap.currentMid);
+  },
+  {
+    interval: "1h", // candle interval - default: "1h"
+    lookbackMs: 7 * 24 * 60 * 60 * 1000, // 7 days of history - default: 14 days
     sideIndex: 0, // 0 = Yes side, 1 = No side - default: 0
   },
 );
@@ -99,20 +119,20 @@ unsub();
 
 ### PriceFeedOptions
 
-| Field        | Type     | Default | Description                                                                   |
-| ------------ | -------- | ------- | ----------------------------------------------------------------------------- |
-| `interval`   | `string` | `"1h"`  | Candle interval accepted by Hyperliquid (e.g. `"1m"`, `"5m"`, `"1h"`, `"1d"`) |
-| `lookbackMs` | `number` | 14 days | How far back to fetch historical candles, in milliseconds                     |
-| `sideIndex`  | `number` | `0`     | Which side to track - `0` for Yes, `1` for No                                 |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `interval` | `string` | `"1h"` | Candle interval accepted by Hyperliquid (e.g. `"1m"`, `"5m"`, `"1h"`, `"1d"`) |
+| `lookbackMs` | `number` | 14 days | How far back to fetch historical candles, in milliseconds |
+| `sideIndex` | `number` | `0` | Which side to track - `0` for Yes, `1` for No |
 
 ### PriceFeedSnapshot
 
-| Field        | Type                | Description                                                         |
-| ------------ | ------------------- | ------------------------------------------------------------------- |
-| `marketId`   | `string`            | The market ID passed to `createPriceFeed`                           |
-| `candles`    | `PriceFeedCandle[]` | Full OHLCV array: historical candles merged with live ticks         |
-| `currentMid` | `number \| null`    | Latest mid-price received (may be newer than the last candle close) |
-| `ready`      | `boolean`           | `false` until the initial candle fetch completes                    |
+| Field | Type | Description |
+| --- | --- | --- |
+| `marketId` | `string` | The market ID passed to `createPriceFeed` |
+| `candles` | `PriceFeedCandle[]` | Full OHLCV array: historical candles merged with live ticks |
+| `currentMid` | `number | null` | Latest mid-price received (may be newer than the last candle close) |
+| `ready` | `boolean` | `false` until the initial candle fetch completes |
 
 ## Subscribe to account positions
 
