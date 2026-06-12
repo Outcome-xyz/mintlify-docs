@@ -73,11 +73,11 @@
             "group": "Reference",
             "icon": "receipt",
             "pages": [
+              "world-cup-program",
               "fees",
               "risks"
             ]
-          },
-          "world-cup-program"
+          }
         ]
       },
       {
