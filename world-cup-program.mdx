@@ -23,7 +23,7 @@ Three ideas apply across the program:
 
 - **Near fair value.** Only orders inside a scored band around the current mid earn, and orders closer to the mid earn more.
 - **Two-sided earns more.** One-sided liquidity can score, but balanced two-sided liquidity receives a multiplier of up to 3x.
-- **Useful.** Quotes that actually get filled earn an additional reward, and a smaller share is set aside for the takers who use that liquidity.
+- **Useful.** Quotes that actually get filled earn an additional reward, and a share is also set aside for the takers who use that liquidity.
 
 ## Shared concepts
 
@@ -41,11 +41,11 @@ Within each reward budget, the same split applies:
 
 | Component | Share | What it pays for |
 | :-- | :-- | :-- |
-| Quote rewards | 50% | Sustained displayed depth near fair value. |
-| Maker fill rewards | 40% | Maker-side fills, proving the displayed liquidity was actually useful. |
-| Taker fill rewards | 10% | Taker-side fills, to bootstrap real usage. |
+| Quote rewards | 40% | Sustained displayed depth near fair value. |
+| Maker fill rewards | 30% | Maker-side fills, proving the displayed liquidity was actually useful. |
+| Taker fill rewards | 30% | Taker-side fills, to bootstrap real usage. |
 
-Maker fill rewards pay the execution of resting orders. Combined with the quote rewards, the large majority of every budget flows to liquidity providers, with a smaller taker incentive on top.
+Maker fill rewards pay the execution of resting orders. Combined with the quote rewards, the majority of every budget flows to liquidity providers, with a meaningful taker incentive on top.
 
 ### Builder code eligibility
 
@@ -100,9 +100,9 @@ The two-sided multiplier ranges from 1.00x for fully one-sided liquidity to 3.00
 ```text
 daily_pool        = 600 USD
 reward_period     = 1 day
-quote_reward_pool = 50%
-maker_fill_pool   = 40%
-taker_fill_pool   = 10%
+quote_reward_pool = 40%
+maker_fill_pool   = 30%
+taker_fill_pool   = 30%
 payout_method     = pro-rata by probability-weighted score
 ```
 
@@ -230,9 +230,9 @@ For each match, Monarch publishes the match list, reward amount, scheduled kicko
 
 ```text
 reward_period     = match incentive window
-quote_reward_pool = 50%
-maker_fill_pool   = 40%
-taker_fill_pool   = 10%
+quote_reward_pool = 40%
+maker_fill_pool   = 30%
+taker_fill_pool   = 30%
 payout_method     = pro-rata by score
 ```
 
@@ -256,15 +256,15 @@ The match reward is split equally across all match outcomes, so the program buys
 ```text
 match_outcome_count     = number of match outcomes
 outcome_reward_amount   = match_reward_amount / match_outcome_count
-outcome_quote_pool      = 50% * outcome_reward_amount
-outcome_maker_fill_pool = 40% * outcome_reward_amount
-outcome_taker_fill_pool = 10% * outcome_reward_amount
+outcome_quote_pool      = 40% * outcome_reward_amount
+outcome_maker_fill_pool = 30% * outcome_reward_amount
+outcome_taker_fill_pool = 30% * outcome_reward_amount
 ```
 
 ## Incentive window
 
 ```text
-incentive_start_time = scheduled_kickoff_time - 24 hours
+incentive_start_time = scheduled_kickoff_time - 12 hours
 incentive_end_time   = final whistle, or when penalties are resolved if the match goes to penalties
 ```
 
@@ -285,11 +285,11 @@ Blocks before the start time or after the end time score zero. If the mid leaves
 
 ## Live match multiplier
 
-Liquidity and fills during the live match receive a 3x multiplier, directing rewards toward the period when match markets need liquidity most:
+Liquidity and fills during the live match receive a 5x multiplier, directing rewards toward the period when match markets need liquidity most:
 
 ```text
 if the match is live:
-    live_multiplier = 3
+    live_multiplier = 5
 else:
     live_multiplier = 1
 ```
@@ -393,11 +393,11 @@ Rewards are paid in USDC on Hyperliquid, pro-rata within each reward pool, based
 | Scope | One market, full tournament, eligible teams published daily | Every match, published daily |
 | Reward period | 1 day | Match incentive window |
 | Budget | 600 USD per day | Per-match amount set by stage table |
-| Split | 50 / 40 / 10 | 50 / 40 / 10 |
+| Split | 40 / 30 / 30 | 40 / 30 / 30 |
 | Scored books | Each team's YES-frame book | Mutually exclusive match outcome books |
 | Distance cutoff | Fixed 2.00 cents | Fixed 2.00 cents |
 | At-mid multiplier | 4.00x | 4.00x |
-| Live multiplier | None | 3x during live play |
+| Live multiplier | None | 5x during live play |
 | Weighting | Probability-weighted over eligible teams, normalized | Equal split across all match outcomes |
 | Scoring thresholds | Above 5.00%, up to 99.00% | 1.00% to 99.00% |
 | Minimum depth | 50 USD raw in-band bid\+ask notional | 50 USD raw in-band bid\+ask notional |
