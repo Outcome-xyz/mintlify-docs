@@ -39,10 +39,12 @@ hip4.wallet.setSigner({
 | `setSigner(signer)` | - | Set the user's wallet for EIP-712 operations |
 | `buyUsdh(amount)` | L1 agent | Buy USDH on spot; priced at oracle × 1.1, IOC |
 | `sellUsdh(amount)` | L1 agent | Sell USDH on spot; priced at oracle × 0.9, IOC |
+| `sellHype(amount)` | L1 agent | Sell HYPE on the HYPE/USDC spot market; size floored to 2 decimals |
 | `transferToSpot(amount)` | EIP-712 | Transfer USDC from perp → spot |
 | `transferToPerps(amount)` | EIP-712 | Transfer USDC from spot → perp |
 | `withdraw({ destination, amount })` | EIP-712 | Withdraw USDC to an external address |
 | `usdSend({ destination, amount })` | EIP-712 | Send USDC to another Hyperliquid address |
+| `agentSetAbstraction(mode)` | L1 agent | Switch the master account's abstraction mode (`"u"` / `"p"` / `"i"`) |
 
 All amounts are strings representing USDC or USDH quantities with up to 6 decimal places (e.g. `"100"`, `"25.50"`).
 
@@ -59,7 +61,7 @@ interface WalletActionResult {
 }
 ```
 
-Check `success` before reading `filledSz` and `avgPx`. These fields are only populated for `buyUsdh` and `sellUsdh`.
+Check `success` before reading `filledSz` and `avgPx`. These fields are only populated for the spot-order methods (`buyUsdh`, `sellUsdh`, and `sellHype`).
 
 ## Deposit flow
 
@@ -108,8 +110,43 @@ if (!withdrawal.success) {
 }
 ```
 
+## `sellHype(amount)`
+
+Sells HYPE on the **HYPE/USDC** spot market (not USDH). Use this to convert HYPE - for example, balance received on Hypercore - back into USDC. Like `buyUsdh`/`sellUsdh`, it is an IOC spot order signed with the L1 agent key.
+
+The `amount` is a HYPE quantity string. HYPE has 2 size decimals on the spot market, so the size is **floored** (`ROUND_DOWN`) to 2 decimal places before submission - never rounded up - so a sell can never exceed your HYPE balance.
+
+```typescript
+// Sell 1.006 HYPE → floored to 1.00 before submission
+const sell = await hip4.wallet.sellHype("1.006");
+if (!sell.success) {
+  throw new Error(`Sell failed: ${sell.error}`);
+}
+
+console.log(`Sold ${sell.filledSz} HYPE at avg price ${sell.avgPx}`);
+```
+
+The correct HYPE/USDC spot index is selected automatically from the adapter's `testnet` flag (`107` on mainnet, `1035` on testnet).
+
+## `agentSetAbstraction(mode)`
+
+Switches the master account's abstraction mode using the approved agent key. This is an L1 agent-signed action, so the agent must be initialized first.
+
+```typescript
+const res = await hip4.wallet.agentSetAbstraction("u");
+if (!res.success) {
+  throw new Error(`Set abstraction failed: ${res.error}`);
+}
+```
+
+| Mode | Meaning |
+|------|---------|
+| `"u"` | Unified account - merges spot and perps into a single balance |
+| `"p"` | Portfolio margin |
+| `"i"` | Disabled (abstraction off) |
+
 <Warning>
-  `buyUsdh` and `sellUsdh` require the agent to be initialized first. Call `hip4.auth.initAuth(walletAddress, agentSigner)` before invoking either method, or they will fail with a signing error.
+  `buyUsdh`, `sellUsdh`, `sellHype`, and `agentSetAbstraction` require the agent to be initialized first. Call `hip4.auth.initAuth(walletAddress, agentSigner)` before invoking any of them, or they will fail with a `"Not authenticated"` error.
 </Warning>
 
 <Warning>

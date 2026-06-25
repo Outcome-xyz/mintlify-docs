@@ -143,8 +143,8 @@ All wallet methods return a `WalletActionResult`. Spot buy/sell operations also 
 | ---------- | --------- | ----------------------------------------------------- |
 | `success`  | `boolean` | `true` if the operation completed without error       |
 | `error`    | `string`  | Present when `success` is `false`                     |
-| `filledSz` | `string`  | Filled size - only on `buyUsdh` and `sellUsdh`        |
-| `avgPx`    | `string`  | Average fill price - only on `buyUsdh` and `sellUsdh` |
+| `filledSz` | `string`  | Filled size - only on `buyUsdh`, `sellUsdh`, `sellHype`        |
+| `avgPx`    | `string`  | Average fill price - only on `buyUsdh`, `sellUsdh`, `sellHype` |
 
 ## Signing summary
 
@@ -154,6 +154,8 @@ Each wallet method uses a different signing mechanism. Make sure both signers ar
 | ----------------- | ---------------- | ---------------------------------- |
 | `buyUsdh`         | L1 agent signing | Agent key (`auth.initAuth`)        |
 | `sellUsdh`        | L1 agent signing | Agent key (`auth.initAuth`)        |
+| `sellHype`        | L1 agent signing | Agent key (`auth.initAuth`)        |
+| `agentSetAbstraction` | L1 agent signing | Agent key (`auth.initAuth`)    |
 | `transferToSpot`  | EIP-712          | User's wallet (`wallet.setSigner`) |
 | `transferToPerps` | EIP-712          | User's wallet (`wallet.setSigner`) |
 | `withdraw`        | EIP-712          | User's wallet (`wallet.setSigner`) |

@@ -6,6 +6,18 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
+<Update label="1.0.2-beta" description="June 25, 2026">
+  ### Added
+
+  - **`wallet.sellHype(amount)`** - sell HYPE on the HYPE/USDC spot market. Size is floored to HYPE's 2 decimals (`ROUND_DOWN`) so a sell never exceeds your balance. See [Wallet](/sdk/reference/wallet-adapter).
+  - **`wallet.agentSetAbstraction("u" | "p" | "i")`** - switch the master account's abstraction mode (`"u"` unified account, `"p"` portfolio margin, `"i"` disabled) via the approved agent key. See [Wallet](/sdk/reference/wallet-adapter).
+  - **`client.fetchUserNonFundingLedgerUpdates(user)`** - REST counterpart of the `userNonFundingLedgerUpdates` channel (deposits, withdrawals, transfers), returned newest-first.
+  - **`participantsCount` on `checkRewards` results** - total distinct participants for the epoch, independent of the `wallet` filter. See [Liquidity Rewards](/sdk/reference/liquidity-rewards).
+  - Exported `HYPE_USDC_SPOT_INDEX_MAINNET` / `HYPE_USDC_SPOT_INDEX_TESTNET` constants and `HLLedgerUpdate`, `HLLedgerDelta`, `HLWebData3`, `HLClearinghouseState`, `HLFrontendOrder` types from the root entry point.
+
+  [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.0.1-beta...v1.0.2-beta)
+</Update>
+
 <Update label="1.0.1-beta" description="June 11, 2026">
   ### Added
 

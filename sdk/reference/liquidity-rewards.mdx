@@ -88,7 +88,7 @@ const rewards = await s1.checkRewards({ wallet: "0x..." });
 const all = await s1.checkRewards({ date: "2026-06-12" });
 ```
 
-The result carries the same epoch fields as `checkEligibility` plus `scores: LiquidityRewardsScore[]` - one row per (wallet, scored book):
+The result carries the same epoch fields as `checkEligibility`, a `participantsCount` total, and `scores: LiquidityRewardsScore[]` - one row per (wallet, scored book):
 
 | Field | Description |
 | --- | --- |
@@ -104,6 +104,8 @@ The result carries the same epoch fields as `checkEligibility` plus `scores: Liq
 | `cumulativeRewardUsdc` | Total earned through this epoch; `null` until finalized |
 
 All numeric values are decimal strings, consistent with the rest of the SDK.
+
+`participantsCount` is the total number of distinct wallets that scored that day. It is reported independently of the `wallet` filter, so it stays the full epoch count even when you pass a `wallet` and `scores` is narrowed to a single row. When the backend omits the field, the SDK falls back to the distinct-wallet count of the returned scores.
 
 <Note>
   An empty `scores` array for an upcoming epoch is normal "no scores yet", not an error.
