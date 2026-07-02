@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs';
+import { marked } from 'marked';
 
 // --- Env validation ---
 const INTERCOM_TOKEN = process.env.INTERCOM_TOKEN;
@@ -85,6 +86,8 @@ async function sync() {
       const res = await fetch(`${DOCS_BASE}/${page.slug}.md`);
       if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${page.slug}.md`);
       const body = await res.text();
+      body = body.replace(/!\[.*?\]\(.*?\)/g, '');
+      body = marked.parse(body);
 
       const slug = page.slug.split('/').pop();
       const title = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());

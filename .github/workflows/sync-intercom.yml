@@ -14,7 +14,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+      - run: npm install marked
       - run: node scripts/sync-docs-to-intercom.mjs
         env:
           INTERCOM_TOKEN: ${{ secrets.INTERCOM_TOKEN }}
