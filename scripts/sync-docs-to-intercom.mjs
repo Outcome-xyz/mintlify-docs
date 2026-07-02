@@ -67,7 +67,8 @@ async function fetchAllPages(basePath) {
 }
 
 function slugToTitle(slug) {
-  return slug.split('/').pop().replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const prefix = slug.startsWith('sdk/') ? 'SDK: ' : '';
+  return prefix + slug.split('/').pop().replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 // --- Main sync ---
