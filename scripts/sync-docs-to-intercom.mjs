@@ -85,7 +85,7 @@ async function sync() {
     try {
       const res = await fetch(`${DOCS_BASE}/${page.slug}.md`);
       if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${page.slug}.md`);
-      const body = await res.text();
+      let body = await res.text();
       body = body.replace(/!\[.*?\]\(.*?\)/g, '');
       body = marked.parse(body);
 
