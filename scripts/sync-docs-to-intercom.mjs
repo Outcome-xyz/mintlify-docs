@@ -29,7 +29,7 @@ function extractPages(pages, group) {
 
 const PAGES = [];
 for (const tab of docsJson.navigation.tabs) {
-  if (tab.href) continue; // skip external tabs (Support)
+  if (tab.href) continue;
   const pages = tab.pages ?? tab.groups?.flatMap(g => extractPages(g.pages, g.group)) ?? [];
   PAGES.push(...extractPages(pages, tab.tab));
 }
@@ -49,28 +49,40 @@ async function intercomRequest(method, path, body) {
   return res.json();
 }
 
-async function fetchAllPages(path) {
+async function fetchAllPages(basePath) {
   const results = [];
-  let url = `${path}${path.includes('?') ? '&' : '?'}per_page=250&page=1`;
-  while (url) {
+  let startingAfter = null;
+
+  while (true) {
+    const url = startingAfter
+      ? `${basePath}?per_page=250&starting_after=${startingAfter}`
+      : `${basePath}?per_page=250`;
     const data = await intercomRequest('GET', url);
     results.push(...data.data);
-    url = data.pages?.next ?? null;
+    if (!data.pages?.next?.starting_after) break;
+    startingAfter = data.pages.next.starting_after;
   }
+
   return results;
+}
+
+function slugToTitle(slug) {
+  return slug.split('/').pop().replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 // --- Main sync ---
 async function sync() {
+  console.log(`INTERCOM_TOKEN set: ${!!INTERCOM_TOKEN}`);
+  console.log(`AUTHOR_ID set: ${!!AUTHOR_ID}`);
+  console.log(`Pages to sync: ${PAGES.length}`);
+
   const [allCollections, allArticles] = await Promise.all([
     fetchAllPages('help_center/collections'),
     fetchAllPages('articles'),
   ]);
 
   const collectionByName = Object.fromEntries(allCollections.map(c => [c.name, c.id]));
-  const articleBySlug = Object.fromEntries(
-    allArticles.filter(a => a.url).map(a => [a.url.split('/').pop(), a.id])
-  );
+  const articleByTitle = Object.fromEntries(allArticles.map(a => [a.title, a.id]));
 
   const missingCollections = [...new Set(PAGES.map(p => p.collection))].filter(c => !collectionByName[c]);
   if (missingCollections.length) {
@@ -89,8 +101,7 @@ async function sync() {
       body = body.replace(/!\[.*?\]\(.*?\)/g, '');
       body = marked.parse(body);
 
-      const slug = page.slug.split('/').pop();
-      const title = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      const title = slugToTitle(page.slug);
 
       const payload = {
         title,
@@ -101,8 +112,8 @@ async function sync() {
         parent_type: 'collection',
       };
 
-      if (articleBySlug[slug]) {
-        await intercomRequest('PUT', `articles/${articleBySlug[slug]}`, payload);
+      if (articleByTitle[title]) {
+        await intercomRequest('PUT', `articles/${articleByTitle[title]}`, payload);
         console.log(`Updated: ${title}`);
         updated++;
       } else {
@@ -121,4 +132,7 @@ async function sync() {
   if (failed > 0) process.exit(1);
 }
 
-sync();
+sync().catch(err => {
+  console.error('Unexpected error:', err);
+  process.exit(1);
+});
