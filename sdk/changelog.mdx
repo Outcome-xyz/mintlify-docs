@@ -6,6 +6,15 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
+<Update label="1.0.3-beta" description="July 6, 2026">
+  ### Fixed
+
+  - **Shared WebSocket subscriptions are now reference-counted.** When several consumers subscribe with the same payload (e.g. multiple `createPriceFeed` instances on the `allMids` feed), they share one underlying wire subscription. Previously the first consumer to unsubscribe tore down the stream for every remaining subscriber - and the reconnect path never restored it. The wire unsubscribe now fires only when the last subscriber leaves. See [Real-time data](/sdk/guides/real-time-data).
+  - **The returned unsubscribe function is idempotent.** Calling it more than once is safe - a second call is a no-op and does not affect other subscribers (React Strict Mode invokes effect cleanups twice).
+
+  [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.0.2-beta...v1.0.3-beta)
+</Update>
+
 <Update label="1.0.2-beta" description="June 25, 2026">
   ### Added
 

@@ -72,6 +72,10 @@ unsub();
   Call your unsubscribe function when a component unmounts or a view is hidden to prevent memory leaks and avoid processing updates for stale data.
 </Tip>
 
+<Note>
+  Unsubscribe is safe to call more than once - a second call is a no-op (handy under React Strict Mode, which runs effect cleanups twice). And when several parts of your app subscribe to the same market, one unsubscribing never stops updates for the others: the shared subscription is reference-counted and only torn down when the last subscriber leaves.
+</Note>
+
 ## Auto-reconnect
 
 The WebSocket reconnects automatically if the connection drops. The retry schedule uses exponential backoff starting at 1 second, capped at 30 seconds, with a maximum of 10 attempts. Once reconnected, all active subscriptions are restored without any action on your part.
