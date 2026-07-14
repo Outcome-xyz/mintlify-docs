@@ -1,5 +1,15 @@
 import { readFileSync } from 'fs';
 import { marked } from 'marked';
+import { PostHog } from 'posthog-node';
+
+const posthog = new PostHog(process.env.POSTHOG_API_KEY, {
+  host: process.env.POSTHOG_HOST,
+  enableExceptionAutocapture: true,
+  flushAt: 1,
+  flushInterval: 0,
+});
+
+const SYNC_DISTINCT_ID = 'sync-bot';
 
 // --- Env validation ---
 const INTERCOM_TOKEN = process.env.INTERCOM_TOKEN;
@@ -77,6 +87,12 @@ async function sync() {
   console.log(`AUTHOR_ID set: ${!!AUTHOR_ID}`);
   console.log(`Pages to sync: ${PAGES.length}`);
 
+  posthog.capture({
+    distinctId: SYNC_DISTINCT_ID,
+    event: 'sync started',
+    properties: { page_count: PAGES.length },
+  });
+
   const [allCollections, allArticles] = await Promise.all([
     fetchAllPages('help_center/collections'),
     fetchAllPages('articles'),
@@ -89,6 +105,7 @@ async function sync() {
   if (missingCollections.length) {
     console.error(`Missing Intercom collections: ${missingCollections.join(', ')}`);
     console.error('Create them in Intercom → Help Center → Collections, then re-run.');
+    await posthog.shutdown();
     process.exit(1);
   }
 
@@ -117,23 +134,49 @@ async function sync() {
         await intercomRequest('PUT', `articles/${articleByTitle[title]}`, payload);
         console.log(`Updated: ${title}`);
         updated++;
+        posthog.capture({
+          distinctId: SYNC_DISTINCT_ID,
+          event: 'intercom article updated',
+          properties: { slug: page.slug, title, collection: page.collection },
+        });
       } else {
         await intercomRequest('POST', 'articles', payload);
         console.log(`Created: ${title}`);
         created++;
+        posthog.capture({
+          distinctId: SYNC_DISTINCT_ID,
+          event: 'intercom article created',
+          properties: { slug: page.slug, title, collection: page.collection },
+        });
       }
     } catch (err) {
       console.error(`Failed: ${page.slug} — ${err.message}`);
       failed++;
+      posthog.capture({
+        distinctId: SYNC_DISTINCT_ID,
+        event: 'intercom article sync failed',
+        properties: { slug: page.slug, error_message: err.message },
+      });
+      posthog.captureException(err, SYNC_DISTINCT_ID, { slug: page.slug });
     }
   }
 
   console.log(`\nDone. Created: ${created}, Updated: ${updated}, Failed: ${failed}`);
 
+  posthog.capture({
+    distinctId: SYNC_DISTINCT_ID,
+    event: 'sync completed',
+    properties: { created, updated, failed, total: PAGES.length },
+  });
+
+  await posthog.shutdown();
+
   if (failed > 0) process.exit(1);
 }
 
-sync().catch(err => {
+sync().catch(async (err) => {
   console.error('Unexpected error:', err);
+  posthog.captureException(err, SYNC_DISTINCT_ID);
+  await posthog.shutdown();
   process.exit(1);
 });

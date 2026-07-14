@@ -1,6 +1,7 @@
 {
   "type": "module",
   "dependencies": {
-    "marked": "15.0.12"
+    "marked": "15.0.12",
+    "posthog-node": "^5.41.0"
   }
 }
