@@ -20,3 +20,16 @@ jobs:
         env:
           INTERCOM_TOKEN: ${{ secrets.INTERCOM_TOKEN }}
           INTERCOM_AUTHOR_ID: ${{ secrets.INTERCOM_AUTHOR_ID }}
+
+  sync-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: node scripts/sync-docs-to-intercom.mjs
+        env:
+          INTERCOM_TOKEN: ${{ secrets.INTERCOM_TOKEN_PROD }}
+          INTERCOM_AUTHOR_ID: ${{ secrets.INTERCOM_AUTHOR_ID_PROD }}
