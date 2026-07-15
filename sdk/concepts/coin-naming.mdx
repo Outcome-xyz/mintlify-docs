@@ -1,7 +1,7 @@
 ---
 title: "HIP-4 Coin Names, Asset IDs, and Side Conventions"
 sidebarTitle: "Coin naming"
-description: "The two coin formats used in HIP-4, how asset IDs are computed, the coin helper functions, sideIndex conventions, and the USDH collateral token."
+description: "The two coin formats used in HIP-4, how asset IDs are computed, the coin helper functions and sideIndex conventions."
 ---
 
 HIP-4 uses two distinct coin name formats to represent prediction market instruments. One format identifies an outcome at the AMM level and is used for price lookups. The other identifies a specific tradeable side within that outcome and is what you use when placing orders, reading order books, or querying fills. Understanding which format to use - and how the SDK's helper functions convert between them - is essential for working with market data and the trading API.
@@ -60,16 +60,10 @@ For example, outcome 516, side 0:
 100_000_000 + 516 * 10 + 0 = 100_005_160
 ```
 
-**Spot tokens (including USDH):**
+**Spot tokens (including USDC):**
 
 ```
 assetId = 10_000 + spotIndex
-```
-
-For example, USDH (spot index 1338):
-
-```
-10_000 + 1338 = 11_338
 ```
 
 The two ranges don't overlap, so the format tells you what kind of token you're looking at.
@@ -149,29 +143,4 @@ For labelled binary markets, the names can be anything:
 ```typescript
 market.sides[0].name; // "Hypurr"
 market.sides[1].name; // "Usain Bolt"
-```
-
-## USDH: the collateral token
-
-<Note>
-  Outcome is migrating to native USDC settlement, but mainnet still defaults to USDH per outcome (each outcome carries its own `quoteToken`, exposed as `market.raw.quoteToken`). The USDH collateral token and `buyUsdh` / `sellUsdh` described below remain in use during the transition.
-</Note>
-
-USDH is the collateral token used for all HIP-4 prediction market trading. It is a spot token - not a HIP-4 outcome - traded on the USDH/USDC pair.
-
-| Property       | Value                     |
-| -------------- | ------------------------- |
-| Spot index     | `1338`                    |
-| Asset ID       | `11338` (`10_000 + 1338`) |
-| Spot pair name | `@1338`                   |
-
-You don't trade USDH directly against outcomes; instead, you hold USDH as your account balance and the SDK uses it as the settlement currency when you buy or sell outcome sides. To acquire USDH, use `hip4.wallet.buyUsdh`. To convert it back, use `hip4.wallet.sellUsdh`.
-
-```typescript
-// Fund your account with 100 USDH
-await hip4.wallet.transferToSpot("100"); // USDC: Perp → Spot
-await hip4.wallet.buyUsdh("100"); // buy USDH with USDC
-
-// Check USDH balance
-const balances = await hip4.account.fetchBalance(address);
 ```
