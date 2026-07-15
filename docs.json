@@ -24,7 +24,7 @@
     "tabs": [
       {
         "tab": "Documentation",
-        "groups": [
+        "pages": [
           {
             "group": "Get started",
             "icon": "rocket",
@@ -73,6 +73,7 @@
             "group": "Reference",
             "icon": "receipt",
             "pages": [
+              "world-cup-program",
               "fees",
               "risks"
             ]
@@ -118,6 +119,20 @@
             "pages": [
               "sdk/reference/utilities",
               "sdk/reference/types"
+            ]
+          },
+          {
+            "group": "Rewards",
+            "icon": "trophy",
+            "pages": [
+              "sdk/reference/liquidity-rewards"
+            ]
+          },
+          {
+            "group": "Changelog",
+            "icon": "history",
+            "pages": [
+              "sdk/changelog"
             ]
           }
         ]

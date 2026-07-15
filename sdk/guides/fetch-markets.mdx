@@ -12,6 +12,7 @@ The events adapter gives you structured access to every HIP-4 prediction market 
 
 ```typescript
 import { createHIP4Adapter } from "@outcome.xyz/hip4";
+import type { HIP4Market } from "@outcome.xyz/hip4outcome.xyz/hip4";
 import type { HIP4Market } from "@outcome.xyz/hip4";
 
 const hip4 = createHIP4Adapter({ testnet: true });
@@ -57,6 +58,19 @@ const grouped = (await hip4.events.fetchMarkets({
 const defaultBinaryMarkets = (grouped.defaultBinary ??
   []) as DefaultBinaryMarket[];
 const multiOutcomeMarkets = (grouped.multiOutcome ??
+ 
+  MarketsByType,
+  DefaultBinaryMarket,
+  MultiOutcomeMarket,
+} from "@outcome.xyz/hip4";
+
+const grouped = (await hip4.events.fetchMarkets({
+  groupBy: "type",
+})) as MarketsByType;
+
+const defaultBinaryMarkets = (grouped.defaultBinary ??
+  []) as DefaultBinaryMarket[];
+const multiOutcomeMarkets = (grouped.multiOutcome ??
   []) as MultiOutcomeMarket[];
 ```
 
@@ -66,6 +80,24 @@ Multi-outcome markets share a parent question. Grouping by question returns a `M
 
 ```typescript
 import type { MultiOutcomeMarket } from "@outcome.xyz/hip4";
+
+const byQuestion = (await hip4.events.fetchMarkets({
+  type: "multiOutcome",
+  groupBy: "question",
+})) as Record<string, MultiOutcomeMarket[]>;
+
+for (const [questionId, options] of Object.entries(byQuestion)) {
+  if (questionId === "standalone") continue;
+
+  const first = options[0];
+  console.log(`Question #${questionId}: ${first.questionName}`);
+
+  for (const option of options) {
+    const tag = option.isFallback ? " (fallback)" : "";
+    console.log(`  [${option.outcomeId}] ${option.name}${tag}`);
+    console.log(
+      `    Yes: ${option.sides[0].coin} | No: ${option.sides[1].coin}`,
+    outcome.xyz/hip4";
 
 const byQuestion = (await hip4.events.fetchMarkets({
   type: "multiOutcome",
@@ -135,6 +167,24 @@ m.sides[0].asset; // 100005160
 m.sides[1].name; // "No"
 m.sides[1].coin; // "#5161"
 
+m.raw;outcome.xyz/hip4";
+
+const markets = (await hip4.events.fetchMarkets({
+  type: "defaultBinary",
+})) as DefaultBinaryMarket[];
+const m = markets[0];
+
+m.underlying; // "BTC"
+m.targetPrice; // 69070
+m.expiry; // Date (UTC)
+m.period; // "1d"
+
+m.sides[0].name; // "Yes"
+m.sides[0].coin; // "#5160"  - use this in placeOrder
+m.sides[0].asset; // 100005160
+m.sides[1].name; // "No"
+m.sides[1].coin; // "#5161"
+
 m.raw; // original HLOutcome for direct API access
 ```
 
@@ -164,6 +214,5 @@ const categories = await hip4.events.fetchCategories();
 ```
 
 <Note>
-  Event and outcome metadata is cached for 30 seconds. Subsequent calls within
-  that window return the cached result without hitting the network.
+  Event and outcome metadata is cached for 30 seconds. Subsequent calls within that window return the cached result without hitting the network.
 </Note>
