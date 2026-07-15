@@ -1,1 +1,6 @@
 node_modules/
+
+# Local secrets — PostHog personal API key for the dashboard tooling.
+# The phc_ project token in analytics.js is publishable and belongs in git;
+# the phx_ key here is not.
+.env.local
