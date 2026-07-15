@@ -395,6 +395,15 @@ html.dark .hero-frame {
   margin: 0;
   vertical-align: top;
 }
+/* Theme-locked hero variants. The diagram is an <img>-embedded SVG, so its
+   internal prefers-color-scheme follows the OS, not Mintlify's class-based
+   theme toggle — viewing the docs in dark mode while the OS is light left the
+   SVG painting its light palette on the dark frame. Ship two theme-locked
+   SVGs and switch on html.dark instead. Specificity is set above .hero-frame
+   img (0,1,1) so the inactive variant stays hidden in both modes. */
+.hero-frame img.hero-dark { display: none; }
+html.dark .hero-frame img.hero-light { display: none; }
+html.dark .hero-frame img.hero-dark { display: block; }
 
 /* ─── Light-mode elevated surfaces — match the animation-panel tone.
    Mintlify code blocks have 4 nested layers in light mode, all painted

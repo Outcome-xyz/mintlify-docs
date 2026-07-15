@@ -57,7 +57,7 @@ stripZeros("1.0000");    // "1"
 
 ### `getMinShares(markPx)`
 
-Returns the minimum number of shares required to meet the 10 USDH minimum notional for a given mark price.
+Returns the minimum number of shares required to meet the 10 USDC minimum notional for a given mark price.
 
 ```typescript
 import { getMinShares } from "@outcome.xyz/hip4";
@@ -68,7 +68,7 @@ getMinShares(0.10);    // 100
 
 ### `MIN_NOTIONAL`
 
-The minimum order size in USDH. Currently `10`. Orders below this threshold are rejected before submission.
+The minimum order size in USDC. Currently `10`. Orders below this threshold are rejected before submission.
 
 ```typescript
 import { MIN_NOTIONAL } from "@outcome.xyz/hip4";
@@ -197,13 +197,13 @@ These functions estimate trade cost and potential return from token amounts and 
 
 ### `computeEstimatedCost(tokenAmount, orderType, limitPriceCents, marketPriceCents?)`
 
-Estimates the USDH cost for a given token amount. For limit orders, uses `limitPriceCents`. For market orders, uses `marketPriceCents` when provided, otherwise returns `tokenAmount` as a fallback.
+Estimates the USDC cost for a given token amount. For limit orders, uses `limitPriceCents`. For market orders, uses `marketPriceCents` when provided, otherwise returns `tokenAmount` as a fallback.
 
 ```typescript
 import { computeEstimatedCost } from "@outcome.xyz/hip4";
 
-computeEstimatedCost(100, "limit", 65, undefined);     // 65 USDH
-computeEstimatedCost(100, "market", null, 65);          // 65 USDH
+computeEstimatedCost(100, "limit", 65, undefined);     // 65 USDC
+computeEstimatedCost(100, "market", null, 65);          // 65 USDC
 ```
 
 ### `computeTradeCost(params)`
@@ -221,7 +221,7 @@ const result: TradeCostResult = computeTradeCost({
   marketPriceCents: undefined,
 });
 // {
-//   estimatedCost: 65,       // USDH to spend
+//   estimatedCost: 65,       // USDC to spend
 //   potentialReturn: 100,    // max payout (= tokenAmount)
 //   displayShares: 100,      // shares to show in UI
 // }
@@ -229,7 +229,7 @@ const result: TradeCostResult = computeTradeCost({
 
 ### `computePotentialReturn(tokenAmount)`
 
-Returns the maximum payout for a given number of shares. Each share pays 1 USDH if the outcome resolves in your favor.
+Returns the maximum payout for a given number of shares. Each share pays 1 USDC if the outcome resolves in your favor.
 
 ```typescript
 import { computePotentialReturn } from "@outcome.xyz/hip4";

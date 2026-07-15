@@ -1,10 +1,10 @@
 ---
-title: "Deposit, withdraw, and convert USDH on HIP-4 wallets"
+title: "Deposit, withdraw, and convert USDC on HIP-4 wallets"
 sidebarTitle: "Wallet"
-description: "Deposit USDC, buy and sell USDH, move funds between spot and perps, and withdraw to external addresses using the HIP-4 wallet adapter."
+description: "Deposit USDC, buy and sell USDC, move funds between spot and perps, and withdraw to external addresses using the HIP-4 wallet adapter."
 ---
 
-The wallet adapter (`hip4.wallet`) handles all fund management for HIP-4 prediction trading: moving USDC between your perp and spot accounts, buying and selling USDH on the spot market, and withdrawing funds to external addresses. It relies on two distinct signers - one for user-authorized EIP-712 operations, and one for L1 agent-signed spot orders - so you need to configure both before using the full method surface.
+The wallet adapter (`hip4.wallet`) handles all fund management for HIP-4 prediction trading: moving USDC between your perp and spot accounts, buying and selling USDC on the spot market, and withdrawing funds to external addresses. It relies on two distinct signers - one for user-authorized EIP-712 operations, and one for L1 agent-signed spot orders - so you need to configure both before using the full method surface.
 
 ## Two signers
 
@@ -12,7 +12,7 @@ The wallet adapter uses two separate signing keys depending on the operation:
 
 **User's wallet** - set via `setSigner`. Required for EIP-712 operations: transfers between spot and perps, withdrawals, and USD sends. The signer must produce a valid EIP-712 signature on the `HyperliquidSignTransaction` domain.
 
-**Agent key** - initialized via `hip4.auth.initAuth`. Required for USDH spot buy/sell, which use L1 agent signing (MessagePack serialization + keccak-256 + EIP-712 on the `Exchange` domain, chain ID 1337). The agent key signs on behalf of the user's wallet but is a separate keypair.
+**Agent key** - initialized via `hip4.auth.initAuth`. Required for USDC spot buy/sell, which use L1 agent signing (MessagePack serialization + keccak-256 + EIP-712 on the `Exchange` domain, chain ID 1337). The agent key signs on behalf of the user's wallet but is a separate keypair.
 
 ### `setSigner` interface
 
@@ -36,9 +36,7 @@ hip4.wallet.setSigner({
 
 | Method | Signing | Description |
 |--------|---------|-------------|
-| `setSigner(signer)` | - | Set the user's wallet for EIP-712 operations |
-| `buyUsdh(amount)` | L1 agent | Buy USDH on spot; priced at oracle × 1.1, IOC |
-| `sellUsdh(amount)` | L1 agent | Sell USDH on spot; priced at oracle × 0.9, IOC |
+| `setSigner(signer)` | - | Set the user's wallet for EIP-712 operations |=
 | `sellHype(amount)` | L1 agent | Sell HYPE on the HYPE/USDC spot market; size floored to 2 decimals |
 | `transferToSpot(amount)` | EIP-712 | Transfer USDC from perp → spot |
 | `transferToPerps(amount)` | EIP-712 | Transfer USDC from spot → perp |
@@ -46,7 +44,7 @@ hip4.wallet.setSigner({
 | `usdSend({ destination, amount })` | EIP-712 | Send USDC to another Hyperliquid address |
 | `agentSetAbstraction(mode)` | L1 agent | Switch the master account's abstraction mode (`"u"` / `"p"` / `"i"`) |
 
-All amounts are strings representing USDC or USDH quantities with up to 6 decimal places (e.g. `"100"`, `"25.50"`).
+All amounts are strings representing USDC quantities with up to 6 decimal places (e.g. `"100"`, `"25.50"`).
 
 ## `WalletActionResult`
 
@@ -61,8 +59,6 @@ interface WalletActionResult {
 }
 ```
 
-Check `success` before reading `filledSz` and `avgPx`. These fields are only populated for the spot-order methods (`buyUsdh`, `sellUsdh`, and `sellHype`).
-
 ## Deposit flow
 
 To fund a prediction account, transfer USDC from your perp balance to spot, then buy USDH on the spot market.
@@ -74,22 +70,22 @@ if (!transfer.success) {
   throw new Error(`Transfer failed: ${transfer.error}`);
 }
 
-// Step 2: Buy USDH on the spot market (L1 agent signing)
-const buy = await hip4.wallet.buyUsdh("100");
+// Step 2: Buy USDC on the spot market (L1 agent signing)
+const buy = await hip4.wallet.buyUsdc("100");
 if (!buy.success) {
   throw new Error(`Buy failed: ${buy.error}`);
 }
 
-console.log(`Bought ${buy.filledSz} USDH at avg price ${buy.avgPx}`);
+console.log(`Bought ${buy.filledSz} USDC at avg price ${buy.avgPx}`);
 ```
 
 ## Withdraw flow
 
-To exit a prediction position and withdraw funds, sell USDH back to USDC, move it to your perp account, then withdraw.
+To exit a prediction position and withdraw funds, sell USDC back to USDC, move it to your perp account, then withdraw.
 
 ```typescript
-// Step 1: Sell USDH on the spot market (L1 agent signing)
-const sell = await hip4.wallet.sellUsdh("50");
+// Step 1: Sell USDC on the spot market (L1 agent signing)
+const sell = await hip4.wallet.sellUsdc("50");
 if (!sell.success) {
   throw new Error(`Sell failed: ${sell.error}`);
 }
@@ -112,7 +108,7 @@ if (!withdrawal.success) {
 
 ## `sellHype(amount)`
 
-Sells HYPE on the **HYPE/USDC** spot market (not USDH). Use this to convert HYPE - for example, balance received on Hypercore - back into USDC. Like `buyUsdh`/`sellUsdh`, it is an IOC spot order signed with the L1 agent key.
+Sells HYPE on the **HYPE/USDC** spot market (not USDC). Use this to convert HYPE - for example, balance received on Hypercore - back into USDC. Like `buyUsdc`/`sellUsdc`, it is an IOC spot order signed with the L1 agent key.
 
 The `amount` is a HYPE quantity string. HYPE has 2 size decimals on the spot market, so the size is **floored** (`ROUND_DOWN`) to 2 decimal places before submission - never rounded up - so a sell can never exceed your HYPE balance.
 
@@ -146,7 +142,7 @@ if (!res.success) {
 | `"i"` | Disabled (abstraction off) |
 
 <Warning>
-  `buyUsdh`, `sellUsdh`, `sellHype`, and `agentSetAbstraction` require the agent to be initialized first. Call `hip4.auth.initAuth(walletAddress, agentSigner)` before invoking any of them, or they will fail with a `"Not authenticated"` error.
+  `buyUsdc`, `sellUsdc`, `sellHype`, and `agentSetAbstraction` require the agent to be initialized first. Call `hip4.auth.initAuth(walletAddress, agentSigner)` before invoking any of them, or they will fail with a `"Not authenticated"` error.
 </Warning>
 
 <Warning>

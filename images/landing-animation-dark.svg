@@ -2,26 +2,26 @@
 <svg class="root" viewBox="38 78 1124 694" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Outcome prediction market example: seven bets stream from a question into the YES and NO pools; the YES price decays from ¢48 down to ¢40 in non-equal steps. The market resolves YES — 100 shares × 1 USDC each = 100 USDC payout; NO settles to 0.">
 
   <style>
-    /* Theme-locked LIGHT palette. The diagram ships as two files —
+    /* Theme-locked DARK palette. The diagram ships as two files —
        landing-animation.svg (light) and landing-animation-dark.svg —
        switched by Mintlify's html.dark class in style.css, because an
        <img>-embedded SVG's prefers-color-scheme follows the OS, not the
        docs' class-based theme toggle. Keep the two files' rules identical;
        ONLY the svg.root variable block below differs between them. */
     svg.root {
-      --diagram-bg: #ededed;
-      --line: #171717;
-      --ink:  #171717;
-      --pos:  #166534;
-      --neg:  #991b1b;
-      --flash: rgba(23, 23, 23, 0.42);
-      --op-stroke-faded: 0.75;
-      --op-band-bright:  0.78;
-      --op-band-faded:   0.90;
-      --op-connector:    0.75;
-      --op-label-faded:  0.85;
-      --op-label-mute:   0.45;
-      --op-icon-faded:   0.85;
+      --diagram-bg: #0a0a0a;
+      --line: #e5e5e5;
+      --ink:  #fafafa;
+      --pos:  #4ade80;
+      --neg:  #f87171;
+      --flash: rgba(250, 250, 250, 0.45);
+      --op-stroke-faded: 0.32;
+      --op-band-bright:  0.70;
+      --op-band-faded:   0.28;
+      --op-connector:    0.55;
+      --op-label-faded:  0.55;
+      --op-label-mute:   0.40;
+      --op-icon-faded:   0.60;
     }
 
     .bg-fill            { fill: var(--diagram-bg); }

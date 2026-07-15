@@ -119,7 +119,7 @@ This guide walks you through the full integration path, meaning that by the end,
     With auth initialized, call `hip4.trading.placeOrder()` to submit a limit order. The method returns a result object - it never throws.
 
     <Warning>
-      Placing orders on mainnet (`testnet: false`) uses real funds. Make sure your account has sufficient USDH balance before submitting.
+      Placing orders on mainnet (`testnet: false`) uses real funds. Make sure your account has sufficient USDC balance before submitting.
     </Warning>
 
     ```typescript
@@ -140,7 +140,7 @@ This guide walks you through the full integration path, meaning that by the end,
       side: "buy",
       type: "limit",
       price: String(markPx),
-      amount: String(getMinShares(markPx)), // minimum shares for 10 USDH notional
+      amount: String(getMinShares(markPx)), // minimum shares for 10 USDC notional
       markPx, // enables pre-submission min-shares check
     });
     
@@ -153,7 +153,7 @@ This guide walks you through the full integration path, meaning that by the end,
     }
     ```
 
-    `getMinShares(markPx)` computes the minimum number of shares required to meet the 10 USDH notional floor at the given price. Passing `markPx` to `placeOrder` enables the SDK to validate this before signing and submitting.
+    `getMinShares(markPx)` computes the minimum number of shares required to meet the 10 USDC notional floor at the given price. Passing `markPx` to `placeOrder` enables the SDK to validate this before signing and submitting.
   </Step>
 </Steps>
 
