@@ -1,0 +1,78 @@
+---
+title: "Tracking a deposit"
+sidebarTitle: "Deposit status"
+description: "How long deposits take, how to confirm funds arrived, and what to do when a deposit doesn't show up."
+---
+
+Most deposits complete in seconds to a couple of minutes. This page covers how to tell when yours has landed, and what to do when it hasn't.
+
+## How you'll know it arrived
+
+Your USDC balance updates on its own. Open your portfolio on [outcome.xyz](https://outcome.xyz) and check your available balance — if it reflects the deposit, you're done and the funds are ready to trade.
+
+<Note>
+  **Deposits from an external wallet complete silently.** There's no confirmation screen, no progress bar, and no notification — the balance simply updates when the funds arrive.
+
+  This catches people out. If you sent to your deposit address and the app looks unchanged, wait a moment and check your balance rather than sending again.
+</Note>
+
+Deposits from a connected wallet do show progress in the app, since the app is signing the transaction and can follow it.
+
+Past deposits and withdrawals are listed under **Deposits & Withdrawals** in your account.
+
+## How long it should take
+
+| Route | Typical time |
+| --- | --- |
+| USDC from a connected wallet (CCTP) | 3–22 seconds, depending on network |
+| Other tokens from a connected wallet | Shown per route before you confirm |
+| External wallet | Shown per network, typically under two minutes |
+| Cash | Depends on payment method and clearing |
+
+These are typical times, not guarantees. Network congestion, and the number of confirmations your source chain requires, can push them higher.
+
+## If your deposit hasn't arrived
+
+Work through these in order.
+
+<Steps>
+  <Step title="Give it a few more minutes">
+    Cross-chain transfers slow down under congestion. A deposit that's a few minutes past its estimate is usually still in flight.
+  </Step>
+
+  <Step title="Confirm the transaction left the source chain">
+    Look up your transaction on the source network's block explorer. If it failed there, your funds never left your wallet and no bridge fee was charged — you can simply try again.
+  </Step>
+
+  <Step title="Check what you sent">
+    Confirm the token and network match what the app asked for. A transfer sent on the wrong network won't arrive, and can't be recovered.
+  </Step>
+
+  <Step title="Save the transaction hash and contact support">
+    The source transaction hash is the first thing needed to investigate any deposit. Have it ready before you reach out.
+  </Step>
+</Steps>
+
+## Common issues
+
+**The transaction succeeded on the source chain but nothing arrived.** Confirm you sent a supported token on a supported network, at or above the minimum. Deposits below the minimum are not processed. If everything checks out, bring your transaction hash to support.
+
+**The transaction failed on the source chain.** Your funds stayed in your wallet and no bridge fee was charged. Try again.
+
+**You sent the wrong token, or used the wrong network.** These transfers may be irreversible and cannot be recovered. There is no recovery tool. Contact support with your transaction hash — but treat recovery as unlikely.
+
+**You sent less than the minimum.** The deposit will not be processed. Contact support with your transaction hash.
+
+<Warning>
+  Always verify the token and network in your sending wallet before confirming. This is the single most common cause of lost deposits, and it is the one failure the app cannot undo for you.
+</Warning>
+
+<CardGroup cols={2}>
+  <Card title="Deposit from an external wallet" icon="wallet" href="/deposits/external-wallet">
+    Address model, limits, and the send flow.
+  </Card>
+
+  <Card title="Funding your account" icon="circle-dollar-sign" href="/funding-your-account">
+    All three deposit methods compared.
+  </Card>
+</CardGroup>

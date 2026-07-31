@@ -1,0 +1,83 @@
+---
+title: "Deposit from an external wallet"
+sidebarTitle: "External wallet"
+description: "Send USDC to your Outcome deposit address from an exchange, a hardware wallet, or any account you control."
+---
+
+{/* The single-address claim below is load-bearing and implementation-dependent:
+    it is true of the Across persistent-address integration. If the deposit
+    address provider ever changes, this page must be revisited before that
+    ships — a user who saved a reusable address would lose funds. */}
+
+When your funds live somewhere other than the wallet you signed in with — an exchange account, a hardware wallet, a friend's wallet — you deposit by sending USDC to an address Outcome gives you.
+
+## One address, every network
+
+Your deposit address is **permanent**. It's generated once, it's tied to your account, and it doesn't expire. You can save it and send to it again next month.
+
+It's also the **same address on every supported network**. This is the part most people expect to work differently. Most exchanges issue a new address per chain, or a fresh one per deposit; Outcome doesn't. Selecting a different network in the app changes the minimum, fee, and estimated time shown for that route — it does not change the address.
+
+<Note>
+  If you select a different network and the address looks unchanged, that's correct. Send to it.
+</Note>
+
+## Send a deposit
+
+<Steps>
+  <Step title="Open the Deposit panel">
+    Go to [outcome.xyz](https://outcome.xyz), open **Deposit**, and choose the **Crypto** tab. Select the option for depositing from another wallet.
+  </Step>
+
+  <Step title="Choose your network">
+    Pick the network you'll be sending from. The fee, minimum, and estimated time update to match that route.
+  </Step>
+
+  <Step title="Copy the address">
+    Copy the address or scan the QR code with the wallet you're sending from.
+  </Step>
+
+  <Step title="Send USDC">
+    Send at or above the minimum for your network. Double-check the token and network in the sending app before you confirm.
+  </Step>
+
+  <Step title="Wait for your balance to update">
+    There's no confirmation screen and no progress bar. Your balance updates on its own once the funds arrive — usually within a couple of minutes. This is normal; nothing has gone wrong.
+  </Step>
+</Steps>
+
+## What you can send
+
+| | |
+| --- | --- |
+| **Token** | USDC only |
+| **Minimum** | $12 |
+| **Networks** | Shown in the app — the list is maintained by the bridge provider |
+| **Maximum** | None |
+
+The app shows the accepted token and the current minimum for whichever network you select. Always take those figures from the app rather than from this page — the minimum can vary by route.
+
+<Warning>
+  **Send only USDC, only on a supported network, at or above the minimum.**
+
+  Transfers sent with the wrong token or on the wrong network may be irreversible and cannot be recovered. There is no recovery tool for this. Verify both before you confirm in your sending wallet.
+</Warning>
+
+Deposits below the minimum will not be processed.
+
+## Fees and timing
+
+The fee shown alongside your deposit address is the fixed component of the bridge cost for that route. Because a permanent address doesn't know in advance how much you'll send, the app can't show an exact total until the transfer arrives — but the fixed component is what dominates at typical deposit sizes.
+
+Estimated arrival time is shown per network, and is typically under two minutes.
+
+Deposits from an external wallet are bridged by [Across](https://across.to/). Outcome charges no deposit fee of its own.
+
+<CardGroup cols={2}>
+  <Card title="Track a deposit" icon="clock" href="/deposits/status">
+    How to confirm arrival and what to do if funds don't show up.
+  </Card>
+
+  <Card title="Other ways to deposit" icon="wallet" href="/funding-your-account">
+    Connected wallet and cash deposits.
+  </Card>
+</CardGroup>
