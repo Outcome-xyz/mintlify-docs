@@ -31,10 +31,10 @@
             "pages": [
               "introduction",
               "wallets-and-accounts",
-              "funding-your-account",
               {
-                "group": "Deposits",
+                "group": "Funding your account",
                 "pages": [
+                  "funding-your-account",
                   "deposits/connected-wallet",
                   "deposits/external-wallet",
                   "deposits/cash",
