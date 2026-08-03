@@ -22,24 +22,12 @@ There are three ways to fund your account.
 
 Outcome doesn't move your funds itself. Each deposit is handed to a third-party provider based on what you're sending and where from.
 
-```mermaid
-flowchart TD
-    A[Your funds] --> B{How are you<br/>depositing?}
-
-    B -->|Connected wallet| C{Which asset?}
-    B -->|External wallet| F[Across<br/>deposit address]
-    B -->|Cash| G[Swapped.com<br/>onramp widget]
-
-    C -->|USDC| D[Circle CCTP]
-    C -->|Any other token| E[Across bridge]
-
-    D --> H[USDC on HyperCore spot]
-    E --> H
-    F --> H
-    G --> H
-
-    H --> I[Ready to trade]
-```
+<img
+  noZoom
+  src="/images/deposit-routes.svg"
+  alt="Three deposit routes: crypto in your connected wallet goes through Circle CCTP or Across; crypto held elsewhere goes through an Across deposit address; card or bank payments go through Swapped.com. All three arrive as USDC in your account."
+  style={{ width: "100%", maxWidth: "42rem", margin: "1.5rem auto", display: "block" }}
+/>
 
 Each provider owns a different part of the journey: Circle's Cross-Chain Transfer Protocol (CCTP) moves native USDC between chains, [Across](https://across.to/) bridges and swaps everything else, and [Swapped.com](https://swapped.com/) handles fiat purchases including payment and identity verification. Outcome is not affiliated with these providers and cannot reverse a transfer once it has left your wallet.
 
