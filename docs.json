@@ -35,7 +35,9 @@
               {
                 "group": "Deposits",
                 "pages": [
+                  "deposits/connected-wallet",
                   "deposits/external-wallet",
+                  "deposits/cash",
                   "deposits/status"
                 ]
               },

@@ -6,13 +6,7 @@ description: "Deposit USDC to your Outcome account from a connected wallet, an e
 
 Outcome settles in USDC. Every deposit, whatever you start with and wherever you start from, arrives as USDC in your HyperCore spot balance, ready to trade.
 
-There are three ways to fund your account.
-
-| Method | Best for | Minimum |
-| --- | --- | --- |
-| **Connected wallet** | You already hold crypto in the wallet you signed in with | $11 |
-| **External wallet** | Your funds live somewhere else — an exchange, a hardware wallet, another account | $12 |
-| **Cash** | You want to buy with a card or bank transfer | $11 |
+There are three ways to fund your account, depending on what you're starting with.
 
 <Note>
   Outcome charges no deposit fee. You pay only the network and bridge costs of the route you choose, and these are shown before you confirm.
@@ -31,64 +25,21 @@ Outcome doesn't move your funds itself. Each deposit is handed to a third-party 
 
 Each provider owns a different part of the journey: Circle's Cross-Chain Transfer Protocol (CCTP) moves native USDC between chains, [Across](https://across.to/) bridges and swaps everything else, and [Swapped.com](https://swapped.com/) handles fiat purchases including payment and identity verification. Outcome is not affiliated with these providers and cannot reverse a transfer once it has left your wallet.
 
-## Deposit from a connected wallet
+## Choose a deposit method
 
-If you hold funds in the wallet you signed in with, this is the fastest route. You stay in the app and sign a single transaction.
+<CardGroup cols={3}>
+  <Card title="Connected wallet" icon="wallet" href="/deposits/connected-wallet">
+    Crypto in the wallet you signed in with. Sign one transaction and you're done. **Min $11.**
+  </Card>
 
-<Steps>
-  <Step title="Open the Deposit panel">
-    Go to [outcome.xyz](https://outcome.xyz) and open **Deposit**, then choose the **Crypto** tab.
-  </Step>
+  <Card title="External wallet" icon="arrow-down-to-line" href="/deposits/external-wallet">
+    Crypto on an exchange or another wallet. Send to the address we give you. **Min $12.**
+  </Card>
 
-  <Step title="Pick your asset and amount">
-    Select the token you want to send and enter an amount. The minimum is $11.
-  </Step>
-
-  <Step title="Review the breakdown">
-    Fees, network cost, and estimated time appear before you confirm. Check them.
-  </Step>
-
-  <Step title="Confirm in your wallet">
-    Approve the transaction. Your balance updates when the deposit lands.
-  </Step>
-</Steps>
-
-### Depositing USDC
-
-USDC deposits take a dedicated fast path through Circle's CCTP from these networks:
-
-| Network | Typical time |
-| --- | --- |
-| Arbitrum | ~15 seconds |
-| OP Mainnet | ~18 seconds |
-| Base | ~18 seconds |
-| Unichain | ~18 seconds |
-| World Chain | ~18 seconds |
-| Ethereum | ~20 seconds |
-| Linea | ~22 seconds |
-| HyperEVM | ~3 seconds |
-
-CCTP charges a flat fee — Circle's protocol fee plus a forwarder fee — with no swap and no slippage. Times are typical, not guarantees; network congestion can push them higher.
-
-### Depositing other assets
-
-Any other token routes through Across, which bridges and swaps it to USDC on the way in. Outcome bundles the swap, the bridge, and any destination-chain swap into a single sponsored transaction, so you still sign only once.
-
-Because these routes involve a swap, the breakdown shows a maximum slippage and a minimum you'll receive. The slippage figure comes from the bridge provider and isn't something you can set.
-
-## Deposit from an external wallet
-
-If your funds are on an exchange, a hardware wallet, or any account that isn't the wallet you signed in with, Outcome gives you a deposit address to send to.
-
-<Card title="Deposit from an external wallet" icon="wallet" href="/deposits/external-wallet">
-  One permanent address, how to use it, and what to check before you send.
-</Card>
-
-## Deposit with cash
-
-The **Cash** tab opens a [Swapped.com](https://swapped.com/) widget that lets you buy USDC with a card or bank transfer. Swapped owns the entire purchase — supported currencies, payment methods, and identity verification (KYC) are theirs, and availability depends on your region.
-
-The minimum is $11. Once the purchase clears, USDC arrives in your account the same way any other deposit does.
+  <Card title="Cash" icon="credit-card" href="/deposits/cash">
+    Buy USDC with a card or bank transfer. **Min $11.**
+  </Card>
+</CardGroup>
 
 ## Activation fee
 
@@ -98,12 +49,6 @@ The first time a brand-new HyperCore account makes an outbound action, Hyperliqu
 
 Deposits arrive as USDC in your HyperCore spot balance and are ready to trade immediately. There is no separate "Outcome account" and nothing to convert — your balance is tied to the wallet you connected.
 
-<CardGroup cols={2}>
-  <Card title="Deposit from an external wallet" icon="wallet" href="/deposits/external-wallet">
-    Send from an exchange or another wallet using your deposit address.
-  </Card>
-
-  <Card title="Track a deposit" icon="clock" href="/deposits/status">
-    Timing, how to confirm arrival, and what to do if funds don't show up.
-  </Card>
-</CardGroup>
+<Card title="Track a deposit" icon="clock" href="/deposits/status">
+  Timing, how to confirm arrival, and what to do if funds don't show up.
+</Card>
