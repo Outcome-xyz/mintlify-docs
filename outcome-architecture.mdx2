@@ -1,4 +1,8 @@
-Outcome Deployer Architecture
+---
+title: "Outcome Deployer Architecture"
+sidebarTitle: "Outcome Architecture"
+---
+
 An overview of Outcome architecture.
 
 Hyperliquid Improvement Proposal 4 (HIP-4) introduces outcome markets as a native primitive on HyperCore. Outcome contracts are fully collateralized binary instruments that trade between 0 and 1 and settle to 0 or 1 against a real world event, with no leverage and no liquidation risk. HIP-4 also lets independent deployers define and settle their own outcome markets. You can read more details about HIP-4 in Hyperliquid's documentation [here](https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-4-outcome-markets).
