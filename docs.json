@@ -73,7 +73,7 @@
             "group": "Reference",
             "icon": "receipt",
             "pages": [
-              "world-cup-program",
+              "outcome-liquidity-rewards",
               "fees",
               "risks"
             ]
@@ -119,13 +119,6 @@
             "pages": [
               "sdk/reference/utilities",
               "sdk/reference/types"
-            ]
-          },
-          {
-            "group": "Rewards",
-            "icon": "trophy",
-            "pages": [
-              "sdk/reference/liquidity-rewards"
             ]
           },
           {
