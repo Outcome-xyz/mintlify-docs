@@ -29,7 +29,6 @@
             "group": "Get started",
             "icon": "rocket",
             "pages": [
-              "outcome-architecture",
               "introduction",
               "wallets-and-accounts",
               "funding-your-account",
