@@ -1,0 +1,583 @@
+---
+title: "Outcome Liquidity Rewards"
+icon: "/images/outcome_logo.svg"
+---
+
+Outcome and Monarch designed this liquidity program to reward useful two-sided liquidity and trading across Outcome's HIP-4 markets.
+
+This technical reference explains which market types can receive incentives, how each market is funded, how activity is scored and how rewards are paid. The exact eligible markets, incentive windows, reward amounts and settlement rules are published before each market begins scoring.
+
+## Core Philosophy
+
+The program rewards liquidity that is genuinely useful to traders: sustained depth close to fair value, balanced quoting on both sides of the book and fills that demonstrate real usage.
+
+Three principles apply across every eligible market:
+
+- **Near fair value**: Only orders inside the published scored band earn rewards, and orders closer to the Hyperliquid mid earn more.
+- **Two-sided**: Bid and ask liquidity both score, with more weight for a balanced book.
+- **Useful**: Quote rewards pay for displayed liquidity, maker-fill rewards pay for executed resting liquidity and taker-fill rewards support trading and price discovery.
+
+## Market Categories
+
+Eligible markets are grouped by the type of question each market answers.
+
+| Market type | Simple example | How outcome surface is treated |
+| --- | --- | --- |
+| Moneyline / 1X2 | Participant A wins / draw / Participant B wins | Mutually exclusive outcomes share one fixed market reward equally. |
+| To advance / winner | YES = Participant A / NO = Participant B | One YES/NO order book represents the full market and receives one fixed reward pool. |
+| Scheduled decision | Which published decision outcome occurs? | Complete published outcome set forms one market. Long-dated markets may use daily probability-weighted allocations. |
+| Binary price threshold | Will an underlying finish above a published threshold? | YES and NO form one probability surface and receive one market reward, not two. |
+| Multi-range price | Which published price range contains the settlement price? | Complete set of ranges forms one market. Published allocations apply across eligible ranges. |
+
+Only eligible markets receive rewards.
+
+## Shared Concepts
+
+### One Market, One Fixed Reward
+
+Each eligible market receives one fixed reward for its complete incentive window:
+
+```text
+market_reward_amount =
+    published_24_hour_rate
+    * estimated_total_incentive_hours
+    / 24
+
+quote_reward_pool = 40% * market_reward_amount
+maker_fill_reward_pool = 30% * market_reward_amount
+taker_fill_reward_pool = 30% * market_reward_amount
+payout_method = pro-rata by score
+```
+
+A complete set of mutually exclusive outcomes is one market. Complementary YES and NO books do not receive duplicate reward pools.
+
+Score multipliers change a participant's share of the fixed reward. They never increase the market's total budget.
+
+### Reward Split
+
+The same split applies within every market reward:
+
+| Component | Share | What it rewards |
+| --- | --- | --- |
+| Quote rewards | 40% | Sustained displayed depth near fair value |
+| Maker-fill rewards | 30% | Resting liquidity that gets executed |
+| Taker-fill rewards | 30% | Trading activity and price discovery |
+
+Rewards are distributed pro rata within each pool according to eligible score.
+
+### Price Convention
+
+An outcome token settles at 1.00 if the outcome occurs and 0.00 if it does not. A price between 0 and 1 represents the market's implied probability.
+
+The Hyperliquid mid is the midpoint of the eligible market's live order book. It is used to measure quote distance and determine whether a market is inside the scored probability range. Price markets also use the published underlying reference and settlement-price rules for final resolution.
+
+### What Is Published Before Scoring Starts
+
+For every eligible market, Outcome and Monarch publish:
+
+- market name and settlement rule;
+- scored outcomes or binary probability surface;
+- incentive start and end time, or end rule;
+- fixed market reward;
+- outcome-allocation method;
+- maximum scored spread and per-side distance cutoff;
+- scheduled event or decision time, where applicable;
+- live-state source where a live phase applies;
+- reference price, threshold or range and settlement source for price markets; and
+- eligible venue and order-attribution requirements.
+
+## Reward Eligibility
+
+To qualify for rewards, participants must:
+
+- approve the Outcome builder address from their main wallet; and
+- include the Outcome builder code on every campaign order.
+
+```text
+builder_code = 0xab5dbc057628bc18523c4cdfc0e1e2ebdbecb704
+```
+
+With the builder fee field set to 0, no fee is taken when the order is filled. Eligibility depends on using the correct builder code, not on paying a builder fee.
+
+Orders placed without the Outcome builder code are not eligible for quote, maker-fill or taker-fill rewards.
+
+## Market Types
+
+### Moneyline / 1X2
+
+A moneyline or 1X2 market asks for the result of a scheduled event. It may have two outcomes, such as Participant A or Participant B, or three outcomes, such as Participant A, draw or Participant B.
+
+One fixed market reward is divided equally across all scored outcomes:
+
+```text
+scored_outcome_count = number of scored outcomes
+outcome_reward_amount = market_reward_amount / scored_outcome_count
+
+outcome_quote_reward_pool = 40% * outcome_reward_amount
+outcome_maker_fill_reward_pool = 30% * outcome_reward_amount
+outcome_taker_fill_reward_pool = 30% * outcome_reward_amount
+```
+
+Equal allocation buys liquidity across the complete result surface instead of concentrating rewards only in the current favourite.
+
+### To Advance / Winner
+
+A to-advance or winner market asks which participant wins a contest, series, round or qualification event under the published settlement rule.
+
+It uses one binary order book: YES represents Participant A and NO represents Participant B. YES and NO are complementary sides of the same probability surface, not separately funded outcomes.
+
+```text
+winner_market_reward_amount = market_reward_amount
+
+outcome_quote_reward_pool = 40% * winner_market_reward_amount
+outcome_maker_fill_reward_pool = 30% * winner_market_reward_amount
+outcome_taker_fill_reward_pool = 30% * winner_market_reward_amount
+```
+
+A to-advance market and a moneyline market may both be eligible when they ask different questions and have separate published settlement rules. Each is treated as its own complete market.
+
+### Scheduled Decision
+
+A scheduled decision market covers a defined external announcement. All published decision outcomes together form one market.
+
+When designated as long-dated, the first daily allocation is split equally across all eligible outcomes. Probability weighting begins with the next daily allocation using the previous completed UTC day's valid-block mean midpoints.
+
+```text
+eligible_outcome_count = number of eligible outcomes
+equal_outcome_weight = 1 / eligible_outcome_count
+
+daily_market_budget =
+    published_24_hour_rate
+    * eligible_hours_in_UTC_day
+    / 24
+
+if first incentive day:
+    outcome_allocation_weight = equal_outcome_weight
+else:
+    daily_mean_hyperliquid_mid =
+        average hyperliquid_mid across valid blocks
+        for the outcome during the previous completed UTC day
+
+    if reliable daily mean midpoints are available:
+        probability_weight = daily_mean_hyperliquid_mid
+
+        normalization_total =
+            sum(probability_weight across eligible outcomes)
+
+        normalized_probability_weight =
+            probability_weight / normalization_total
+
+        floor_pool_share = published parameter or 0
+
+        outcome_allocation_weight =
+            floor_pool_share * equal_outcome_weight
+            + (1 - floor_pool_share) * normalized_probability_weight
+    else:
+        outcome_allocation_weight = equal_outcome_weight
+
+daily_outcome_reward =
+    daily_market_budget * outcome_allocation_weight
+
+outcome_quote_reward_pool = 40% * daily_outcome_reward
+outcome_maker_fill_reward_pool = 30% * daily_outcome_reward
+outcome_taker_fill_reward_pool = 30% * daily_outcome_reward
+```
+
+Opening Hyperliquid midpoints are not used for the first allocation. If reliable daily mean midpoints are unavailable for a later allocation, eligible outcomes continue with equal weights.
+
+Daily outcome calculations allocate the market's fixed reward. They do not create extra reward epochs or increase the market budget.
+
+### Binary Price Threshold
+
+A binary price market asks whether a published underlying satisfies a price condition at a defined expiry.
+
+YES and NO are complementary views of one scored probability surface:
+
+```text
+binary_market_reward_amount = market_reward_amount
+
+binary_quote_reward_pool = 40% * binary_market_reward_amount
+binary_maker_fill_reward_pool = 30% * binary_market_reward_amount
+binary_taker_fill_reward_pool = 30% * binary_market_reward_amount
+
+outcome_quote_reward_pool = binary_quote_reward_pool
+outcome_maker_fill_reward_pool = binary_maker_fill_reward_pool
+outcome_taker_fill_reward_pool = binary_taker_fill_reward_pool
+```
+
+Fixed reward is not divided between complementary YES and NO books, and the same probability surface is not paid twice.
+
+Underlying, threshold, reference-price rule, settlement-price rule and any averaging window are published before scoring begins.
+
+### Multi-Range Price
+
+A multi-range market asks which one of several published price bands contains the settlement price. All ranges for the same underlying and expiry form one market.
+
+Published outcome allocations apply across eligible ranges. A long-dated multi-range market uses the same allocation calculation as a scheduled decision market: first daily allocation is equal, and probability weighting begins only after a completed UTC day provides reliable mean midpoints.
+
+## Illustrative 24-Hour Rewards Rates
+
+The following reference illustrates how reward rates may vary across market categories.
+
+| High-level category | Illustrative market types | Illustrative 24-hour reward |
+| --- | --- | --- |
+| Sports matches | Eligible football and esports match markets | $250–$300 |
+| Sports props and futures | Props and tournament-winner markets | $300–$400 |
+| Economics and scheduled decisions | Central-bank decisions and similar scheduled announcements | $200 |
+| Price markets | Crypto, single-equity, index and commodity markets | $200–$250 |
+
+These are 24-hour reference rates, subject to change. A market's final fixed reward is scaled to its published incentive-window duration, and the exact eligible market and reward rate are published before scoring begins.
+
+## Incentive Window
+
+Each selected market has one continuous incentive window and one fixed market reward:
+
+```text
+incentive_window_start = published start time
+incentive_window_end = published end time or end rule
+
+market_reward_amount =
+    published_24_hour_rate
+    * estimated_total_incentive_hours
+    / 24
+```
+
+Orders and trades score only inside the published incentive window.
+
+## Event-Time Multiplier
+
+Markets with a defined external event time use one cubic curve. It starts at 0.25x when the incentive window opens and reaches 1.00x at the scheduled event time:
+
+```text
+progress =
+    time_elapsed_since_incentive_window_start
+    / total_time_from_incentive_window_start_to_scheduled_event
+
+progress = min(1, max(0, progress))
+
+event_time_multiplier = 0.25 + 0.75 * progress ^ 3
+```
+
+Multiplier is calculated in five-minute buckets using each bucket's midpoint. At the scheduled event time, it reaches 1.00x and remains there until scoring ends.
+
+| Share of pre-event window elapsed | Event-time multiplier |
+| --- | --- |
+| 0% | 0.250x |
+| 25% | 0.262x |
+| 50% | 0.344x |
+| 75% | 0.566x |
+| 100% | 1.000x |
+
+<img src="/images/event-time-multiplier.png" alt="Cubic event-time multiplier curve" />
+
+Markets without a separate external event use a flat 1.00x event-time multiplier throughout the incentive window.
+
+If a scheduled event time changes, the curve re-anchors beginning with the next five-minute bucket. Previously scored buckets keep their recorded multipliers.
+
+## Market Scoring Conditions
+
+Quote depth, maker fills and taker fills score only when:
+
+- market and outcome or probability surface are published as eligible
+- block or fill is inside the published incentive window
+- market is active and unresolved
+- scored outcome remains possible
+- `hyperliquid_mid` is available and reliable
+- `current_hyperliquid_mid >= 2.00%`
+- `current_hyperliquid_mid <= 98.00%`
+
+Scoring pauses whenever a condition is not met and resumes only if the market becomes eligible again. Scoring stops permanently when the market resolves or the scored outcome becomes impossible.
+
+## Live Event Multiplier
+
+Eligible markets with a genuine live phase receive additional score weight during confirmed live play:
+
+```text
+if event_is_live:
+    live_multiplier = 3
+else:
+    live_multiplier = 0
+```
+
+Live period begins when the published event source marks the event as started and ends at official completion of the scored market.
+
+Live weighting does not apply before the event starts, after completion, while the market is paused or halted, or when normal live trading is not supported.
+
+## Volatility Multiplier
+
+Marina gives additional score weight to makers who maintain tight liquidity after a meaningful price move.
+
+For each scored outcome or probability surface:
+
+```text
+reference_mid_60s = average midpoint over the previous 60 seconds
+price_displacement = abs(current_mid - reference_mid_60s)
+trigger = 2 * normal_average_spread
+
+if price_displacement <= trigger:
+    volatility_multiplier = 1
+else:
+    volatility_multiplier = min(
+        5,
+        1 + price_displacement / trigger
+    )
+```
+
+`normal_average_spread` uses a lagged calibration maintained separately for pre-live, live and non-live price trading.
+
+Volatility multiplier applies to quote and maker-fill scores, but not to taker-fill scores.
+
+### Illustrative 10-Cent Market Move
+
+Assume a market has a 2¢ normal average spread and its midpoint jumps by 10¢, then remains stable at the new level. Trigger is twice normal average spread:
+
+```text
+normal_average_spread = 2¢
+trigger = 2 * 2¢ = 4¢
+initial_price_displacement = 10¢
+
+initial_volatility_multiplier =
+    min(5, 1 + 10¢ / 4¢)
+    = 3.5x
+```
+
+As the 60-second rolling reference catches up to the new midpoint:
+
+```text
+price_displacement(t) =
+    10¢ * max(0, 1 - t / 60)
+```
+
+| Seconds after move | Price displacement | Volatility multiplier |
+| --- | --- | --- |
+| 0s | 10¢ | 3.5x |
+| 12s | 8¢ | 3.0x |
+| 24s | 6¢ | 2.5x |
+| 36s | 4¢ | 1.0x |
+| 60s | 0¢ | 1.0x |
+
+<img src="/images/volatility-multiplier.png" alt="Volatility multiplier after a price jump" />
+
+Under the threshold rule, multiplier returns to 1x as soon as price displacement reaches or falls below the 4¢ trigger.
+
+### Live and Volatility Combination
+
+Live and volatility multipliers are additive:
+
+```text
+quote_and_maker_fill_multiplier =
+    min(8, volatility_multiplier + live_multiplier)
+
+if event_is_live:
+    taker_fill_multiplier = 3
+else:
+    taker_fill_multiplier = 1
+```
+
+For markets without a live phase:
+
+```text
+quote_and_maker_fill_multiplier = volatility_multiplier
+taker_fill_multiplier = 1
+```
+
+Event-time multiplier is applied multiplicatively after live and volatility weighting.
+
+## Distance Multiplier
+
+Maximum scored total bid/ask spread is published separately for each market. Per-side distance cutoff is half of that total spread.
+
+For each order:
+
+```text
+maximum_scored_total_spread_cents = published per market
+distance_cutoff_cents = maximum_scored_total_spread_cents / 2
+maximum_distance_multiplier = 5.00
+
+distance_cents =
+    abs(order_price - hyperliquid_mid) * 100
+
+distance_multiplier =
+    maximum_distance_multiplier
+    * max(0, 1 - distance_cents / distance_cutoff_cents) ^ 2
+```
+
+An order at the Hyperliquid mid receives a 5x multiplier. Multiplier falls quadratically to zero at the published cutoff. Orders at or beyond the cutoff do not score.
+
+For an illustrative market with a 2¢ maximum scored total spread, per-side cutoff is 1¢. An order at the mid receives 5x; an order 0.5¢ from the mid, equivalent to a 1¢ symmetric total spread, receives 1.25x; and an order 1¢ from the mid receives 0x.
+
+## Quote Depth Score
+
+Marina scores bid and ask liquidity separately and weights displayed depth by the time it remains available:
+
+```text
+raw_bid_notional_usd =
+    sum(bid_order_notional_usd inside the scored band)
+
+raw_ask_notional_usd =
+    sum(ask_order_notional_usd inside the scored band)
+
+raw_in_band_notional_usd =
+    raw_bid_notional_usd + raw_ask_notional_usd
+
+bid_side_score =
+    sum(
+        bid_order_notional_usd
+        * distance_multiplier
+        * block_duration_seconds
+    )
+
+ask_side_score =
+    sum(
+        ask_order_notional_usd
+        * distance_multiplier
+        * block_duration_seconds
+    )
+
+depth_score = bid_side_score + ask_side_score
+```
+
+### Two-Sided Multiplier
+
+```text
+if max(bid_side_score, ask_side_score) > 0:
+    balance_ratio =
+        min(bid_side_score, ask_side_score)
+        / max(bid_side_score, ask_side_score)
+else:
+    balance_ratio = 0
+
+two_sided_multiplier = 1 + 2 * balance_ratio
+
+if raw_in_band_notional_usd >= 50:
+    base_quote_score = depth_score * two_sided_multiplier
+else:
+    base_quote_score = 0
+```
+
+Two-sided multiplier ranges from 1x for one-sided liquidity to 3x for equally balanced bid and ask scores. Minimum depth requirement uses raw bid-plus-ask notional before distance, balance, event-time, live and volatility weighting.
+
+## Quote Reward
+
+In the formulas below, outcome means either an eligible outcome or the single scored surface of a binary market.
+
+For each maker and scored outcome:
+
+```text
+calculated_quote_score =
+    base_quote_score * quote_and_maker_fill_multiplier
+
+final_quote_score =
+    calculated_quote_score * event_time_multiplier
+
+maker_outcome_quote_score =
+    sum(final_quote_score across eligible block-duration intervals)
+
+maker_outcome_quote_reward =
+    outcome_quote_reward_pool
+    * maker_outcome_quote_score
+    / total_maker_outcome_quote_score
+
+maker_quote_reward =
+    sum(maker_outcome_quote_reward across markets and scored outcomes)
+```
+
+## Maker Fill Reward
+
+For each eligible maker-side fill:
+
+```text
+maker_fill_notional_usd = fill_price * fill_size
+
+calculated_maker_fill_score =
+    maker_fill_notional_usd
+    * quote_and_maker_fill_multiplier
+
+maker_outcome_fill_score =
+    calculated_maker_fill_score
+    * event_time_multiplier
+
+maker_outcome_fill_reward =
+    outcome_maker_fill_reward_pool
+    * maker_outcome_fill_score
+    / total_maker_outcome_fill_score
+
+maker_fill_reward =
+    sum(maker_outcome_fill_reward across markets and scored outcomes)
+```
+
+## Taker Fill Reward
+
+For each eligible taker-side fill:
+
+```text
+taker_fill_notional_usd = fill_price * fill_size
+
+calculated_taker_fill_score =
+    taker_fill_notional_usd
+    * taker_fill_multiplier
+
+taker_outcome_fill_score =
+    calculated_taker_fill_score
+    * event_time_multiplier
+
+taker_outcome_fill_reward =
+    outcome_taker_fill_reward_pool
+    * taker_outcome_fill_score
+    / total_taker_outcome_fill_score
+
+taker_fill_reward =
+    sum(taker_outcome_fill_reward across markets and scored outcomes)
+```
+
+Taker fills do not receive volatility weighting.
+
+## Exclusions
+
+The following activity does not score:
+
+- markets or outcomes that were not published as eligible;
+- blocks or fills outside the published incentive window;
+- markets that are paused, halted, cancelled, stale or resolved;
+- blocks without a reliable Hyperliquid mid;
+- quote blocks with a mid below 2.00% or above 98.00%;
+- orders at or beyond the published distance cutoff;
+- eliminated or impossible winner outcomes;
+- duplicated YES or NO liquidity already represented in the scored probability surface;
+- fills on non-scored outcome books;
+- price markets without complete reference and settlement specifications; and
+- self-trading, related-wallet churn, wash trading or circular volume.
+
+## Payout and Settlement
+
+Rewards are calculated pro rata within the quote, maker-fill and taker-fill pools. For each wallet:
+
+```text
+total_reward =
+    maker_quote_reward
+    + maker_fill_reward
+    + taker_fill_reward
+```
+
+The payout asset, payout timing and eligible attribution method are published with the campaign terms.
+
+## Quick Reference
+
+| Item | Shared rule |
+| --- | --- |
+| Reward unit | One complete market |
+| Market budget | Published 24-hour rate × estimated incentive hours ÷ 24 |
+| Reward split | 40% quotes / 30% maker fills / 30% taker fills |
+| Moneyline / 1X2 allocation | Equal across scored outcomes |
+| To advance / winner allocation | One YES/NO order book; one unsplit market reward pool |
+| Binary price allocation | One scored YES/NO probability surface |
+| Long-dated multi-outcome allocation | Equal first allocation; then published daily probability weights, with equal fallback |
+| Event-time multiplier | Cubic 0.25x to 1.00x when a defined event time exists; otherwise flat 1.00x |
+| Live multiplier | Additive +3x for quotes and maker fills; 3x for taker fills when applicable |
+| Volatility multiplier | 1x to 5x for quotes and maker fills |
+| Combined live and volatility cap | 8x |
+| Scored midpoint range | 2.00% to 98.00% |
+| Distance multiplier | 5x at mid, falling quadratically to 0x at published cutoff |
+| Minimum depth | $50 raw in-band bid-plus-ask notional |
+| Two-sided multiplier | 1x to 3x |
+| Payout | Pro rata within each reward pool |
