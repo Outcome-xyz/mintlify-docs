@@ -1,0 +1,24 @@
+---
+title: "Outcome Deployer Architecture"
+sidebarTitle: "Outcome Architecture"
+---
+
+An overview of Outcome architecture.
+
+Hyperliquid Improvement Proposal 4 (HIP-4) introduces outcome markets as a native primitive on HyperCore. Outcome contracts are fully collateralized binary instruments that trade between 0 and 1 and settle to 0 or 1 against a real world event, with no leverage and no liquidation risk. HIP-4 also lets independent deployers define and settle their own outcome markets. You can read more details about HIP-4 in Hyperliquid's documentation [here](https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-4-outcome-markets).
+
+Outcome is a HIP-4 deployer venue and a frontend. Validators vote on the templates that fix each market's display text, side names, and typed keywords. Outcome instantiates those templates with concrete values, sets the deployer fee scale that applies to trades on its markets, and settles each market onchain at resolution. Markets are deployed either as standalone binary outcomes or as questions grouping multiple mutually exclusive outcomes. Outcome markets exist for a range of event categories, including sports, politics, macroeconomics, crypto, tradfi (finance) and culture. 
+
+HIP-4 deployment requires a stake of 500,000 HYPE, which Outcome holds and which is verifiable onchain from our deployer address. The stake acts as a bond: validators can slash it if a market is poorly defined or settled incorrectly, and it cannot be withdrawn until all outstanding markets are settled. Outcome's own capital is at risk on every resolution.
+
+Outcome.xyz is an interface providing access to Outcome deployed markets and other Hyperliquid markets. 
+
+
+| HIP4 Metadata | Value |
+| :---- | :---- |
+| Name | OUT |
+| Full Name | OUT |
+| Deployer | 0x423d7f725ae7056f03f7ef57f9d0303f91c62e06 |
+
+
+
