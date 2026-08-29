@@ -5,21 +5,27 @@ sidebarTitle: "Resolution and settlement"
 
 Every market on Outcome resolves at a time defined by the market's spec. This page explains how resolution is determined and what happens to your positions when it is.
 
-### Two resolution paths
+### Resolution
 
-How a market resolves depends on what it's about.
+Outcome runs a proprietary resolution system, developed in collaboration with established oracle and resolution partners. Full details on the mechanics and the partners involved will be shared through Outcome's official channels.
 
-**Price-based markets** (like the BTC daily binary or BTC price range markets) settle automatically against HyperCore mark prices. When the market reaches its settlement timestamp, the protocol reads the mark price at that moment and determines the outcome. There's no manual step: resolution is purely a function of the market spec and the price data.
+For real-world events, the aim during mainnet rollout is to resolve within 4 hours of official settlement against authoritative sources, with the target of bringing this down to seconds over time.
 
-For these markets, the settlement price is computed using linear interpolation between the mark price updates immediately before and immediately after the settlement timestamp. The exact formula is in [Market types](06a-market-types.md).
+### Price binary
 
-**Event markets** (sports results, macroeconomic data releases, central bank decisions, and similar) resolve on real-world occurrences that don't exist as on-chain prices. These markets are resolved within the Hyperliquid network by its validator set: validators assess the outcome against the market's stated resolution terms and vote on the settlement. The resolution terms, including what the market resolves on and when, are stated on the market page.
+Resolves on the price at expiry. Outcome takes an X second TWAP immediately after expiry and compares it to the strike, where X is set per contract and scales with the contract period. Settles Yes if the TWAP is above the strike, No otherwise. Exactly at the strike settles No.
 
-### Resolution stays inside the network
+### Price touch
 
-In both paths, resolution happens natively within Hyperliquid. Price-based markets read HyperCore's own mark prices. Event markets are settled by the same validator set that secures the network.
+Resolves on whether the price ever reaches the strike during the contract's life. Outcome evaluates the underlying on a rolling 1 second TWAP rather than raw prints, so a touch registers when that TWAP trades at or through the strike. Once it does, the contract settles Yes immediately and stays Yes regardless of where price goes afterward. If the TWAP never reaches the strike before expiry, it settles No.
 
-This is structurally different from prediction markets that rely on external oracle networks or third-party adjudication, where resolution depends on a separate system with its own token, incentives, and dispute process. On Hyperliquid, there is no external oracle dependency in either path.
+Using the TWAP for the touch trigger means a single wick that reverts inside the same second won't necessarily register. What matters is whether the average across that second clears the strike, not whether any individual print did.
+
+### Price scalar
+
+Resolves to a value inside a range instead of a straight Yes or No. Each contract has a lower and upper bound. Outcome takes the same 1 second TWAP after expiry: at or below the lower bound settles at 0, at or above the upper bound settles at 1, and anything in between settles proportionally along the range.
+
+Backing it all: a 500K HYPE bond posted by Outcome, keeping incentives aligned with accurate, good-faith outcomes.
 
 ### What happens to your tokens
 
@@ -28,7 +34,7 @@ Once resolution is determined:
 - Tokens for the resolved outcome become redeemable at 1 USDC each.
 - Tokens for any other outcome become worth 0.
 
-Settlement happens automatically. Your USDC balance updates with the redemption proceeds (minus the settlement fee, see [Fees](07-fees.md)).
+Settlement happens automatically. Your USDC balance updates with the redemption proceeds (minus the settlement fee, see [Fees](/fees)).
 
 There's no claim step. You don't need to do anything; the protocol automatically redeems tokens for the resolved outcome.
 

@@ -29,16 +29,22 @@ The fields:
 - `class`: the market type (`priceBinary` for binary price markets).
 - `underlying`: the underlying asset (e.g., BTC).
 - `expiry`: the settlement timestamp.
-- `targetPrice`: the price the underlying must reach or exceed for the YES outcome to settle to 1.
+- `targetPrice`: the strike the underlying is measured against.
 - `period`: the recurrence cadence (e.g., 1d for daily).
 
-The contract settles to YES if the underlying's settlement price is at or above the target price. The settlement price is computed using linear interpolation between the mark price updates immediately before and immediately after the settlement timestamp:
+The contract settles YES if the underlying's price at expiry is above the strike, and NO otherwise. Exactly at the strike settles NO. The price at expiry is an X second TWAP taken immediately after expiry, where X is set per contract and scales with the contract period. See [Resolution and settlement](/resolution-and-settlement).
 
-$$
-\text{settlement price} = \text{markPrice}_0 + \frac{\text{settlementTime} - t_0}{t_1 - t_0} \times (\text{markPrice}_1 - \text{markPrice}_0)
-$$
+### Price touch markets
 
-Where $t_0$ and $t_1$ are the timestamps of the mark price updates immediately before and after the settlement time.
+Touch markets resolve on whether the underlying ever reaches the strike during the contract's life, rather than where it sits at expiry. If it does, the market settles YES immediately and stays YES regardless of where price goes afterward. If it never reaches the strike before expiry, it settles NO.
+
+The touch trigger is evaluated on a rolling 1 second TWAP rather than raw prints, so a single wick that reverts inside the same second won't necessarily register a touch. See [Resolution and settlement](/resolution-and-settlement).
+
+### Price scalar markets
+
+Scalar markets resolve to a value inside a range instead of a straight YES or NO. Each contract has a lower and an upper bound. At or below the lower bound settles at 0, at or above the upper bound settles at 1, and anything in between settles proportionally along the range, so a token can settle at any value between 0 and 1 USDC.
+
+Scalar markets use the same 1 second TWAP after expiry as the other price-based types.
 
 ### Multi-outcome markets
 
@@ -66,12 +72,12 @@ For two price thresholds P1 and P2, the three outcomes are:
 - `[P1, P2)`
 - `≥ P2`
 
-Exactly one of the three outcomes settles to 1 USDC, the others to 0. The settlement price uses the same linear interpolation method described for binary markets above.
+Exactly one of the three outcomes settles to 1 USDC, the others to 0. The settlement price is the same post-expiry TWAP described for binary markets above.
 
 ### Event markets
 
 Event markets resolve on real-world occurrences rather than a price reading: sports results, macroeconomic data releases, central bank decisions, and similar. The market page states what the market resolves on and when.
 
-Mechanically, event markets trade exactly like price-based markets: same order book, same outcome tokens, same settlement to 1 or 0 USDC. The difference is in how the resolution is determined. Price-based markets settle against HyperCore mark prices automatically; event markets are resolved within the Hyperliquid network by its validator set. See [Resolution and settlement](/resolution-and-settlement) for how both paths work.
+Mechanically, event markets trade exactly like price-based markets: same order book, same outcome tokens, same settlement to 1 or 0 USDC. The difference is in how the resolution is determined: price-based markets settle against a TWAP of the underlying, while event markets are resolved against authoritative sources. See [Resolution and settlement](/resolution-and-settlement) for how both paths work.
 
 For more on what prices mean and why they sum the way they do, see [Outcome tokens and pricing](/outcome-tokens-and-pricing).
