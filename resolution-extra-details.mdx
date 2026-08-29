@@ -1,0 +1,206 @@
+---
+title: "Extra details: deterministic resolution methodology"
+sidebarTitle: "Extra details"
+---
+
+Outcome runs a deterministic resolution system for HIP-4 financial price markets on Hyperliquid Mainnet.
+
+For permissionless HIP-4 markets, the **live Hyperliquid template referenced by each deployed market is authoritative**. It defines the economic outcome rule for the market.
+
+Outcome's resolver reconstructs the required historical evidence and produces a deterministic candidate resolution. The resolver is read-only and does not construct, sign, or submit settlement transactions.
+
+Resolution is currently in beta. Candidate results are independently verified before being passed to the separate operational settlement system.
+
+For real-world event markets, the target during mainnet rollout is to resolve within four hours of official settlement against the authoritative sources specified in the market rules, with the objective of reducing this substantially over time.
+
+## Price Binary
+
+Price Binary resolves using the configured TWAP ending at the market's specified resolution time.
+
+The TWAP duration is defined by the applicable Hyperliquid template and may vary by contract — for example, 1 second, 5 seconds, or another configured duration.
+
+The relevant calculation window is:
+
+```
+[resolution time − TWAP duration, resolution time)
+```
+
+The exact result is compared with the configured strike:
+
+- `TWAP > strike` → `Yes`
+- `TWAP ≤ strike` → `No`
+
+Exactly at the strike therefore resolves **No**.
+
+## Price Touch
+
+Price Touch resolves according to whether the configured rolling TWAP reaches or crosses the target during the market's eligible lifetime.
+
+The TWAP duration is defined by the applicable Hyperliquid template and may vary by contract, for example, 1 second, 5 seconds, or another configured duration. A touch is determined from the rolling average rather than an individual price update, so a brief price movement may occur without qualifying as a valid touch.
+
+For the supported Mainnet template, the eligible interval is:
+
+```
+(deployment, deadline]
+```
+
+Deployment itself is excluded. The exact deadline is included.
+
+- If the rolling TWAP equals or crosses the target at any eligible moment, the result is **Yes**.
+- A verified touch permits a **Yes** candidate resolution before the deadline.
+- Once a valid touch has occurred, subsequent price movements do not change the result.
+- If no valid touch occurs through the inclusive deadline, the result is **No**.
+
+The resolver supports touches in either direction according to the parameters and comparison rule defined by the deployed market.
+
+## Financial Price Resolution Methodology
+
+Hyperliquid defines **what must be calculated** through the live market template.
+
+The template defines, as applicable:
+
+- The underlying HyperCore perpetual
+- The named price
+- The TWAP duration
+- The comparison rule
+- The strike or target
+- Deployment and resolution boundaries
+- Equality behavior
+- Early-resolution behavior
+- Exceptional conditions such as perpetual delisting
+
+The resolver does not assume a fixed TWAP duration. It always uses the duration specified by the live template for that market.
+
+The template does not prescribe:
+
+- A sampling frequency
+- An interpolation methodology
+- A duplicate-observation policy
+- A maximum acceptable historical-data gap
+- Hydromancer as an official settlement provider
+
+Where those mechanics are not prescribed by Hyperliquid, Outcome applies its own deterministic resolver methodology.
+
+### Historical price reconstruction
+
+Hydromancer supplies timestamped historical HyperCore observations.
+
+The resolver orders those observations chronologically and selects the price field specified by the applicable template. For example, where the approved source is a HyperCore perpetual mark price, the resolver uses the corresponding `markPx` observation.
+
+Each observation is treated as active from its timestamp until the next observation.
+
+The resolver therefore calculates a **time-weighted average**, rather than taking a simple arithmetic average of the returned rows or grouping observations by block.
+
+The calculation is:
+
+```
+TWAP = Σ(price × milliseconds active) ÷ total milliseconds
+```
+
+All arithmetic and comparisons are performed exactly. Floating-point approximations are not used to determine settlement outcomes.
+
+For rolling Price Touch evaluation, the resolver evaluates exact TWAP values at relevant observation boundaries and detects equality or crossings between them using exact arithmetic.
+
+## Data Integrity and Safety Rules
+
+The following rules are part of Outcome's resolver methodology. They are not requirements prescribed by Hyperliquid.
+
+The resolver fails closed whenever the available evidence is insufficient to produce a deterministic result.
+
+- Historical observations are ordered by timestamp.
+- Identical selected-price observations with the same timestamp are deduplicated.
+- Conflicting selected-price observations at the same timestamp suspend automatic resolution.
+- A null value for the selected price suspends automatic resolution.
+- Missing coverage required to reconstruct a TWAP boundary suspends automatic resolution.
+- A required historical-data gap longer than 15 seconds suspends automatic resolution.
+- For an active Price Touch check, the most recent observation must be no more than 15 seconds old.
+- Current live prices may be displayed for operational context but never substitute for the historical evidence required for resolution.
+- Historical evidence already used by the resolver is retained as part of the audit record.
+
+The **15-second limit is solely a data-quality threshold**.
+
+It is not:
+
+- The TWAP duration
+- A sampling frequency
+- A price-observation interval
+- A Hyperliquid template rule
+
+## Market and Registration Verification
+
+Before producing a candidate financial-price resolution, the resolver verifies that the market and its rule can be tied back to authoritative Hyperliquid state.
+
+This includes verifying that:
+
+- The market is a permissionless HIP-4 market.
+- The market belongs to the configured Outcome venue.
+- The referenced template exists in the live Hyperliquid template registry.
+- The template belongs to a resolution family supported by the resolver.
+- The deployed market parameters are consistent with the referenced template.
+- The market registration transaction was successful.
+- The registration transaction appears in the expected committed HyperCore block.
+- Independent HyperCore transaction and block evidence is mutually consistent.
+
+The purpose of these checks is to ensure that the resolver evaluates the market that was actually registered on Hyperliquid using the rules and parameters that were actually deployed.
+
+The retained audit evidence includes, as applicable:
+
+- The raw live Hyperliquid template
+- The normalized resolution rule
+- The deployed market parameters
+- Market-registration evidence
+- Historical price observations
+- Calculated TWAP windows
+- Data-integrity checks
+- Intermediate calculations
+- The exact candidate result
+
+## Exceptional Cases
+
+If a market rule, deployed parameter, template, or required data source cannot be interpreted or verified unambiguously, **automatic resolution is suspended and the market is sent for manual review**.
+
+Internally, the resolver records this state as `NOT_RESOLVABLE`.
+
+This does not itself determine the economic settlement of the market. It means only that the automated resolver does not have sufficient deterministic evidence to produce a candidate result safely.
+
+### Perpetual delisting
+
+If the underlying HyperCore perpetual is delisted and the applicable template requires a delisting settlement price or equivalent exceptional treatment, automatic resolution is suspended.
+
+Resolution then requires independently verified official evidence of the applicable Hyperliquid delisting-settlement price or other value required by the template.
+
+Until that evidence has been obtained and verified, the market remains subject to manual review.
+
+## Read-Only Security Boundary
+
+The resolution engine is deliberately separated from settlement execution.
+
+It produces only:
+
+- Human-readable resolution reports
+- Deterministic JSON candidate resolutions
+- Supporting audit evidence
+
+It does not:
+
+- Construct settlement transactions
+- Sign transactions
+- Hold settlement signing keys
+- Submit settlements to Hyperliquid
+- Modify market state
+
+This separation allows the resolution methodology and supporting evidence to be independently inspected before any on-chain action occurs.
+
+## Resolution Beta
+
+Resolution is currently in beta.
+
+During this period, markets may settle with a short operational buffer while the calculated result and underlying evidence are independently verified.
+
+The long-term target is deterministic end-to-end automation, allowing eligible markets to deploy and resolve as soon as the authoritative rule and required evidence permit.
+
+Outcome maintains the required **500,000 HYPE bond** associated with permissionless HIP-4 market deployment, aligning the deployer's incentives with accurate and good-faith market operation.
+
+<Note>
+All resolution dates and times are in UTC.
+</Note>
