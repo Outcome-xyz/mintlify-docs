@@ -148,7 +148,9 @@
       },
       {
         "tab": "Support",
-        "href": "https://discord.com/invite/outcome"
+        "pages": [
+          "support"
+        ]
       }
     ]
   },
@@ -165,7 +167,7 @@
     "family": "Geist"
   },
   "banner": {
-    "content": "Content may be outdated. These docs will be fully updated once permissionless deployment is live on mainnet."
+    "content": "Great news: permissionless deployment is live on mainnet! We're actively updating the docs to keep them up to date!"
   },
   "thumbnails": {
     "appearance": "light"
