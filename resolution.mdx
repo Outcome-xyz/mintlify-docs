@@ -1,3 +1,19 @@
 Outcome runs a proprietary resolution system, developed in collaboration with established oracle and resolution partners. Full details on the mechanics and the partners involved will be shared through Outcome's official channels.
-For real-world events, the aim during mainnet rollout is to resolve within 4 hours of official settlement against authoritative sources, with the target of bringing this down to seconds over time. Price-based markets resolve near-instantly.
+
+For real-world events, the aim during mainnet rollout is to resolve within 4 hours of official settlement against authoritative sources, with the target of bringing this down to seconds over time.
+
+### Price Binary
+
+Resolves on the price at expiry. Outcome takes an X second TWAP immediately after expiry and compares it to the strike, where X is set per contract and scales with the contract period. Settles Yes if the TWAP is above the strike, No otherwise.
+
+### Price Touch
+
+Resolves on whether the price ever reaches the strike during the contract's life. Outcome evaluates the underlying on a rolling 1 second TWAP rather than raw prints, so a touch registers when that TWAP trades at or through the strike. Once it does, the contract settles Yes immediately and stays Yes regardless of where price goes afterward. If the TWAP never reaches the strike before expiry, it settles No.
+
+Using the TWAP for the touch trigger means a single wick that reverts inside the same second won't necessarily register. What matters is whether the average across that second clears the strike, not whether any individual print did.
+
+### Price Scalar
+
+Resolves to a value inside a range instead of a straight Yes or No. Each contract has a lower and upper bound. Outcome takes the same 1 second TWAP after expiry: at or below the lower bound settles at 0, at or above the upper bound settles at 1, and anything in between settles proportionally along the range.
+
 Backing it all: a 500K HYPE bond posted by Outcome, keeping incentives aligned with accurate, good-faith outcomes.

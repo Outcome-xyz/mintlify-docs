@@ -199,12 +199,16 @@ html.dark #navigation-items li[data-active="true"] > a {
     min-width: 0 !important;
     min-height: 0 !important;
   }
-  /* Hide the "Copy page" text node and substitute "Copy" via ::before */
+  /* Hide the "Copy page" text node and substitute "Copy" via ::before.
+     Mintlify stacks two copies of the label in a single grid cell (one
+     aria-hidden spacer that reserves width for the "Copied!" swap), so
+     the ::before is scoped to the visible innermost span — on a bare
+     `span` selector the wrapper got one too and it rendered "Copy Copy". */
   #page-context-menu-button span {
     font-size: 0 !important;
     line-height: 0 !important;
   }
-  #page-context-menu-button span::before {
+  #page-context-menu-button span:not(.grid):not([aria-hidden])::before {
     content: "Copy";
     font-size: 0.7rem !important;
     line-height: 1 !important;
