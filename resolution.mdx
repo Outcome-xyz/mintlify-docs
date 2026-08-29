@@ -16,4 +16,6 @@ Using the TWAP for the touch trigger means a single wick that reverts inside the
 
 Resolves to a value inside a range instead of a straight Yes or No. Each contract has a lower and upper bound. Outcome takes the same 1 second TWAP after expiry: at or below the lower bound settles at 0, at or above the upper bound settles at 1, and anything in between settles proportionally along the range.
 
+All price markets settle against a single oracle source: the HyperCore perpetual for the underlying asset that the market is written on.
+
 Backing it all: a 500K HYPE bond posted by Outcome, keeping incentives aligned with accurate, good-faith outcomes.
