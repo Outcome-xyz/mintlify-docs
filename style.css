@@ -214,12 +214,23 @@ html.dark #navigation-items li[data-active="true"] > a {
     line-height: 1 !important;
     display: inline-block !important;
   }
-  /* Shrink the chevron (second button) — kill aspect-square, match
-     the left button's vertical padding so heights line up. */
+  /* Both halves of the split button get one explicit height so they form a single
+     pill. Deriving it from padding + line-height doesn't work: Mintlify gives the
+     chevron half its own font metrics (line-height 22.5px vs the 0.7rem the Copy
+     half was shrunk to), and `align-self: stretch` then let it set the flex line
+     height and fill it — that's what made it 34px against the Copy half's 22px.
+     ponytail: 1.375rem is a visual constant; re-measure if the header type scale moves. */
+  #page-context-menu > button {
+    height: 1.375rem !important;
+    align-self: center !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  /* Shrink the chevron (second button) — kill aspect-square. */
   #page-context-menu > button:nth-of-type(2) {
-    padding: 0.2rem 0.45rem !important;
+    padding-left: 0.45rem !important;
+    padding-right: 0.45rem !important;
     aspect-ratio: auto !important;
-    align-self: stretch !important;
     min-width: 0 !important;
   }
   #page-context-menu > button:nth-of-type(2) svg,
