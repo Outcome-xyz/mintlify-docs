@@ -13,7 +13,7 @@ For real-world events, the aim during mainnet rollout is to resolve within 4 hou
 
 ### Price binary
 
-Resolves on the price at expiry. Outcome takes an X second TWAP immediately after expiry and compares it to the strike, where X is set per contract and scales with the contract period. Settles Yes if the TWAP is above the strike, No otherwise. Exactly at the strike settles No.
+Resolves on the price at expiry. Outcome takes an X second TWAP immediately after expiry and compares it to the strike, where X is set per contract and scales with the contract period. Settles Yes if the TWAP is above the strike, No otherwise.
 
 ### Price touch
 
@@ -34,7 +34,7 @@ Once resolution is determined:
 - Tokens for the resolved outcome become redeemable at 1 USDC each.
 - Tokens for any other outcome become worth 0.
 
-Settlement happens automatically. Your USDC balance updates with the redemption proceeds (minus the settlement fee, see [Fees](/fees)).
+Your USDC balance updates with the redemption proceeds (minus the settlement fee, see [Fees](/fees)).
 
 There's no claim step. You don't need to do anything; the protocol automatically redeems tokens for the resolved outcome.
 
