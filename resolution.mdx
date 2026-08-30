@@ -16,7 +16,7 @@ Using the TWAP for the touch trigger means a single wick that reverts inside the
 
 Resolves to a value inside a range instead of a straight Yes or No. Each contract has a lower and upper bound. Outcome takes the same 1 second TWAP after expiry: at or below the lower bound settles at 0, at or above the upper bound settles at 1, and anything in between settles proportionally along the range.
 
-All price markets settle against a single oracle source: the HyperCore perpetual for the underlying asset that the market is written on.
+All price markets settle against a single oracle source: the HyperCore perpetual **<u>mark price</u>** for the underlying asset that the market is written on.
 
 <Note>
 Resolution is currently in Beta. Markets settle with a short buffer while we verify the data against the official sources listed in the rules. Once Outcome exits Beta, deployment and settlement will be fully automated, so markets deploy and resolve near instantly.
