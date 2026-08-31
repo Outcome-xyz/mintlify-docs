@@ -32,7 +32,16 @@
               "outcome-architecture",
               "introduction",
               "wallets-and-accounts",
-              "funding-your-account",
+              {
+                "group": "Funding your account",
+                "root": "funding-your-account",
+                "pages": [
+                  "deposits/connected-wallet",
+                  "deposits/external-wallet",
+                  "deposits/cash",
+                  "deposits/status"
+                ]
+              },
               "placing-your-first-trade"
             ]
           },
@@ -138,12 +147,7 @@
           "sdk/guides/fetch-markets",
           "sdk/guides/trading",
           "sdk/guides/conversions",
-          "sdk/guides/real-time-data",
-          "sdk/guides/wallet-funding",
-          {
-            "group": "Untitled Group",
-            "pages": []
-          }
+          "sdk/guides/real-time-data"
         ]
       },
       {

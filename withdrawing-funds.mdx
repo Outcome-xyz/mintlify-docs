@@ -7,7 +7,7 @@ You can withdraw your USDC balance from Outcome at any time. There are two ways 
 
 ### Withdraw USDC to Arbitrum
 
-USDC withdrawals are powered by Circle's Cross-Chain Transfer Protocol (CCTP), which moves native USDC across chains. Open the Withdraw flow in [outcome.xyz](http://outcome.xyz), enter the amount, choose the destination chain (currently set as Arbitrum by default) and address, and confirm.
+USDC withdrawals are powered by [Circle](https://www.circle.com/)'s [Cross-Chain Transfer Protocol (CCTP)](https://www.circle.com/cross-chain-transfer-protocol), which moves native USDC across chains. Open the Withdraw flow in [outcome.xyz](http://outcome.xyz), enter the amount, choose the destination chain (currently set as Arbitrum by default) and address, and confirm.
 
 You can send to your connected wallet's address or any other EVM address you specify. Double-check the destination before confirming. Crypto transactions cannot be reversed if you send to the wrong address.
 
@@ -17,8 +17,12 @@ If you want to cash out to fiat currency, withdrawals are powered by [Meld](http
 
 ### Fees and timing
 
-**Fees.** USDC withdrawals via CCTP incur network costs, shown before you confirm. Fiat withdrawals via Meld incur Meld's fees, which depend on the payment method and region.
-
-**Fees.** Two fees apply, both shown before you confirm: a small HyperEVM gas fee (a fraction of a cent) and Circle's CCTP forwarding fee, which varies by destination chain (roughly 20 cents to Arbitrum, more to chains like Ethereum). Outcome charges no withdrawal fee of its own.
+**Fees.** Two fees apply to a USDC withdrawal, both shown before you confirm: a small HyperEVM gas fee (a fraction of a cent) and Circle's CCTP forwarding fee, which varies by destination chain (roughly 20 cents to Arbitrum, more to chains like Ethereum). Fiat withdrawals via Meld incur Meld's fees, which depend on the payment method and region. Outcome charges no withdrawal fee of its own.
 
 **Timing.** Withdrawals typically complete within seconds once submitted.
+
+### Activation fee
+
+The first time a brand-new HyperCore account makes an outbound action, Hyperliquid charges a one-time 1 USDC activation fee. It's charged by the protocol, not by Outcome.
+
+Outcome shows it in the deposit breakdown so you see the full cost up front, but it isn't taken from your deposit — the protocol deducts it on your first withdrawal or transfer.

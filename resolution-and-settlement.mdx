@@ -11,7 +11,7 @@ How a market resolves depends on what it's about.
 
 **Price-based markets** (like the BTC daily binary or BTC price range markets) settle automatically against HyperCore mark prices. When the market reaches its settlement timestamp, the protocol reads the mark price at that moment and determines the outcome. There's no manual step: resolution is purely a function of the market spec and the price data.
 
-For these markets, the settlement price is computed using linear interpolation between the mark price updates immediately before and immediately after the settlement timestamp. The exact formula is in [Market types](06a-market-types.md).
+For these markets, the settlement price is computed using linear interpolation between the mark price updates immediately before and immediately after the settlement timestamp. The exact formula is in [Market types](/market-types).
 
 **Event markets** (sports results, macroeconomic data releases, central bank decisions, and similar) resolve on real-world occurrences that don't exist as on-chain prices. These markets are resolved within the Hyperliquid network by its validator set: validators assess the outcome against the market's stated resolution terms and vote on the settlement. The resolution terms, including what the market resolves on and when, are stated on the market page.
 
@@ -28,7 +28,7 @@ Once resolution is determined:
 - Tokens for the resolved outcome become redeemable at 1 USDC each.
 - Tokens for any other outcome become worth 0.
 
-Settlement happens automatically. Your USDC balance updates with the redemption proceeds (minus the settlement fee, see [Fees](07-fees.md)).
+Settlement happens automatically. Your USDC balance updates with the redemption proceeds (minus the settlement fee, see [Fees](/fees)).
 
 There's no claim step. You don't need to do anything; the protocol automatically redeems tokens for the resolved outcome.
 

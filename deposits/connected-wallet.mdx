@@ -1,0 +1,87 @@
+---
+title: "Deposit from a connected wallet"
+sidebarTitle: "Connected wallet"
+description: "Deposit crypto you already hold in the wallet you signed in with, in a single transaction."
+---
+
+If you hold crypto in the wallet you signed in with, this is the fastest way to fund your account. You stay in the app and sign one transaction.
+
+## Send a deposit
+
+<Steps>
+  <Step title="Open the Deposit panel">
+    Go to [outcome.xyz](https://outcome.xyz) and open **Deposit**, then choose the **Crypto** tab.
+  </Step>
+
+  <Step title="Pick your asset and amount">
+    Select the token you want to send and enter an amount. The minimum is $11.
+  </Step>
+
+  <Step title="Review the breakdown">
+    Fees, network cost, and estimated time appear before you confirm. Check them.
+  </Step>
+
+  <Step title="Confirm in your wallet">
+    Approve the transaction. Your balance updates when the deposit lands.
+  </Step>
+</Steps>
+
+Only tokens you actually hold, worth at least $11, appear in the asset picker.
+
+## Depositing USDC
+
+USDC takes a dedicated fast path through [Circle](https://www.circle.com/)'s [Cross-Chain Transfer Protocol (CCTP)](https://www.circle.com/cross-chain-transfer-protocol) from these networks:
+
+| Network | Typical time |
+| --- | --- |
+| HyperEVM | ~3 seconds |
+| Arbitrum | ~15 seconds |
+| OP Mainnet | ~18 seconds |
+| Base | ~18 seconds |
+| Unichain | ~18 seconds |
+| World Chain | ~18 seconds |
+| Ethereum | ~20 seconds |
+| Linea | ~22 seconds |
+
+CCTP charges a flat fee — Circle's protocol fee plus a forwarder fee — with no swap and no slippage. You pay network gas from your own wallet, so it isn't included in the fee row.
+
+Times are typical, not guarantees. Network congestion can push them higher.
+
+<Note>
+  Sending USDC from a network not listed above still works — it routes through Across instead of CCTP, and takes a little longer.
+</Note>
+
+## Depositing other assets
+
+Any other token routes through [Across](https://across.to/), which bridges and swaps it to USDC on the way in. Outcome bundles the swap, the bridge, and any destination-chain swap into a single sponsored transaction, so you still sign only once.
+
+Because these routes involve a swap, the breakdown shows two extra figures:
+
+| | |
+| --- | --- |
+| **Max slippage** | The worst-case price movement on the swap. Set by the bridge provider — you can't change it. |
+| **Min receive** | The least you'll get after worst-case slippage. The actual amount is usually higher. |
+
+If a token is listed but can't be routed, the app surfaces an error when it fetches your quote rather than letting the deposit fail later.
+
+## Fees and limits
+
+| | |
+| --- | --- |
+| **Minimum** | $11 |
+| **Maximum** | None |
+| **Outcome fee** | None — you pay only network and bridge costs |
+
+Every cost is shown in the breakdown before you confirm.
+
+If your HyperCore account is brand new, the breakdown also shows a one-time [activation fee](/withdrawing-funds#activation-fee) of 1 USDC. It's charged by Hyperliquid, not Outcome, and is deducted on your first withdrawal or transfer rather than on the deposit.
+
+<CardGroup cols={2}>
+  <Card title="Track a deposit" icon="clock" href="/deposits/status">
+    Timing, confirming arrival, and troubleshooting.
+  </Card>
+
+  <Card title="Other ways to deposit" icon="wallet" href="/funding-your-account">
+    External wallet and cash deposits.
+  </Card>
+</CardGroup>
