@@ -6,6 +6,21 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
+<Update label="Unreleased" description="version and date TBD at publish">
+  ### Removed
+
+  - **`liquidityRewards` module (breaking).** The World Cup 2026 campaign it queried is permanently retired - Monarch's campaign API now returns `410 Gone` on every route, for any date. Season `s1` was the only registered season, so the whole module is gone: `liquidityRewards`, `LIQUIDITY_REWARDS_CONFIG`, `LiquidityRewardsError`, and every `LiquidityRewards*` type. See [Liquidity Rewards (retired)](/sdk/reference/liquidity-rewards).
+
+  ### Added
+
+  - **`outcomeRewards` module.** Programme-wide totals, one wallet's earnings, finalized reward periods, and a leaderboard, from the public Outcome liquidity-rewards payouts API. See [Outcome Rewards](/sdk/reference/outcome-rewards).
+    - `outcomeRewards.programme()` - paid/pending/awarded USDC totals
+    - `outcomeRewards.wallet(address)` - one wallet's totals and reward rows
+    - `outcomeRewards.periods({ limit })` - every finalized reward period
+    - `outcomeRewards.leaderboard({ limit })` - wallets ranked by USDC paid
+    - `OUTCOME_REWARDS_CONFIG`, `OutcomeRewardsError`, and typed results exported from the main entry point
+</Update>
+
 <Update label="1.0.3-beta" description="July 6, 2026">
   ### Fixed
 
