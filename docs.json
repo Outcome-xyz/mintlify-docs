@@ -124,6 +124,13 @@
             ]
           },
           {
+            "group": "Rewards",
+            "icon": "coins",
+            "pages": [
+              "sdk/reference/outcome-rewards"
+            ]
+          },
+          {
             "group": "Changelog",
             "icon": "history",
             "pages": [

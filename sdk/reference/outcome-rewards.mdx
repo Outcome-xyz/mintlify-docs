@@ -1,0 +1,146 @@
+---
+title: "Outcome rewards - programme totals, wallet earnings, and payouts"
+sidebarTitle: "Outcome Rewards"
+description: "Read what the Outcome Markets liquidity-rewards programme has paid: programme-wide totals, one wallet's earnings, finalized reward periods, and a leaderboard, using the outcomeRewards module in @outcome.xyz/hip4."
+---
+
+The `outcomeRewards` module reads what the Outcome Markets liquidity-rewards programme has paid out. It is a standalone export - it does not require `createHIP4Adapter`, a signer, or any authentication. The data comes from a public, unauthenticated payouts service that reads Monarch's finalized reward periods and the actual USDC transfers on Hypercore, and is normalized to camelCase by the SDK.
+
+<Note>
+  This replaces the retired [`liquidityRewards`](/sdk/reference/liquidity-rewards) module, but answers a different question. `liquidityRewards` told you which books were *eligible today* for one campaign; `outcomeRewards` tells you what has *already been paid out*, across every Outcome Market. There's no eligibility-checking equivalent here.
+</Note>
+
+## Paid, pending, and awarded
+
+Every totals shape below carries the same three amounts:
+
+| Field | Meaning |
+| --- | --- |
+| `paidUsdc` | USDC that has actually left the treasury - a real transfer on Hypercore |
+| `pendingUsdc` | USDC a reward period has finalized and owes, not yet swept to wallets. The gap between finalization and the payout sweep (every ten minutes) is usually just minutes |
+| `awardedUsdc` | `paidUsdc + pendingUsdc`, excluding dust below the minimum payout and rows an operator dismissed - those were awarded and deliberately never sent |
+
+## `programme`
+
+Programme-wide totals - no arguments required:
+
+```typescript
+import { outcomeRewards } from "@outcome.xyz/hip4";
+
+const totals = await outcomeRewards.programme();
+```
+
+| Field | Description |
+| --- | --- |
+| `paidUsdc` / `pendingUsdc` / `awardedUsdc` | See [Paid, pending, and awarded](#paid-pending-and-awarded) |
+| `payments` | Count of individual wallet payments made so far |
+| `wallets` | Count of distinct wallets that have earned a reward |
+| `rewardPeriods` | Count of finalized reward periods |
+| `lastPaidAt` | Time of the most recent transfer, or `null` if nothing has been paid yet |
+
+## `wallet`
+
+One wallet's totals and reward history:
+
+```typescript
+const mine = await outcomeRewards.wallet("0x...");
+```
+
+Carries the same `paidUsdc` / `pendingUsdc` / `awardedUsdc` / `payments` fields as `programme`, scoped to the wallet, plus `rewards: OutcomeRewardsWalletReward[]` - one row per reward period the wallet earned in:
+
+| Field | Description |
+| --- | --- |
+| `marketId` | `Q<number>` for a grouped question, `O<number>` for a standalone outcome |
+| `epochEndDate` | UTC date for an epoch reward period, `null` for a full-market one |
+| `marketName` | Human-readable market label |
+| `rewardUsdc` | This reward period's payment to the wallet (decimal USDC string) |
+| `status` | Payment status. Only `"sent"` is documented upstream - treat this as an open string, not an exhaustive union |
+| `txHash` / `paidAt` | `null` until the reward is actually transferred |
+
+<Note>
+  An address with no rewards returns zeroes and an empty `rewards` list - not an error.
+</Note>
+
+## `periods`
+
+Every finalized reward period, newest first:
+
+```typescript
+const periods = await outcomeRewards.periods({ limit: 50 });
+```
+
+Returns `OutcomeRewardsPeriod[]`:
+
+| Field | Description |
+| --- | --- |
+| `marketId` / `epochEndDate` / `marketName` | Same meaning as on a wallet reward row |
+| `periodType` | `"market"` (full market lifecycle) or `"epoch"` (shorter incentive window) |
+| `finalizedAt` | When this reward period finalized |
+| `awardedUsdc` / `paidUsdc` | This period's totals - see [Paid, pending, and awarded](#paid-pending-and-awarded) |
+| `wallets` / `payments` | Distinct wallets and payment count for this period |
+| `state` | `"unpaid"`, `"partial"` (some wallets paid, others not yet), or `"paid"` |
+
+## `leaderboard`
+
+Wallets ranked by USDC actually paid - not awarded, so a rank never changes without a real payment:
+
+```typescript
+const board = await outcomeRewards.leaderboard({ limit: 10 });
+```
+
+Returns `OutcomeRewardsLeaderboardEntry[]`: `rank`, `wallet`, `paidUsdc`, `payments`, `rewardPeriods`.
+
+## Request options
+
+`periods` and `leaderboard` accept a `limit` on top of the shared options below:
+
+| Option | Description |
+| --- | --- |
+| `limit` | Max rows to return (`periods`, `leaderboard` only). Upstream default 100, max 500 |
+| `baseUrl` | Override the payouts API base URL for this call |
+| `signal` | `AbortSignal`. Defaults to a 15-second timeout |
+
+## Errors and retries
+
+Requests retry once on 5xx and network errors, matching the rest of the SDK. 4xx responses - including `429` rate-limiting - throw an `OutcomeRewardsError` immediately rather than retrying into the limit:
+
+```typescript
+import { OutcomeRewardsError } from "@outcome.xyz/hip4";
+
+try {
+  await outcomeRewards.wallet(address);
+} catch (err) {
+  if (err instanceof OutcomeRewardsError) {
+    console.error(err.status, err.code, err.message);
+  }
+}
+```
+
+`OutcomeRewardsError` carries the HTTP `status` and, when the response included one, the upstream machine-readable `code` (e.g. `"bad-request"` for a malformed wallet address).
+
+<Warning>
+  The upstream API allows 120 requests a minute per IP and caches responses for 60 seconds (30 seconds for a single wallet). The underlying ledger changes at most once every ten minutes, when the payout sweep runs - polling faster than that buys nothing.
+</Warning>
+
+## Exports
+
+Runtime exports and all outcome-rewards types come from the main entry point (they are not part of `@outcome.xyz/hip4/types`):
+
+```typescript
+import {
+  outcomeRewards,
+  OUTCOME_REWARDS_CONFIG,
+  OutcomeRewardsError,
+  type OutcomeRewardsRequestOptions,
+  type ListOptions,
+  type OutcomeRewardsProgrammeTotals,
+  type OutcomeRewardsWalletSummary,
+  type OutcomeRewardsWalletReward,
+  type OutcomeRewardsPeriod,
+  type OutcomeRewardsLeaderboardEntry,
+  type OutcomeRewardsMarketId,
+  type OutcomeRewardStatus,
+  type OutcomeRewardsPeriodState,
+  type OutcomeRewardsPeriodType,
+} from "@outcome.xyz/hip4";
+```
