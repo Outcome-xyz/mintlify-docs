@@ -37,6 +37,8 @@ const totals = await outcomeRewards.programme();
 | `wallets` | Count of distinct wallets that have earned a reward |
 | `rewardPeriods` | Count of finalized reward periods |
 | `lastPaidAt` | Time of the most recent transfer, or `null` if nothing has been paid yet |
+| `last24h` | Rolling trailing-24-hour totals (`OutcomeRewardsWindowTotals`): `paidUsdc`, `payments` |
+| `today` | Totals since the current UTC day began (`OutcomeRewardsTodayTotals`): `paidUsdc`, `payments`, `wallets` |
 
 ## `wallet`
 
@@ -134,6 +136,8 @@ import {
   type OutcomeRewardsRequestOptions,
   type ListOptions,
   type OutcomeRewardsProgrammeTotals,
+  type OutcomeRewardsWindowTotals,
+  type OutcomeRewardsTodayTotals,
   type OutcomeRewardsWalletSummary,
   type OutcomeRewardsWalletReward,
   type OutcomeRewardsPeriod,
