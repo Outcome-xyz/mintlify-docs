@@ -45,7 +45,13 @@
               "outcome-tokens-and-pricing",
               "market-types",
               "recurring-markets",
-              "resolution"
+              {
+                "group": "Resolution",
+                "pages": [
+                  "resolution",
+                  "resolution-extra-details"
+                ]
+              }
             ]
           },
           {
