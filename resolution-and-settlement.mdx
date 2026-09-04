@@ -11,15 +11,15 @@ How a market resolves depends on what it's about.
 
 **Price-based markets** (like the BTC daily binary or BTC price range markets) settle automatically against HyperCore mark prices. When the market reaches its settlement timestamp, the protocol reads the mark price at that moment and determines the outcome. There's no manual step: resolution is purely a function of the market spec and the price data.
 
-For these markets, the settlement price is computed using linear interpolation between the mark price updates immediately before and immediately after the settlement timestamp. The exact formula is in [Market types](06a-market-types.md).
+For these markets, the settlement price is computed using linear interpolation between the mark price updates immediately before and immediately after the settlement timestamp. The exact formula is in [Market types](/market-types).
 
-**Event markets** (sports results, macroeconomic data releases, central bank decisions, and similar) resolve on real-world occurrences that don't exist as on-chain prices. These markets are resolved within the Hyperliquid network by its validator set: validators assess the outcome against the market's stated resolution terms and vote on the settlement. The resolution terms, including what the market resolves on and when, are stated on the market page.
+**Event markets** (sports results, macroeconomic data releases, central bank decisions, and similar) resolve on real-world occurrences that don't exist as on-chain prices. Who performs the resolution depends on who deployed the market. Markets deployed by Outcome are resolved by Outcome, against the resolution source named on the market page. Validator-deployed markets are resolved by the Hyperliquid validator set: validators assess the outcome against the market's stated resolution terms and vote on the settlement. Either way, the resolution terms, including what the market resolves on and when, are stated on the market page.
 
-### Resolution stays inside the network
+### Settlement stays inside the network
 
-In both paths, resolution happens natively within Hyperliquid. Price-based markets read HyperCore's own mark prices. Event markets are settled by the same validator set that secures the network.
+Whoever performs the resolution, settlement is executed natively within Hyperliquid. Price-based markets read HyperCore's own mark prices. Validator-deployed markets are settled by the same validator set that secures the network. There is no separate settlement layer, no dispute token, and no claims process on another chain.
 
-This is structurally different from prediction markets that rely on external oracle networks or third-party adjudication, where resolution depends on a separate system with its own token, incentives, and dispute process. On Hyperliquid, there is no external oracle dependency in either path.
+For the markets Outcome deploys, Outcome's own capital backs the resolution. HIP-4 deployment requires a 500,000 HYPE stake, which validators can slash if a market is poorly defined or settled incorrectly, and which cannot be withdrawn until every outstanding market is settled. See [Outcome architecture](/outcome-architecture) for how the bond works, and [Resolution](/resolution) for the mechanics of each market type.
 
 ### What happens to your tokens
 
@@ -28,7 +28,7 @@ Once resolution is determined:
 - Tokens for the resolved outcome become redeemable at 1 USDC each.
 - Tokens for any other outcome become worth 0.
 
-Settlement happens automatically. Your USDC balance updates with the redemption proceeds (minus the settlement fee, see [Fees](07-fees.md)).
+Settlement happens automatically. Your USDC balance updates with the redemption proceeds (minus the settlement fee, see [Fees](/fees)).
 
 There's no claim step. You don't need to do anything; the protocol automatically redeems tokens for the resolved outcome.
 
