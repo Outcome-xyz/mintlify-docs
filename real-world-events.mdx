@@ -1,0 +1,119 @@
+---
+title: "Real world event markets: resolution, deployment, and templates"
+sidebarTitle: "Real world events"
+description: "How Outcome resolves real world event markets, which markets get deployed, and the fixed templates every market's rules come from."
+---
+
+Outcome resolves real world event markets against authoritative official sources, targeting resolution within 4 hours of official settlement at mainnet rollout. Markets are chosen by Outcome's own selection algorithm, capped at 100 live markets at a time and 500 new markets per day. Every market's rules come from a fixed template defined on Hyperliquid, and Outcome only fills in the inputs.
+
+### Quick reference
+
+| Item | Current |
+| --- | --- |
+| Resolution target | Within 4 hours of official settlement |
+| Long term target | Seconds |
+| Live markets | 100 at any given time |
+| New markets | 500 per day |
+| Single contest deployment | Roughly 24 hours before start |
+| Prop and tournament deployment | Roughly weeks before start |
+| Prop and tournament field | Top six prospects at deployment |
+| Template control | Hyperliquid defines the template, Outcome fills the inputs |
+
+### How does Outcome resolve markets?
+
+Outcome runs a proprietary resolution system, built together with established oracle and resolution partners. Each market names an official source in its template, and that source is what the market settles against. Full mechanics and the partners involved will be shared through Outcome's official channels.
+
+If the official source has not published a result, independent reputable reporting can be used. Once a market resolves, later appeals, corrections or reversals do not change the outcome.
+
+### How fast are markets resolved?
+
+At mainnet rollout, Outcome aims to resolve real world event markets within 4 hours of official settlement. The target is to bring that down to seconds over time.
+
+### How does Outcome choose which markets to deploy?
+
+Outcome uses its own market selection algorithm to decide which games go live. Current limits are 100 markets live at any given time and 500 new markets per day.
+
+That means Outcome will not deploy every market you want, or every market Outcome wants. These limits expand over time.
+
+### When do markets go live?
+
+- Single contests: the algorithm signals roughly 24 hours before the event starts
+- Props and tournaments: roughly weeks before the event starts
+
+### How many participants does a prop or tournament market list?
+
+Props and tournaments launch with the top six prospects at the time of deployment. If an unexpected prospect rises after that, Outcome adds them as a new pick.
+
+### Can I request a market?
+
+Yes. If there is a market or category Outcome has not deployed yet, recommend it in the [Outcome Discord](https://discord.com/invite/outcome).
+
+### What are market templates?
+
+A template is the rulebook for a market. It defines what the market covers, what each outcome means, and exactly how the market settles in every edge case, including postponements, walkovers, cancellations and missed deadlines.
+
+Every template is defined on the Hyperliquid side. Outcome only controls the inputs marked in `{ }`, such as the participants, the competition and the official source. Market titles are generated from those same inputs, though on Outcome's frontend the titles may be adjusted slightly so they read more easily.
+
+These are all the current templates for real world events.
+
+#### sportsContestWinner
+
+**What it covers:** a two-sided market on a single contest, one participant against the other, with no draw side. Draws, no contests and unresolved outcomes pay \$0.50 to both sides.
+
+**Example event:** Real Madrid vs Barcelona in La Liga. One side for Real Madrid (RMA), one side for Barcelona (BAR).
+
+**Template:**
+
+```text
+This {sport} market has two sides, {shortNameA} for {participantA} and {shortNameB} for {participantB}. It covers the {contestType} between {participantA} and {participantB} in the {season} {competition} {stage}, scheduled for {scheduledStart} UTC (the "Contest"). The Counted Play is {countedPlay}. The Contest Result is the official record of the Counted Play. Play outside the Counted Play, including any extra time, overtime, shoot-out, or tiebreak, is disregarded, and a winner decided by such play is not the winner of the Counted Play, even if any source treats it as part of the Contest. A participant is the sole winner if the Contest Result names it the sole winner of the Counted Play or, where it names none, if it has the better score or placing under the Contest rules when the Counted Play ends. The Contest Result is a draw if it records a draw, tie, or co-winners, or names no winner of the Counted Play with the scores level when it ends. The market resolves to {shortNameA} if {participantA} is the sole winner, and resolves to {shortNameB} if {participantB} is the sole winner. The market resolves to 0.5 if the Contest Result is a draw, records a no contest or no winner, names an unlisted winner, or is not established by {resolutionDeadline} UTC. A result that {officialSource} records for the Contest by administrative or rules-based decision, including but not limited to a decision following abandonment, walkover, forfeit, disqualification, or retirement, is the Contest Result if the Counted Play was not completed; a completed Counted Play is resolved on its record alone. A postponed, suspended, or rescheduled Contest, or one replayed because the Counted Play was not completed, between the same participants in the same {competition} {stage} remains the Contest, subject to the same rules and deadline. A result or status is established when {officialSource} publishes it or, failing that by {resolutionDeadline} UTC, when a clear consensus of independent reputable reporting available by that deadline supports it; otherwise it is not established. The Contest Result is fixed as {officialSource}'s record stands one hour after {officialSource} first publishes on any official channel that the Counted Play is complete, including by recording play beyond it, or that a result has been recorded by decision, or at {resolutionDeadline} UTC if earlier or if it rests on reporting; later appeals, corrections, reversals, or reassignments do not change it. This market is not sponsored by, endorsed by, or affiliated with {officialSource} or any competition, league, governing body, organizer, team, club, participant, or other person or entity referenced in this market. All names and trademarks are the property of the respective rights holders and are descriptive only. metadata=category:sports|subCategory:{sport}|semanticRestriction:This market must refer to a single scheduled sports contest.
+```
+
+#### sportsTournamentWinner
+
+**What it covers:** the outright winner of a whole tournament. One named outcome per listed participant, plus a No winner fallback. Exactly one outcome resolves Yes. A participant resolves No the moment winning becomes impossible, so eliminated participants settle early.
+
+**Example event:** winner of the 2026/27 UEFA Champions League. One outcome per listed club, plus the fallback.
+
+**Template:**
+
+```text
+This {sport} market has one named outcome per listed participant in the {season} {competition} (the "Tournament") plus the fallback. Exactly one outcome resolves to Yes; every other outcome resolves to No. The Tournament Result is the official final winner of the Tournament published by {officialSource}, including every contest, period, and tiebreak procedure that {officialSource} treats as part of the Tournament. A named outcome resolves to Yes if the Tournament Result names the corresponding participant the sole winner. A named outcome resolves to No once it becomes impossible under the Tournament rules for the corresponding participant to win the Tournament, including but not limited to upon elimination from the Tournament. If any part of the Tournament is postponed, delayed, or suspended, the Tournament Result as ultimately completed applies if published by {resolutionDeadline} UTC. If {officialSource} names a listed participant the sole winner without a completed Tournament, including but not limited to following abandonment, walkover, forfeit, disqualification, withdrawal, or an administrative decision, that participant's outcome resolves to Yes. The fallback resolves to Yes and every named outcome not already resolved resolves to No if {officialSource} records no winner, names co-winners, names anyone other than a listed participant the winner, the Tournament is canceled without a replacement, or no Tournament Result is published by {resolutionDeadline} UTC. The fallback resolves to Yes via a named outcome called No winner that is registered after every other named outcome is settled to No. {officialSource} is the primary resolution source; independent reputable reporting may be used if it has not published the result. The fallback resolves to Yes under the deadline rule above only if neither {officialSource} nor independent reputable reporting establishes the Tournament Result by {resolutionDeadline} UTC. Once resolved, later appeals, corrections, reversals, or title reassignments do not change the resolution. This market is not sponsored by, endorsed by, or affiliated with {officialSource} or with any competition, league, governing body, organizer, team, club, participant, or other person or entity referenced in this market. All names and trademarks are the property of the respective rights holders and are descriptive only. metadata=category:sports|subCategory:{sport}|semanticRestriction:This market must refer to the overall winner of a sports tournament.
+```
+
+#### sportsContestResult
+
+**What it covers:** a three-way market on a single contest, participant A, Draw, or participant B. Used where a draw is a real result rather than an edge case.
+
+**Example event:** Arsenal vs Liverpool in the Premier League. Outcomes are Arsenal, Draw, Liverpool.
+
+**Template:**
+
+```text
+This {sport} market has three possible results: {participantA}, Draw, or {participantB}. Exactly one corresponding named outcome resolves to Yes; the other two and the fallback resolve to No. It covers the {contestType} between {participantA} and {participantB} in the {season} {competition} {stage}, scheduled for {scheduledStart} UTC (the "Contest"). The Counted Play is {countedPlay}. The Contest Result is the official record of the Counted Play. Play outside the Counted Play, including any extra time, overtime, shoot-out, or tiebreak, is disregarded, and a winner decided by such play is not the winner of the Counted Play, even if any source treats it as part of the Contest. A participant is the sole winner if the Contest Result names it the sole winner of the Counted Play or, where it names none, if it has the better score or placing under the Contest rules when the Counted Play ends. The Contest Result is a draw if it records a draw, tie, or co-winners, or names no winner of the Counted Play with the scores level when it ends. {participantA} or {participantB} resolves to Yes if that participant is the sole winner; Draw resolves to Yes if the Contest Result is a draw. Draw also resolves to Yes if the Contest Result records a no contest or no winner, names an unlisted winner, or is not established by {resolutionDeadline} UTC (the "Residual Conditions"). A result that {officialSource} records for the Contest by administrative or rules-based decision, including but not limited to a decision following abandonment, walkover, forfeit, disqualification, or retirement, is the Contest Result if the Counted Play was not completed; a completed Counted Play is resolved on its record alone. A postponed, suspended, or rescheduled Contest, or one replayed because the Counted Play was not completed, between the same participants in the same {competition} {stage} remains the Contest. A result or status is established when {officialSource} publishes it or, failing that by {resolutionDeadline} UTC, when a clear consensus of independent reputable reporting available by that deadline supports it; otherwise it is not established. The Contest Result is fixed as {officialSource}'s record stands one hour after {officialSource} first publishes on any official channel that the Counted Play is complete, including by recording play beyond it, or that a result has been recorded by decision, or at {resolutionDeadline} UTC if earlier or if it rests on reporting; later appeals, corrections, reversals, or reassignments do not change it. This market is not sponsored by, endorsed by, or affiliated with {officialSource} or any competition, league, governing body, organizer, team, club, participant, or other person or entity referenced in this market. All names and trademarks are the property of the respective rights holders and are descriptive only. metadata=category:sports|subCategory:{sport}|semanticRestriction:This market must refer to a single scheduled sports contest.
+```
+
+#### sportsScalarMarket
+
+**Not in use initially.** This template exists but Outcome is not deploying it at launch. It is listed here for completeness.
+
+**What it covers:** Over/Under on an officially reported statistic. The payout is not binary. It scales linearly between the low and high bounds, so a final value in the middle of the range splits the payout between the two sides.
+
+**Example event:** total combined points in Lakers vs Celtics, with a range of 210 to 240. A final of 225 pays Over \$0.50 and Under \$0.50. A final of 240 or higher pays Over \$1.
+
+**Template:**
+
+```text
+This {sport} market has two sides, Over and Under. It covers {measure} in the {event}, scheduled for {scheduledStart} UTC (the "Contest"). The Counted Play is {countedPlay}. The Final Value is the value of {measure} over the Counted Play only, taken from the official record of the Contest. Play outside the Counted Play, including any extra time, overtime, shoot-out, or tiebreak, is disregarded even if {officialSource} or any other source includes it in the Contest or in its published totals. Where {officialSource} publishes no total scoped to the Counted Play, the Final Value is determined from the period-level or event-level data in its official record. If the Final Value is at or above {high}, Over tokens pay out $1 each. If the Final Value is at or below {low}, Over tokens pay out $0 each. Otherwise, Over tokens pay out $1 times (Final Value - {low}) / ({high} - {low}) each, rounded down to the nearest $0.00000001. In each case, Under tokens pay out $1 minus the Over payout each. A postponed, suspended, or rescheduled Contest, or one replayed because the Counted Play was not completed, remains the Contest, subject to the same rules and deadline. If the Contest is shortened, abandoned, or decided by administrative or rules-based decision but {officialSource} publishes an official final value of {measure} for the Contest, that value, counting only the Counted Play, is the Final Value. A participant takes part in the Counted Play if {officialSource}'s record shows it in play at any point during the Counted Play. The market resolves to 0.5 if {low} is not less than {high}, if any individual participant to whom {measure} refers does not take part in the Counted Play, if the Final Value cannot be determined from the official record, or if no Final Value is established by {resolutionDeadline} UTC. A value or status is established when {officialSource} publishes it or, failing that by {resolutionDeadline} UTC, when a clear consensus of independent reputable reporting available by that deadline supports it; otherwise it is not established. The Final Value is fixed as {officialSource}'s record stands one hour after {officialSource} first publishes on any official channel that the Counted Play is complete, including by recording play beyond it, or that a value has been recorded by decision, or at {resolutionDeadline} UTC if earlier or if it rests on reporting; later appeals, corrections, reversals, or reassignments do not change it. This market is not sponsored by, endorsed by, or affiliated with {officialSource} or any competition, league, governing body, organizer, team, club, participant, or other person or entity referenced in this market. All names and trademarks are the property of the respective rights holders and are descriptive only. metadata=category:sports|subCategory:{sport}|semanticRestriction:This market must refer to an officially reported statistic from a single scheduled sports contest.
+```
+
+#### policyRateDecision
+
+**What it covers:** a three-way market on a scheduled policy rate decision, No change, Decrease, or Increase. Measured against the value in effect immediately before the decision. Rate moves made outside the scheduled decision are ignored.
+
+**Example event:** the December 2026 FOMC decision on the federal funds target range. Outcomes are No change, Decrease, Increase.
+
+**Template:**
+
+```text
+This market has three possible results: No change, Decrease, or Increase. Exactly one corresponding named outcome resolves to Yes; the other two and the protocol-created fallback resolve to No. It covers the {decisionLabel} {institution} decision concerning {policyMeasure}, scheduled for {scheduledDecision} UTC (the "Decision"). The Decision Value is the numeric value of {policyMeasure} announced by {officialSource}. The Prior Value is the value of that same measure in effect immediately before the Decision. No change resolves to Yes if the Decision Value equals the Prior Value. Decrease resolves to Yes if the Decision Value is lower. Increase resolves to Yes if the Decision Value is higher. If the Decision is rescheduled, the rescheduled decision applies if {officialSource} publishes it by {decisionDeadline} UTC. If the Decision is canceled or postponed without a replacement decision, or no official Decision Value is published by {decisionDeadline} UTC, No change resolves to Yes. Policy changes outside the scheduled Decision are ignored except when establishing the Prior Value. If {institution} replaces {policyMeasure}, the closest official successor measure identified by {officialSource} is used. Resolution uses the initially published decision; later revisions do not change the resolution. {officialSource} is the primary resolution source; independent reputable reporting may be used if it has not published the relevant decision. No change resolves to Yes under the deadline rule above only if neither {officialSource} nor independent reputable reporting establishes a Decision Value by {decisionDeadline} UTC. metadata=category:economics|subCategory:N/A|semanticRestriction:This market must refer to a scheduled policy rate decision by an official institution.
+```
