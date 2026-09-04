@@ -19,7 +19,7 @@ If [outcome.xyz](http://outcome.xyz) is unreachable (website issues, browser pro
 
 ### Oracle and settlement risk
 
-Markets resolve based on the resolution terms defined in the market specification. Price-based markets settle against HyperCore mark prices, maintained by Hyperliquid validators. Event markets (sports, macro data, and similar) are resolved by the Hyperliquid validator set voting on the outcome. In both paths, settlement depends on the integrity of the resolution process: a compromised, manipulated, or stale price feed, or an incorrect validator resolution, could cause settlement to behave unexpectedly. For event markets specifically, outcomes that are ambiguous as worded carry more resolution uncertainty than deterministic price readings.
+Markets resolve based on the resolution terms defined in the market specification. Who performs the resolution depends on who deployed the market. Validator-deployed markets are resolved by the Hyperliquid validator set, not by Outcome. Price-based markets settle against HyperCore mark prices. Markets deployed by Outcome are resolved by Outcome, against the resolution source named on the market page. In both paths, settlement depends on the integrity of the resolution process: a compromised, manipulated, or stale price feed, or an incorrect resolution, could cause settlement to behave unexpectedly. For event markets specifically, outcomes that are ambiguous as worded carry more resolution uncertainty than deterministic price readings.
 
 ### Liquidity risk
 
