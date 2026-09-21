@@ -101,6 +101,7 @@ async function sync() {
       let body = await res.text();
       body = body.replace(/!\[.*?\]\(.*?\)/g, '');
       body = marked.parse(body);
+      body = body.replace(/<img[^>]*>/gi, '');
 
       const title = slugToTitle(page.slug);
 
