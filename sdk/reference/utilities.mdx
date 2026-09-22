@@ -55,26 +55,35 @@ stripZeros("0.65000");   // "0.65"
 stripZeros("1.0000");    // "1"
 ```
 
-### `getMinShares(markPx)`
+### `getMinShares(markPx, minNotional?)`
 
-Returns the minimum number of shares required to meet the 10 USDC minimum notional for a given mark price.
+Returns the minimum number of shares required to meet a minimum notional for a given mark price. `minNotional` is optional and defaults to `MIN_NOTIONAL` ($1) - pass it explicitly to compute the minimum shares against a different floor, such as an adapter's configured `minOrderNotional`.
 
 ```typescript
 import { getMinShares } from "@outcome.xyz/hip4";
 
-getMinShares(0.65);    // 29
-getMinShares(0.10);    // 100
+getMinShares(0.65);    // 3
+getMinShares(0.10);    // 10
+getMinShares(0.65, 10); // 29 - minimum shares for a $10 floor instead of the $1 default
 ```
 
 ### `MIN_NOTIONAL`
 
-The minimum order size in USDC. Currently `10`. Orders below this threshold are rejected before submission.
+The minimum order size in USDC. Currently `1`. This is the real, unchangeable Hyperliquid protocol minimum - orders below this threshold are rejected before submission.
 
 ```typescript
 import { MIN_NOTIONAL } from "@outcome.xyz/hip4";
 
-console.log(MIN_NOTIONAL);   // 10
+console.log(MIN_NOTIONAL);   // 1
 ```
+
+<Note>
+  Want a stricter floor than the protocol minimum? Don't try to override `MIN_NOTIONAL` itself -
+  it always reflects Hyperliquid's real minimum. Instead, pass `minOrderNotional` to
+  `createHIP4Adapter` to raise the client-side pre-submission floor for that adapter instance. See
+  [`minOrderNotional`](/sdk/reference/trading-adapter#minordernotional) in the Trading Adapter
+  reference.
+</Note>
 
 ## Market discovery
 
