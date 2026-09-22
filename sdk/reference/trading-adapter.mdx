@@ -14,6 +14,39 @@ The Trading Adapter (`adapter.trading`) lets you submit and cancel orders on HIP
 
 ---
 
+## Configuration
+
+### `minOrderNotional`
+
+Client-side order-notional floor in USD, checked before submission. Optional - defaults to the
+SDK's own `MIN_NOTIONAL` (the real Hyperliquid protocol minimum, currently $1). Set it on
+`createHIP4Adapter` to apply a stricter, business-chosen floor on top of the protocol minimum:
+
+```typescript
+const adapter = createHIP4Adapter({
+  testnet: false,
+  minOrderNotional: 10, // reject orders below $10 notional, even though the protocol allows $1
+});
+```
+
+`minOrderNotional` can only raise the effective floor, never lower it - the adapter constructor
+throws if you pass a value below `MIN_NOTIONAL`. Once set, it applies to both of `placeOrder`'s
+local checks: the notional check (`price × amount`) and, when `markPx` is provided, the minimum
+shares check (`getMinShares(markPx, minOrderNotional)`). Pass `skipMinNotionalCheck: true` on an
+individual `placeOrder` call to skip these SDK-side pre-checks - this does **not** change anything
+Hyperliquid itself enforces; it only matters for cases like closing an existing position, where the
+residual size may be below the configured minimum but the exchange still accepts the order. See
+[`skipMinNotionalCheck`](#skipminnotionalcheck) below, and
+[`MIN_NOTIONAL`](/sdk/reference/utilities#min_notional) in the Utilities reference for the
+underlying constant.
+
+<Note>
+  `minOrderNotional` is set once, at adapter construction - there is no per-order override. Use
+  `skipMinNotionalCheck` on an individual `placeOrder` call if a specific order needs to bypass it.
+</Note>
+
+---
+
 ## `placeOrder(params)`
 
 Places a single order on a HIP-4 outcome. This method **never throws** - check the `success` field and the `error` message on the returned result instead.
@@ -21,7 +54,7 @@ Places a single order on a HIP-4 outcome. This method **never throws** - check t
 For limit orders, the SDK performs these local checks before signing:
 
 - Tick-aligns the price to 5 significant figures.
-- Validates that the notional value (`price × amount`) meets the minimum (10 USDC) unless `skipMinNotionalCheck` is `true`.
+- Validates that the notional value (`price × amount`) meets the minimum (1 USDC by default, or the [configured `minOrderNotional`](#minordernotional)) unless `skipMinNotionalCheck` is `true`.
 - When `markPx` is provided, validates that `amount` meets the minimum shares threshold.
 
 For market orders, the SDK fetches the current mid and applies 8% slippage (ceiling for buys, floor for sells), then clamps the result to `[0.0001, 0.9999]`.
@@ -75,7 +108,7 @@ if (!result.success) {
 </ParamField>
 
 <ParamField path="markPx" type="number">
-  Current market price (0–1). When provided, the SDK enforces a minimum shares check: `amount >= getMinShares(markPx)`, which ensures the order meets the 10 USDC minimum notional.
+  Current market price (0–1). When provided, the SDK enforces a minimum shares check: `amount >= getMinShares(markPx, minOrderNotional)`, which ensures the order meets the [configured minimum notional](#minordernotional) (1 USDC by default, or the adapter's configured `minOrderNotional`).
 </ParamField>
 
 <ParamField path="builderAddress" type="string">
@@ -91,7 +124,7 @@ if (!result.success) {
 <ParamField path="skipMinNotionalCheck" type="boolean">
   When `true`, skips the SDK's local minimum-notional and minimum-shares
   pre-checks. Use this for position-closing flows where the residual size may be
-  below 10 USDC but the exchange still accepts the order.
+  below the minimum notional but the exchange still accepts the order.
 </ParamField>
 
 ### TIF mapping
