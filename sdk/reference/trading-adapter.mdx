@@ -33,7 +33,10 @@ const adapter = createHIP4Adapter({
 throws if you pass a value below `MIN_NOTIONAL`. Once set, it applies to both of `placeOrder`'s
 local checks: the notional check (`price × amount`) and, when `markPx` is provided, the minimum
 shares check (`getMinShares(markPx, minOrderNotional)`). Pass `skipMinNotionalCheck: true` on an
-individual `placeOrder` call to bypass this floor - and the protocol one - entirely. See
+individual `placeOrder` call to skip these SDK-side pre-checks - this does **not** change anything
+Hyperliquid itself enforces; it only matters for cases like closing an existing position, where the
+residual size may be below the configured minimum but the exchange still accepts the order. See
+[`skipMinNotionalCheck`](#skipminnotionalcheck) below, and
 [`MIN_NOTIONAL`](/sdk/reference/utilities#min_notional) in the Utilities reference for the
 underlying constant.
 
@@ -105,7 +108,7 @@ if (!result.success) {
 </ParamField>
 
 <ParamField path="markPx" type="number">
-  Current market price (0–1). When provided, the SDK enforces a minimum shares check: `amount >= getMinShares(markPx)`, which ensures the order meets the [configured minimum notional](#minordernotional) (1 USDC by default).
+  Current market price (0–1). When provided, the SDK enforces a minimum shares check: `amount >= getMinShares(markPx, minOrderNotional)`, which ensures the order meets the [configured minimum notional](#minordernotional) (1 USDC by default, or the adapter's configured `minOrderNotional`).
 </ParamField>
 
 <ParamField path="builderAddress" type="string">

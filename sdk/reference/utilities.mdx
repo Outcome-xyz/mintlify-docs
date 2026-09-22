@@ -57,7 +57,7 @@ stripZeros("1.0000");    // "1"
 
 ### `getMinShares(markPx, minNotional?)`
 
-Returns the minimum number of shares required to meet a minimum notional for a given mark price. `minNotional` is optional and defaults to `MIN_NOTIONAL` ($1) - pass it explicitly to compute the minimum shares against a different floor, such as an adapter's configured `minOrderNotional`.
+Returns the minimum number of shares required to meet a minimum notional, calculated as `ceil(minNotional / min(markPx, 1 - markPx))` - using the cheaper of the two binary-outcome sides, since that side needs more shares to reach the same notional value. `minNotional` is optional and defaults to `MIN_NOTIONAL` ($1) - pass it explicitly to compute the minimum shares against a different floor, such as an adapter's configured `minOrderNotional`.
 
 ```typescript
 import { getMinShares } from "@outcome.xyz/hip4";
