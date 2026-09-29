@@ -2,12 +2,12 @@
   <title>How Outcome deposits are routed</title>
 
   <style>
-    .hdr   { font: 600 9.5px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: 0.1em; }
-    .lead  { font: 650 14px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-    .sub   { font: 400 11.5px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-    .pill  { font: 600 10.5px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-    .dest  { font: 700 15.5px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-    .dsub  { font: 400 11.5px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .hdr   { font: 500 9px ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; letter-spacing: 0.1em; }
+    .lead  { font: 500 12.5px ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
+    .sub   { font: 400 10.5px ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
+    .pill  { font: 500 9.5px ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
+    .dest  { font: 500 14px ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
+    .dsub  { font: 400 10.5px ui-monospace, 'SF Mono', 'Geist Mono', Menlo, monospace; }
 
     .ink   { fill: #0f172a; }
     .muted { fill: #64748b; }
