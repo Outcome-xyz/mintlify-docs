@@ -306,8 +306,8 @@ Quote depth, maker fills, and taker fills score only when:
 - market is active and unsettled
 - scored outcome remains possible
 - `hyperliquid_mid` is available and reliable
-- `current_hyperliquid_mid >= 0.50%`
-- `current_hyperliquid_mid <= 99.50%`
+- `current_hyperliquid_mid >= 2.00%`
+- `current_hyperliquid_mid <= 98.00%`
 
 Scoring pauses whenever a condition is not met and resumes only if the market becomes eligible again. Scoring stops permanently when the market settles or the scored outcome becomes impossible.
 
@@ -660,7 +660,7 @@ The following activity does not score:
 - blocks or fills outside the published incentive window;
 - markets that are paused, halted, cancelled, stale, or settled;
 - blocks without a reliable Hyperliquid mid;
-- quote blocks with a mid below 0.50% or above 99.50%;
+- quote blocks with a mid below 2.00% or above 98.00%;
 - orders at or beyond the dynamic logit-distance cutoff;
 - eliminated or impossible winner outcomes;
 - duplicated YES or NO liquidity already represented in the scored probability surface;
@@ -697,7 +697,7 @@ The payout asset, payout timing, and eligible attribution method are published w
 | Live multiplier | Additive `+3×` for quotes and maker fills; `3×` for taker fills when applicable |
 | Volatility multiplier | `1×` to `5×` for quotes and maker fills |
 | Combined live and volatility cap | `8×` |
-| Scored midpoint range | 0.50% to 99.50% |
+| Scored midpoint range | 2.00% to 98.00% |
 | Distance multiplier | `5×` at mid, falling quadratically to `0×` at the dynamic logit cutoff |
 | Minimum depth | $50 raw in-band bid-plus-ask notional |
 | Two-sided multiplier | `1×` to `3×` |
