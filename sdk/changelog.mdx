@@ -6,6 +6,22 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
+<Update label="1.2.0-beta.1" description="September 22, 2026">
+  ### Added
+
+  - **`minOrderNotional` adapter config.** `createHIP4Adapter({ minOrderNotional })` lets you raise the client-side order-notional floor above the protocol `MIN_NOTIONAL` ($1) - useful when your integration wants a stricter minimum than the exchange requires. `getMinShares(markPx, minNotional?)` gains the same optional second parameter. Additive and backward-compatible: `MIN_NOTIONAL` itself is unchanged, and omitting `minOrderNotional` keeps the existing $1 floor. The adapter constructor throws if you pass a value below `MIN_NOTIONAL`. See [Trading Adapter](/sdk/reference/trading-adapter#minordernotional).
+
+  [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.2.0-beta.0...v1.2.0-beta.1)
+</Update>
+
+<Update label="1.2.0-beta.0" description="September 16, 2026">
+  ### Changed
+
+  - **Minimum order notional dropped from $10 to $1.** Hyperliquid lowered the protocol-level minimum order notional for HIP-4 outcome orders. `MIN_NOTIONAL` now reflects the new $1 floor, and every check derived from it - the SDK's client-side pre-submission rejection in `placeOrder` and `getMinShares(markPx)` - follows automatically. `getMinShares` now returns roughly a tenth of its previous value at any given mark price, since it's `ceil(MIN_NOTIONAL / cheaper-side price)`.
+
+  [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.1.0-beta...v1.2.0-beta.0)
+</Update>
+
 <Update label="1.1.0-beta" description="September 2, 2026">
   ### Removed
 
