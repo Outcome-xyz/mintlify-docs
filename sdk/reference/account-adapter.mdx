@@ -49,7 +49,7 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="currentPrice" type="string" required>
-  Current midpoint price from `allMids`. `"0"` when no mid is available. Spot balances name side coins `+<coin>` while mids use `#<coin>`; the adapter maps between them. Before 1.2.0-beta.3 the lookup found nothing and this was always `"0"`.
+  Current midpoint price from `allMids`. `"0"` when no mid is available. Spot balances name side coins `+<coin>` while mids use `#<coin>`; the adapter maps between them. Before 1.3.0-beta.0 the lookup found nothing and this was always `"0"`.
 </ResponseField>
 
 <ResponseField name="unrealizedPnl" type="string" required>

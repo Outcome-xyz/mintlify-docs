@@ -44,7 +44,7 @@ Fields shared across all market types:
 | --- | --- | --- |
 | `type` | `MarketType` | Discriminant for narrowing the union |
 | `outcomeId` | `number` | Hyperliquid outcome ID |
-| `name` | `string` | Human-readable market name. From 1.2.0-beta.3, `fetchMarkets` renders template market names from Hyperliquid's template registry |
+| `name` | `string` | Human-readable market name. From 1.3.0-beta.0, `fetchMarkets` renders template market names from Hyperliquid's template registry |
 | `description` | `string` | Human-readable market description |
 | `sides` | `[MarketSide, MarketSide]` | Both tradeable sides with pre-computed identifiers |
 | `raw` | `HLOutcome` | Raw Hyperliquid API response, for escape-hatch access |
@@ -203,7 +203,7 @@ Returned by `hip4.trading.placeOrder` and `hip4.trading.modifyOrder`. Rejections
 | `orderId?` | `string` | Order ID for filled or resting orders |
 | `status?` | `string` | Exchange status string (`"filled"`, `"resting"`, `"error"`, `"unknown"`) |
 | `shares?` | `string` | Filled size (for filled orders) |
-| `error?` | `string` | Rejection reason (when `success` is `false`). From 1.2.0-beta.3, a whole-request rejection carries Hyperliquid's own message |
+| `error?` | `string` | Rejection reason (when `success` is `false`). From 1.3.0-beta.0, a whole-request rejection carries Hyperliquid's own message |
 
 ### `PredictionBatchOrderResult`
 
