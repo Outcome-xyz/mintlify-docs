@@ -12,7 +12,7 @@ This recipe builds on [Showcase markets](/sdk/guides/recipes/showcase-markets). 
 
 ## What you need
 
-- `@outcome.xyz/hip4` 1.3.0-beta.1 or later, and [viem](https://viem.sh).
+- `@outcome.xyz/hip4` 1.3.0 or later, and [viem](https://viem.sh).
 - For your users: a browser wallet such as MetaMask or Rabby, or an embedded wallet with an EIP-1193 provider, and USDC on Hyperliquid. See [Funding your account](/funding-your-account).
 - To earn a builder fee: a builder address with at least 100 USDC of perps account value on Hyperliquid.
 
@@ -37,7 +37,7 @@ Outcome trades use the user's USDC spot balance. On a standard Hyperliquid accou
 
 ## Orders
 
-- A price is a probability between 0 and 1, with at most 5 decimals. Buying Yes at `0.71` costs 71 cents a share. Round a limit price with `formatOutcomePrice` before you send it.
+- A price is a probability between 0 and 1, with at most 5 decimals. Buying Yes at `0.71` costs 71 cents a share. The SDK rounds a limit price to that tick when it sends the order.
 - Shares are whole numbers. Each winning share pays 1 USDC.
 - An order must be worth at least 1 USDC (`MIN_NOTIONAL`).
 - The two sides of a market share one order book: a Yes bid at 0.71 is a No ask at 0.29.

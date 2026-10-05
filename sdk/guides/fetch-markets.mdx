@@ -122,7 +122,7 @@ const byNewest = await hip4.events.fetchMarkets({ sortBy: "newest" });
 
 ## Template market names
 
-Many markets are created from Hyperliquid's template registry (`outcomeTemplates`). Their `name`, `sides[].name`, and `questionName` are the names Hyperliquid sends, such as `"template:priceTouch"`. From SDK 1.3.0-beta.1, `parsedName`, `sides[].parsedName`, and `parsedQuestionName` carry the names rendered from the registry. Use them for display.
+Many markets are created from Hyperliquid's template registry (`outcomeTemplates`). Their `name`, `sides[].name`, and `questionName` are the names Hyperliquid sends, such as `"template:priceTouch"`. From SDK 1.3.0, `parsedName`, `sides[].parsedName`, and `parsedQuestionName` carry the names rendered from the registry. Use them for display.
 
 ```typescript
 const market = markets.find((m) => m.name === "template:priceTouch")!;

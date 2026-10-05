@@ -88,7 +88,7 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     }
     ```
 
-    When Hyperliquid rejects the whole request, `result.error` is `Exchange returned non-ok status`. From 1.3.0-beta.1, `result.raw` carries Hyperliquid's own message, for example `User or API Wallet 0x... does not exist.` when the agent isn't approved.
+    When Hyperliquid rejects the whole request, `result.error` is `Exchange returned non-ok status`. From 1.3.0, `result.raw` carries Hyperliquid's own message, for example `User or API Wallet 0x... does not exist.` when the agent isn't approved.
   </Step>
 </Steps>
 
@@ -155,7 +155,7 @@ console.log(res.status, res.response?.data.statuses);
 
 ## Pricing rules
 
-**Tick-aligned prices**: the SDK rounds limit prices to 5 significant figures before signing, so `"0.550012"` becomes `"0.55001"`. HIP-4 outcome prices also allow at most 5 decimals (a tick of `0.00001`). Below 0.1, 5 significant figures can leave 6 decimals: `"0.0123456"` becomes `"0.012346"`, which the exchange rejects. Round limit prices with `formatOutcomePrice` before you place the order:
+**Tick-aligned prices**: the SDK rounds limit prices to the outcome price tick before signing: at most 5 significant figures and at most 5 decimals (a tick of `0.00001`). `"0.550012"` becomes `"0.55001"` and `"0.0123456"` becomes `"0.01235"`, so a price below 0.1 is never sent with 6 or more decimals. `placeOrder` and `placeOrders` both do this. To show or store the price the SDK will send, use the exported `formatOutcomePrice`:
 
 ```typescript
 import { formatOutcomePrice } from "@outcome.xyz/hip4";

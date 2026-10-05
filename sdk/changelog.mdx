@@ -6,25 +6,38 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
-<Update label="1.3.0-beta.1" description="Upcoming">
-  ### Changed
-
-  Every field that existed in 1.2.0-beta.2 behaves as it did there again. The new values from 1.3.0-beta.0 are in new fields beside them.
-
-  - **Names are the wire names again.** `name`, `sides[].name`, and `questionName` from `fetchMarkets`, `classifyOutcome`, and `classifyAllOutcomes`, `title`, `question`, and outcome `name` from `fetchEvents` and `fetchEvent`, side names from `fetchPrice` and `subscribePrice`, and `eventTitle`, `marketQuestion`, and `outcomeName` from `fetchPositions` read as Hyperliquid sends them, for example `"template:priceTouch"`. `getSideNameResolver()` returns wire names again.
-  - **Order errors.** When Hyperliquid rejects a whole `placeOrder` or `placeOrders` request, `result.error` is `Exchange returned non-ok status` again.
-  - **Limit prices.** Limit-order prices are rounded with `formatPrice` (5 significant figures) again. Round them with `formatOutcomePrice` before `placeOrder` to stay on the 5-decimal price tick.
-  - **`fetchPositions` prices.** `currentPrice` and `unrealizedPnl` return the values they had in 1.2.0-beta.2.
-  - **`parseInstanceDescription(description)`** returns values with a glued `metadata=` tag again. Pass `declared` (an empty set works) to cut it.
+<Update label="1.3.0" description="Upcoming">
+  Changes compared with 1.2.0-beta.2. Every field that existed there returns what it did there, and the new values are in new fields beside them.
 
   ### Added
 
-  - **Readable names in `parsed*` fields.** `parsedName`, `sides[].parsedName`, and `parsedQuestionName` on markets, `parsedTitle`, `parsedQuestion`, and `outcomes[].parsedName` on events, `outcomes[].parsedName` on prices, and `parsedEventTitle`, `parsedMarketQuestion`, and `parsedOutcomeName` on positions carry the names rendered from `outcomeTemplates`, for example `"BTC touches 90000 by Nov 1, 00:00 UTC"`. `getParsedSideNameResolver()` returns the rendered side names.
-  - **`raw` on order results.** Hyperliquid's own message when it rejects the whole request, for example `User or API Wallet 0x... does not exist.`.
-  - **`livePrice` and `liveUnrealizedPnl` on positions.** The side's live mid price, and the gain or loss at it.
-  - **`readDeployedOutcome(outcome, question, declared)`** takes the same optional `declared` as `parseInstanceDescription`.
+  - **Readable names in `parsed*` fields.** `parsedName`, `sides[].parsedName`, and `parsedQuestionName` on markets, `parsedTitle`, `parsedQuestion`, and `outcomes[].parsedName` on events, `outcomes[].parsedName` on prices, and `parsedEventTitle`, `parsedMarketQuestion`, and `parsedOutcomeName` on positions carry the names rendered from Hyperliquid's template registry (`outcomeTemplates`), for example `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of `"template:priceTouch"`. A template question's fallback leg is rendered as `"Other"`. If the registry can't be fetched, the `template:` prefix is still removed from plain names such as `"template:Yes"`. `getParsedSideNameResolver()` returns the rendered side names, and `getSideNameResolver()` keeps returning the wire names. See [Fetch markets](/sdk/guides/fetch-markets).
+  - **`raw` on order results.** Hyperliquid's own message when it rejects the whole `placeOrder` or `placeOrders` request, for example `User or API Wallet 0x... does not exist.`. `error` stays `Exchange returned non-ok status`.
+  - **`formatOutcomePrice(price)`** formats a HIP-4 outcome price (number or string) for the order wire. See [Utilities](/sdk/reference/utilities).
+  - **`HIP4Client.fetchSpotAssetCtxs()`** returns the asset contexts (24h volume and prices) for every spot asset, outcome side coins included.
+  - **`classifyOutcome` and `classifyAllOutcomes`** take the template registry as an optional last argument.
+  - **`readDeployedOutcome(outcome, question, declared)`** and `parseInstanceDescription(description, declared)` take an optional set of declared keyword names to drop the segments of a `metadata=` tag body.
 
-  `sortBy` keeps working as in 1.3.0-beta.0.
+  ### Changed
+
+  - **`fetchMarkets` honors `sortBy`.** It was ignored before. `"newest"` puts the highest outcome ID first, `"expiry"` puts the soonest event time first (markets without one go last), and `"volume"` puts the highest 24h volume first (one extra `spotMetaAndAssetCtxs` request). When you omit `sortBy`, results stay in catalog order. See [Events](/sdk/reference/events-adapter).
+  - **Limit prices round to the outcome tick.** `placeOrder` and `placeOrders` round limit-order prices to at most 5 significant figures and at most 5 decimals (a 0.00001 tick) before signing. Previously a price below 0.1 could keep 6 decimals, which the exchange rejects.
+  - **`parseInstanceDescription`, `readDeployedOutcome`, and `readDeployedOutcomes`** cut the `metadata=` routing tag that deployers glue onto a value, so `threshold:65000 metadata=category:economics` reads as `65000`.
+  - **Template-name cache.** Refreshing the market or event cache makes one extra `outcomeTemplates` request, cached for 30 seconds.
+
+  ### Fixed
+
+  - **`fetchPositions` prices.** `currentPrice` and `unrealizedPnl` now use the live mid. Spot balances name side coins `+<coin>` while mids use `#<coin>`, so the lookup always returned `"0"`.
+  - The `fetchApprovedBuilders` documentation now states that an address can approve up to 10 builders, not 3.
+
+  ### Coming from 1.3.0-beta.0
+
+  1.3.0-beta.0 was published to npm under the `latest` tag. Compared with it, 1.3.0 changes two things:
+
+  - **Names.** The existing name fields are the names Hyperliquid sends again: `name`, `sides[].name`, and `questionName` on markets, `title`, `question`, and outcome `name` on events, side names on prices, and `eventTitle`, `marketQuestion`, and `outcomeName` on positions. Read the rendered names from the `parsed*` fields above.
+  - **Order errors.** When Hyperliquid rejects a whole `placeOrder` or `placeOrders` request, `error` is `Exchange returned non-ok status` again. Read Hyperliquid's message from `raw`.
+
+  The limit-price rounding, the `fetchPositions` price fix, the `metadata=` tag cut, and `sortBy` stay as in 1.3.0-beta.0.
 </Update>
 
 <Update label="1.3.0-beta.0" description="October 5, 2026">
@@ -32,7 +45,7 @@ All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outc
 
   - **Hyperliquid's own rejection message.** When Hyperliquid rejects a whole `placeOrder` or `placeOrders` request, `result.error` now carries Hyperliquid's message (for example `User or API Wallet 0x... does not exist.`) instead of the generic `Exchange returned non-ok status`.
   - **Limit prices round to 5 decimals.** Before signing, limit-order prices are rounded to at most 5 significant figures and at most 5 decimals (a 0.00001 tick). Previously a price below 0.1 could keep 6 decimals, which the exchange rejects.
-  - **`fetchMarkets` honors `sortBy`.** It was ignored before. `"newest"` puts the highest outcome ID first, `"expiry"` puts the soonest event time first (markets without one go last), and `"volume"` puts the highest 24h volume first (one extra `spotMetaAndAssetCtxs` request). When you omit `sortBy`, results stay in catalog order. `limit` now defaults to every matching market. See [Events](/sdk/reference/events-adapter).
+  - **`fetchMarkets` honors `sortBy`.** It was ignored before. `"newest"` puts the highest outcome ID first, `"expiry"` puts the soonest event time first (markets without one go last), and `"volume"` puts the highest 24h volume first (one extra `spotMetaAndAssetCtxs` request). When you omit `sortBy`, results stay in catalog order. See [Events](/sdk/reference/events-adapter).
   - **Readable names for template markets.** `fetchMarkets`, `fetchEvents`, `fetchEvent`, the side names on `fetchPositions`, and `outcomeCreated` updates render template markets from Hyperliquid's template registry (`outcomeTemplates`), for example `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of `"template:priceTouch"`. A template question's fallback leg is named `"Other"`. If the registry can't be fetched, the `template:` prefix is still removed from plain names such as `"template:Yes"`. Refreshing the market or event cache makes one extra `outcomeTemplates` request, cached for 30 seconds.
   - **`classifyOutcome` and `classifyAllOutcomes`** take the template registry as an optional last argument. See [Utilities](/sdk/reference/utilities).
   - **`parseInstanceDescription`** cuts the `metadata=` routing tag that deployers glue onto a value, and takes an optional set of declared keyword names to drop the tag's body segments.
@@ -46,6 +59,8 @@ All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outc
 
   - **`fetchPositions` prices.** `currentPrice` and `unrealizedPnl` now use the live mid. Spot balances name side coins `+<coin>` while mids use `#<coin>`, so the lookup always returned `"0"`.
   - The `fetchApprovedBuilders` documentation now states that an address can approve up to 10 builders, not 3.
+
+  Two behaviours from this release changed again in 1.3.0: the readable names moved to new `parsed*` fields, and `error` is the generic `Exchange returned non-ok status` again, with Hyperliquid's message in `raw`.
 
   [Pull request #20](https://github.com/Outcome-xyz/hip4/pull/20) | [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.2.0-beta.2...v1.3.0-beta.0)
 </Update>

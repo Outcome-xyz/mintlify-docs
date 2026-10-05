@@ -35,7 +35,7 @@ roundToTick(123.456);    // 123.46
 
 ### `formatPrice(price)`
 
-Formats a price as a tick-aligned string (5 significant figures) with trailing zeros stripped. `placeOrder` uses it for limit prices. Below 0.1 it can return 6 or more decimals, which HIP-4 outcome orders don't accept. Use `formatOutcomePrice` for outcome prices.
+Formats a price as a tick-aligned string (5 significant figures) with trailing zeros stripped. Below 0.1 it can return 6 or more decimals, which HIP-4 outcome orders don't accept, so use `formatOutcomePrice` for outcome prices. `placeOrder` uses `formatOutcomePrice` for limit prices.
 
 ```typescript
 import { formatPrice } from "@outcome.xyz/hip4";
@@ -48,7 +48,7 @@ formatPrice(0.0123456);  // "0.012346"
 
 ### `formatOutcomePrice(price)`
 
-Formats a HIP-4 outcome price for the order wire: at most 5 significant figures and at most 5 decimals (a tick of `0.00001`), with trailing zeros stripped. Accepts a number or a string, so user input never has to pass through a float. `placeOrder` doesn't apply it, so round limit prices with it before you place the order. Available from 1.3.0-beta.0.
+Formats a HIP-4 outcome price for the order wire: at most 5 significant figures and at most 5 decimals (a tick of `0.00001`), with trailing zeros stripped. Accepts a number or a string, so user input never has to pass through a float. `placeOrder` and `placeOrders` apply it to limit prices, so you only need it to show or store the price that will be sent. Available from 1.3.0-beta.0.
 
 ```typescript
 import { formatOutcomePrice } from "@outcome.xyz/hip4";
@@ -175,7 +175,7 @@ These functions classify raw HIP-4 outcomes into typed `HIP4Market` objects.
 
 ### `classifyOutcome(outcome, questions, precomputedIndex?, templates?)`
 
-Classifies a single outcome from the raw API response. Returns a `HIP4Market` with the appropriate `type` discriminant. When you classify many outcomes in a loop, build the question index once with `buildQuestionIndex(questions)` and pass it as the third argument. `name`, `sides[].name`, and `questionName` are always the names Hyperliquid sends. Pass the `outcomeTemplates` registry (`hip4.client.fetchOutcomeTemplates()`) as the optional fourth argument to render readable `parsedName`, `sides[].parsedName`, and `parsedQuestionName` for template markets, as `fetchMarkets` does. Without it, the parsed fields keep the wire names, except that plain side names lose their `template:` prefix (`"template:Yes"` reads `"Yes"`). The parsed fields are available from 1.3.0-beta.1.
+Classifies a single outcome from the raw API response. Returns a `HIP4Market` with the appropriate `type` discriminant. When you classify many outcomes in a loop, build the question index once with `buildQuestionIndex(questions)` and pass it as the third argument. `name`, `sides[].name`, and `questionName` are always the names Hyperliquid sends. Pass the `outcomeTemplates` registry (`hip4.client.fetchOutcomeTemplates()`) as the optional fourth argument to render readable `parsedName`, `sides[].parsedName`, and `parsedQuestionName` for template markets, as `fetchMarkets` does. Without it, the parsed fields keep the wire names, except that plain side names lose their `template:` prefix (`"template:Yes"` reads `"Yes"`). The parsed fields are available from 1.3.0.
 
 ```typescript
 import { classifyOutcome } from "@outcome.xyz/hip4";

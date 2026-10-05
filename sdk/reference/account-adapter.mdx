@@ -39,7 +39,7 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="parsedOutcomeName" type="string">
-  Readable side name. Template sides are rendered from Hyperliquid's template registry (`"template:Yes"` reads `"Yes"`); other sides repeat `outcomeName`. Use this for display. Available from 1.3.0-beta.1.
+  Readable side name. Template sides are rendered from Hyperliquid's template registry (`"template:Yes"` reads `"Yes"`); other sides repeat `outcomeName`. Use this for display. Available from 1.3.0.
 </ResponseField>
 
 <ResponseField name="shares" type="string" required>
@@ -52,19 +52,11 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="currentPrice" type="string" required>
-  Looks up the balance coin in `allMids`. Spot balances name side coins `+<coin>` while mids use `#<coin>`, so for outcome positions this is `"0"`. Use `livePrice` instead.
+  The side's live midpoint price from `allMids`, or `"0"` when it has none. Spot balances name side coins `+<coin>` while mids use `#<coin>`, and the SDK maps one to the other. Releases before 1.3.0-beta.0 returned `"0"` for outcome positions.
 </ResponseField>
 
 <ResponseField name="unrealizedPnl" type="string" required>
-  `(currentPrice - avgCost) * shares`, formatted to 6 decimal places. Use `liveUnrealizedPnl` instead.
-</ResponseField>
-
-<ResponseField name="livePrice" type="string">
-  The side's live midpoint price from `allMids`, or `"0"` when it has none. Available from 1.3.0-beta.1.
-</ResponseField>
-
-<ResponseField name="liveUnrealizedPnl" type="string">
-  `(livePrice - avgCost) * shares`, formatted to 6 decimal places. Available from 1.3.0-beta.1.
+  `(currentPrice - avgCost) * shares`, formatted to 6 decimal places.
 </ResponseField>
 
 <ResponseField name="potentialPayout" type="string" required>
@@ -82,7 +74,7 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="parsedEventTitle" type="string">
-  Readable event title, from the event's `parsedTitle`. Available from 1.3.0-beta.1.
+  Readable event title, from the event's `parsedTitle`. Available from 1.3.0.
 </ResponseField>
 
 <ResponseField name="marketQuestion" type="string" required>
@@ -90,7 +82,7 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="parsedMarketQuestion" type="string">
-  Readable question text, from the market's `parsedQuestion`. Available from 1.3.0-beta.1.
+  Readable question text, from the market's `parsedQuestion`. Available from 1.3.0.
 </ResponseField>
 
 <Note>
@@ -109,8 +101,8 @@ for (const pos of positions) {
   console.log(`Outcome: ${pos.parsedOutcomeName ?? pos.outcomeName} (${pos.outcome})`);
   console.log(`  Shares:         ${pos.shares}`);
   console.log(`  Avg cost:       ${pos.avgCost}`);
-  console.log(`  Live price:     ${pos.livePrice}`);
-  console.log(`  Unrealized PnL: ${pos.liveUnrealizedPnl}`);
+  console.log(`  Current price:  ${pos.currentPrice}`);
+  console.log(`  Unrealized PnL: ${pos.unrealizedPnl}`);
   console.log(`  Max payout:     ${pos.potentialPayout}`);
 }
 ```
@@ -289,7 +281,7 @@ const unsubscribe = adapter.account.subscribePositions(
   "0xYourAddress",
   (positions) => {
     for (const pos of positions) {
-      console.log(pos.parsedOutcomeName ?? pos.outcomeName, pos.shares, pos.liveUnrealizedPnl);
+      console.log(pos.parsedOutcomeName ?? pos.outcomeName, pos.shares, pos.unrealizedPnl);
     }
   },
 );
