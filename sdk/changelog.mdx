@@ -6,6 +6,14 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
+<Update label="1.2.0-beta.2" description="September 29, 2026">
+  ### Fixed
+
+  - **Unsubscribing before the WebSocket opens now cancels the subscription.** Previously a subscription cancelled before the socket was open was still sent when it opened, with no unsubscribe to follow, so its frames kept arriving on the shared response channel (for example a coarse `l2Book` with `nSigFigs` overwriting a full-precision book subscribed right after it). Identical subscribe messages are also no longer queued twice, so a socket that drops before opening and reconnects sends each subscription once. See [Real-time data](/sdk/guides/real-time-data).
+
+  [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.2.0-beta.1...v1.2.0-beta.2)
+</Update>
+
 <Update label="1.2.0-beta.1" description="September 22, 2026">
   ### Added
 
