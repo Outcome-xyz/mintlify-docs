@@ -44,6 +44,8 @@ This page walks through [`examples/web-showcase`](https://github.com/Outcome-xyz
         // Other deployers publish on Hyperliquid too. Outcome's markets have venue
         // "out". A question's fallback outcome has no order book.
         if (market.raw.venue !== "out" || ("isFallback" in market && market.isFallback)) continue;
+        // Recurring markets stay in the catalog after they expire, until they settle.
+        if ("expiry" in market && market.expiry.getTime() <= Date.now()) continue;
         const id = "questionId" in market ? `q${market.questionId}` : `o${market.outcomeId}`;
         events.set(id, [...(events.get(id) ?? []), market]);
       }
@@ -109,12 +111,14 @@ This page walks through [`examples/web-showcase`](https://github.com/Outcome-xyz
     for (const options of events) {
       const category = categoryOf(options[0], templates);
       for (const market of options) {
-        const price = mids[market.sides[0].coin]; // "0.61" is a 61% chance
+        const price = Number(mids[market.sides[0].coin]); // "0.61" is a 61% chance
         const link = document.createElement("a");
         link.href = outcomeUrl(market, category);
         link.target = "_blank";
         link.rel = "noopener";
-        link.textContent = `${market.name} ${Math.round(Number(price) * 100)}%`;
+        // A side with no price yet (or 0) shows "-" instead of NaN%.
+        const chance = price > 0 ? `${Math.round(price * 100)}%` : "-";
+        link.textContent = `${market.name} ${chance}`;
         document.body.append(link);
       }
     }

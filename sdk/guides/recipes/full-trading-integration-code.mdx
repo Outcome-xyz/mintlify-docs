@@ -15,14 +15,30 @@ This page walks through [`examples/web-trading`](https://github.com/Outcome-xyz/
 
   <Step title="Connect the wallet">
     ```typescript src/trading.ts
+    import { arbitrum, arbitrumSepolia } from "viem/chains";
+
+    // Hyperliquid signs approvals for Arbitrum, or Arbitrum Sepolia on testnet.
+    // Follow the adapter's network, and pass isMainnet to the approvals below.
+    const isMainnet = !hip4.client.testnet;
+    const signingChain = isMainnet ? arbitrum : arbitrumSepolia;
+
     export async function connectWallet() {
       if (!window.ethereum) throw new Error("No browser wallet found.");
       const [account] = await window.ethereum.request({ method: "eth_requestAccounts" });
       if (!account) throw new Error("The wallet returned no account.");
-      const wallet = createWalletClient({ account, chain: arbitrum, transport: custom(window.ethereum) });
-      // Hyperliquid approvals are signed for Arbitrum, and wallets only sign for the chain they're on.
-      if ((await wallet.getChainId()) !== arbitrum.id) {
-        await wallet.switchChain({ id: arbitrum.id }).catch(() => wallet.addChain({ chain: arbitrum }));
+      const wallet = createWalletClient({ account, chain: signingChain, transport: custom(window.ethereum) });
+      // Wallets only sign for the chain they're on. If the wallet doesn't know the
+      // chain yet, add it, then switch again: adding a chain doesn't always switch to it.
+      if ((await wallet.getChainId()) !== signingChain.id) {
+        try {
+          await wallet.switchChain({ id: signingChain.id });
+        } catch {
+          await wallet.addChain({ chain: signingChain });
+          await wallet.switchChain({ id: signingChain.id });
+        }
+        if ((await wallet.getChainId()) !== signingChain.id) {
+          throw new Error(`Switch your wallet to ${signingChain.name} to trade.`);
+        }
       }
       return wallet;
     }
@@ -49,17 +65,17 @@ This page walks through [`examples/web-trading`](https://github.com/Outcome-xyz/
       if (BUILDER && (await hip4.client.fetchMaxBuilderFee(account.address, BUILDER.address)) < BUILDER.fee) {
         const rate = `${BUILDER.fee / 1000}%`;
         const nonce = Date.now();
-        const typed = getBuilderFeeApprovalTypedData(BUILDER.address, rate, nonce);
+        const typed = getBuilderFeeApprovalTypedData(BUILDER.address, rate, nonce, isMainnet);
         const signature = await wallet.signTypedData({ account, ...typed });
-        const result = await submitBuilderFeeApproval(signature, BUILDER.address, rate, nonce);
+        const result = await submitBuilderFeeApproval(signature, BUILDER.address, rate, nonce, isMainnet);
         if (!result.success) throw new Error(result.error ?? "Builder fee approval failed");
       }
 
       const agent = privateKeyToAccount(generatePrivateKey());
       const nonce = Date.now();
-      const typed = getAgentApprovalTypedData(agent.address, AGENT_NAME, nonce);
+      const typed = getAgentApprovalTypedData(agent.address, AGENT_NAME, nonce, isMainnet);
       const signature = await wallet.signTypedData({ account, ...typed });
-      const result = await submitAgentApproval(signature, agent.address, AGENT_NAME, nonce);
+      const result = await submitAgentApproval(signature, agent.address, AGENT_NAME, nonce, isMainnet);
       if (!result.success) throw new Error(result.error ?? "Agent approval failed");
       await hip4.auth.initAuth(account.address, agent);
     }
@@ -110,9 +126,14 @@ This page walks through [`examples/web-trading`](https://github.com/Outcome-xyz/
     if (!result.success) console.error(result.error);
 
     if (result.status === "resting") {
-      await hip4.trading.cancelOrder([
+      const cancel = await hip4.trading.cancelOrder([
         { marketId: String(market.outcomeId), orderId: result.orderId!, outcome: market.sides[0].coin },
       ]);
+      // A rejected cancel doesn't throw. Check the status and each order's result.
+      const failed = cancel.response?.data.statuses.find((s) => s !== "success");
+      if (cancel.status !== "ok" || failed) {
+        console.error(typeof failed === "object" ? failed.error : "Cancel was rejected");
+      }
     }
     ```
 

@@ -29,7 +29,7 @@ Users keep custody. Their wallet signs a few approvals, and a session key signs 
 
 - The session key, which Hyperliquid calls an agent or API wallet, is a private key your page generates in the browser. It can place and cancel orders for the user. It can't withdraw or transfer funds.
 - The example keeps it in memory, so a reload means approving a new one. An account can have 3 named agents. Approving the same name again replaces the previous agent, so sessions don't use up the slots.
-- Wallet approvals are signed for Arbitrum (chain id 42161). Wallets refuse to sign for another chain, so switch the wallet to Arbitrum first.
+- Wallet approvals are signed for Arbitrum (chain id 42161), or Arbitrum Sepolia (421614) when the adapter uses testnet. Wallets refuse to sign for another chain, so switch the wallet first, and pass `isMainnet` to the approval helpers so they match the network.
 
 ## Funds
 
@@ -43,6 +43,7 @@ Outcome trades use the user's USDC spot balance. On a standard Hyperliquid accou
 - The two sides of a market share one order book: a Yes bid at 0.71 is a No ask at 0.29.
 - `type: "market"` sends Hyperliquid's `FrontendMarket` order at 0.99999 to buy or 0.00001 to sell. outcome.xyz instead sends an IOC limit order at a slippage price; to do the same, send `type: "limit"` with `timeInForce: "FAK"`.
 - `placeOrder` doesn't throw. Check `success`. When Hyperliquid rejects an order, `error` carries its message.
+- `cancelOrder` doesn't throw on a rejection either. Check that `status` is `"ok"` and that every entry in `response.data.statuses` is `"success"`; a failed entry is `{ error }`.
 - Trading fees are in [Fees](/fees).
 
 ## Builder fee
@@ -80,7 +81,7 @@ Open `http://localhost:5173` in a browser with a wallet extension. To charge a b
     The session key isn't approved, or a newer session replaced it. Approve a new one.
   </Accordion>
   <Accordion title="The wallet refuses to sign">
-    The wallet is on another chain. Approvals are signed for Arbitrum (chain id 42161).
+    The wallet is on another chain. Approvals are signed for Arbitrum (chain id 42161), or Arbitrum Sepolia (421614) on testnet.
   </Accordion>
   <Accordion title="Orders fail although the user has USDC">
     The USDC may sit in perps. Move it to spot.

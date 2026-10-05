@@ -21,8 +21,9 @@ Add a read-only markets section to your site. Visitors see Outcome's live market
 
 1. `hip4.events.fetchMarkets()` returns every live HIP-4 market with a readable name and the coins of both sides.
 2. Keep Outcome's markets: their `raw.venue` is `"out"`. Other deployers publish on Hyperliquid too, and outcome.xyz doesn't open their markets.
+   Skip markets that have already expired. A recurring market's `expiry` is in the past, but it stays in the catalog until it settles.
 3. Show a question as one card with its options, such as a match with Arsenal, Draw and Leeds United. Show every other market as a card of its own.
-4. Price each side with `hip4.client.fetchAllMids()`. A side's mid price is its implied probability.
+4. Price each side with `hip4.client.fetchAllMids()`. A side's mid price is its implied probability. A side with no mid price yet shows a dash, not `NaN%`.
 5. Give each card a category, and link it to outcome.xyz.
 
 The code for each step is in [Showcase markets code](/sdk/guides/recipes/showcase-markets-code).
