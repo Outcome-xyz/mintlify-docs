@@ -173,9 +173,9 @@ timeToExpiry(market);    // e.g. 154.2 (minutes)
 
 These functions classify raw HIP-4 outcomes into typed `HIP4Market` objects.
 
-### `classifyOutcome(outcome, questions, precomputedIndex?)`
+### `classifyOutcome(outcome, questions, precomputedIndex?, templates?)`
 
-Classifies a single outcome from the raw API response. Returns a `HIP4Market` with the appropriate `type` discriminant. When you classify many outcomes in a loop, build the question index once with `buildQuestionIndex(questions)` and pass it as the third argument.
+Classifies a single outcome from the raw API response. Returns a `HIP4Market` with the appropriate `type` discriminant. When you classify many outcomes in a loop, build the question index once with `buildQuestionIndex(questions)` and pass it as the third argument. Pass the `outcomeTemplates` registry (`hip4.client.fetchOutcomeTemplates()`) as the optional fourth argument to render readable names for template markets, as `fetchMarkets` does. Without it, names stay as they are on the wire. Available from 1.2.0-beta.3.
 
 ```typescript
 import { classifyOutcome } from "@outcome.xyz/hip4";
@@ -184,9 +184,9 @@ const market = classifyOutcome(outcome, questions);
 // market.type === "defaultBinary" | "labelledBinary" | "multiOutcome" | "priceBucket"
 ```
 
-### `classifyAllOutcomes(outcomes, questions)`
+### `classifyAllOutcomes(outcomes, questions, templates?)`
 
-Classifies all outcomes from a full `outcomeMeta` response. Returns an array of `HIP4Market` objects.
+Classifies all outcomes from a full `outcomeMeta` response. Returns an array of `HIP4Market` objects. The optional `templates` argument works as in `classifyOutcome`.
 
 ```typescript
 import { classifyAllOutcomes } from "@outcome.xyz/hip4";

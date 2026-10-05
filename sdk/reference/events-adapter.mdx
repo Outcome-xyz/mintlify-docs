@@ -50,7 +50,7 @@ const events = await adapter.events.fetchEvents({ active: true, limit: 20 });
 </ResponseField>
 
 <ResponseField name="title" type="string" required>
-  Human-readable event title.
+  Human-readable event title. For template events it's rendered from Hyperliquid's template registry, as in `fetchMarkets`.
 </ResponseField>
 
 <ResponseField name="description" type="string" required>
@@ -184,7 +184,7 @@ const categories = await adapter.events.fetchCategories();
 
 Returns typed `HIP4Market` objects for all HIP-4 outcomes. Each market is classified into one of four types based on the outcome's metadata, and carries pre-computed side coin identifiers ready for order placement.
 
-From 1.2.0-beta.3, `fetchMarkets` renders the `name`, `sides[].name`, and `questionName` of template markets from Hyperliquid's template registry (`outcomeTemplates`). A market reads `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of `"template:priceTouch"`, and a template question's fallback leg is named `"Other"`. If the registry can't be fetched, the raw names are kept.
+From 1.2.0-beta.3, `fetchMarkets` renders the `name`, `sides[].name`, and `questionName` of template markets from Hyperliquid's template registry (`outcomeTemplates`). A market reads `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of `"template:priceTouch"`, and a template question's fallback leg is named `"Other"`. `fetchEvents`, `fetchEvent`, the side names on positions, and `outcomeCreated` updates use the same names. If the registry can't be fetched, the raw names are kept, except that the `template:` prefix is still removed from plain names such as `"template:Yes"`. Refreshing the market or event cache makes one extra `outcomeTemplates` request, cached for 30 seconds.
 
 The return type changes depending on whether you pass `groupBy`:
 
@@ -229,7 +229,7 @@ Because the return type depends on `groupBy`, TypeScript types the result as a u
 </ParamField>
 
 <ParamField path="params.limit" type="number">
-  Maximum number of markets to return (applied after filtering). When omitted,
+  Maximum number of markets to return (applied after filtering and sorting). When omitted,
   every matching market is returned. Ignored when `groupBy` is set.
 </ParamField>
 

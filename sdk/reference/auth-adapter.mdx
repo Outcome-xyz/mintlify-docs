@@ -84,7 +84,7 @@ Builds the EIP-712 typed data object for the user to sign when approving an agen
 | `agentAddress` | `string`  | The agent keypair's public address                             |
 | `agentName`    | `string`  | A human-readable label shown in the approval prompt            |
 | `nonce`        | `number`  | Timestamp (use `Date.now()`) to prevent replay                 |
-| `isMainnet`    | `boolean` | `true` (default) for mainnet, `false` for testnet              |
+| `isMainnet`    | `boolean` | `true` (default) for mainnet, `false` for testnet. This default doesn't follow the adapter, which targets testnet unless you pass `testnet: false`. |
 
 Returns an object with `domain`, `types`, `primaryType`, and `message`, ready for `walletClient.signTypedData`.
 

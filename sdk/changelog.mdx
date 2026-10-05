@@ -9,20 +9,24 @@ All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outc
 <Update label="1.2.0-beta.3" description="Upcoming">
   ### Changed
 
-  - **Mainnet is the default network (breaking).** `createHIP4Adapter()` and `new HIP4Client()` now default to `testnet: false`. Pass `{ testnet: true }` to keep targeting the Hyperliquid testnet.
   - **Hyperliquid's own rejection message.** When Hyperliquid rejects a whole `placeOrder` or `placeOrders` request, `result.error` now carries Hyperliquid's message (for example `User or API Wallet 0x... does not exist.`) instead of the generic `Exchange returned non-ok status`.
-  - **Limit prices snap to the HIP-4 price grid.** Before signing, limit-order prices are rounded to at most 5 significant figures and at most 5 decimals (a 0.00001 tick). Previously a price below 0.1 could keep 6 decimals, which the exchange rejects.
-  - **`fetchMarkets` honors `sortBy`.** `"newest"` puts the highest outcome ID first, `"expiry"` puts the soonest event time first (markets without one go last), and `"volume"` puts the highest 24h volume first (one extra request). When you omit `sortBy`, results stay in catalog order. See [Events](/sdk/reference/events-adapter).
-  - **Readable names for template markets.** `fetchMarkets` renders `name`, `sides[].name`, and `questionName` of template markets from Hyperliquid's template registry (`outcomeTemplates`), for example `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of `"template:priceTouch"`. A template question's fallback leg is named `"Other"`. If the registry can't be fetched, the raw names are kept.
+  - **Limit prices round to 5 decimals.** Before signing, limit-order prices are rounded to at most 5 significant figures and at most 5 decimals (a 0.00001 tick). Previously a price below 0.1 could keep 6 decimals, which the exchange rejects.
+  - **`fetchMarkets` honors `sortBy`.** It was ignored before. `"newest"` puts the highest outcome ID first, `"expiry"` puts the soonest event time first (markets without one go last), and `"volume"` puts the highest 24h volume first (one extra `spotMetaAndAssetCtxs` request). When you omit `sortBy`, results stay in catalog order. `limit` now defaults to every matching market. See [Events](/sdk/reference/events-adapter).
+  - **Readable names for template markets.** `fetchMarkets`, `fetchEvents`, `fetchEvent`, the side names on `fetchPositions`, and `outcomeCreated` updates render template markets from Hyperliquid's template registry (`outcomeTemplates`), for example `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of `"template:priceTouch"`. A template question's fallback leg is named `"Other"`. If the registry can't be fetched, the `template:` prefix is still removed from plain names such as `"template:Yes"`. Refreshing the market or event cache makes one extra `outcomeTemplates` request, cached for 30 seconds.
+  - **`classifyOutcome` and `classifyAllOutcomes`** take the template registry as an optional last argument. See [Utilities](/sdk/reference/utilities).
+  - **`parseInstanceDescription`** cuts the `metadata=` routing tag that deployers glue onto a value, and takes an optional set of declared keyword names to drop the tag's body segments.
 
   ### Added
 
   - **`formatOutcomePrice(price)`** formats a HIP-4 outcome price (number or string) for the order wire. `formatPrice` is unchanged. See [Utilities](/sdk/reference/utilities).
+  - **`HIP4Client.fetchSpotAssetCtxs()`** returns the asset contexts (24h volume and prices) for every spot asset, outcome side coins included.
 
   ### Fixed
 
   - **`fetchPositions` prices.** `currentPrice` and `unrealizedPnl` now use the live mid. Spot balances name side coins `+<coin>` while mids use `#<coin>`, so the lookup always returned `"0"`.
   - The `fetchApprovedBuilders` documentation now states that an address can approve up to 10 builders, not 3.
+
+  [Pull request #20](https://github.com/Outcome-xyz/hip4/pull/20)
 </Update>
 
 <Update label="1.2.0-beta.2" description="September 29, 2026">

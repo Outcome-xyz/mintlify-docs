@@ -35,7 +35,7 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="outcomeName" type="string" required>
-  Human-readable side name resolved from `sideSpecs` (e.g. `"Yes"`, `"Hypurr"`).
+  Human-readable side name resolved from `sideSpecs` (e.g. `"Yes"`, `"Hypurr"`). Template markets use the name rendered from the template registry.
   Use this for display.
 </ResponseField>
 
@@ -49,7 +49,7 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="currentPrice" type="string" required>
-  Current midpoint price from `allMids`. `"0"` when no mid is available.
+  Current midpoint price from `allMids`. `"0"` when no mid is available. Spot balances name side coins `+<coin>` while mids use `#<coin>`; the adapter maps between them. Before 1.2.0-beta.3 the lookup found nothing and this was always `"0"`.
 </ResponseField>
 
 <ResponseField name="unrealizedPnl" type="string" required>

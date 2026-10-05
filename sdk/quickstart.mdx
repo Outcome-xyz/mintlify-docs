@@ -7,7 +7,7 @@ description: "Install the HIP-4 SDK, fetch live prediction markets, authenticate
 This guide walks you through the full integration path, meaning that by the end, you'll have a working adapter, a list of available markets, and order submissions functional and verifiable (via the Hyperliquid exchange).
 
 <Tip>
-  The SDK targets mainnet by default. Pass `testnet: true` while you're getting started. The Hyperliquid testnet gives you a free environment to experiment without risking real funds.
+  The SDK targets the Hyperliquid testnet by default, a free environment to experiment without risking real funds. Pass `testnet: false` to target mainnet.
 </Tip>
 
 <Steps>
@@ -28,7 +28,7 @@ This guide walks you through the full integration path, meaning that by the end,
     await hip4.initialize();
     ```
 
-    With `testnet: true`, the adapter connects to the Hyperliquid testnet endpoints for both REST and WebSocket traffic. Remove the option (or pass `{ testnet: false }`) when you're ready for mainnet.
+    The adapter connects to the Hyperliquid testnet endpoints for both REST and WebSocket traffic. `testnet: true` is also the default when you omit the option. Pass `{ testnet: false }` when you're ready for mainnet.
   </Step>
   <Step title="Fetch markets">
     Call `fetchMarkets()` to retrieve live prediction markets. The response is an array of typed market objects - each one carries pre-computed side identifiers, expiry dates, and outcome metadata.

@@ -20,7 +20,8 @@ This page walks through [`examples/web-showcase`](https://github.com/Outcome-xyz
     } from "@outcome.xyz/hip4";
     import type { HIP4Market, HLOutcomeTemplate } from "@outcome.xyz/hip4";
 
-    export const hip4 = createHIP4Adapter();
+    // The default network is testnet. Outcome's markets are on mainnet.
+    export const hip4 = createHIP4Adapter({ testnet: false });
     ```
   </Step>
 
