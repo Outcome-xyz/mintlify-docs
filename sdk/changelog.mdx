@@ -6,6 +6,27 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
+<Update label="1.3.0-beta.1" description="Upcoming">
+  ### Changed
+
+  Every field that existed in 1.2.0-beta.2 behaves as it did there again. The new values from 1.3.0-beta.0 are in new fields beside them.
+
+  - **Names are the wire names again.** `name`, `sides[].name`, and `questionName` from `fetchMarkets`, `classifyOutcome`, and `classifyAllOutcomes`, `title`, `question`, and outcome `name` from `fetchEvents` and `fetchEvent`, side names from `fetchPrice` and `subscribePrice`, and `eventTitle`, `marketQuestion`, and `outcomeName` from `fetchPositions` read as Hyperliquid sends them, for example `"template:priceTouch"`. `getSideNameResolver()` returns wire names again.
+  - **Order errors.** When Hyperliquid rejects a whole `placeOrder` or `placeOrders` request, `result.error` is `Exchange returned non-ok status` again.
+  - **Limit prices.** Limit-order prices are rounded with `formatPrice` (5 significant figures) again. Round them with `formatOutcomePrice` before `placeOrder` to stay on the 5-decimal price tick.
+  - **`fetchPositions` prices.** `currentPrice` and `unrealizedPnl` return the values they had in 1.2.0-beta.2.
+  - **`parseInstanceDescription(description)`** returns values with a glued `metadata=` tag again. Pass `declared` (an empty set works) to cut it.
+
+  ### Added
+
+  - **Readable names in `parsed*` fields.** `parsedName`, `sides[].parsedName`, and `parsedQuestionName` on markets, `parsedTitle`, `parsedQuestion`, and `outcomes[].parsedName` on events, `outcomes[].parsedName` on prices, and `parsedEventTitle`, `parsedMarketQuestion`, and `parsedOutcomeName` on positions carry the names rendered from `outcomeTemplates`, for example `"BTC touches 90000 by Nov 1, 00:00 UTC"`. `getParsedSideNameResolver()` returns the rendered side names.
+  - **`raw` on order results.** Hyperliquid's own message when it rejects the whole request, for example `User or API Wallet 0x... does not exist.`.
+  - **`livePrice` and `liveUnrealizedPnl` on positions.** The side's live mid price, and the gain or loss at it.
+  - **`readDeployedOutcome(outcome, question, declared)`** takes the same optional `declared` as `parseInstanceDescription`.
+
+  `sortBy` keeps working as in 1.3.0-beta.0.
+</Update>
+
 <Update label="1.3.0-beta.0" description="October 5, 2026">
   ### Changed
 

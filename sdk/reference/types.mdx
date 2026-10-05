@@ -44,7 +44,8 @@ Fields shared across all market types:
 | --- | --- | --- |
 | `type` | `MarketType` | Discriminant for narrowing the union |
 | `outcomeId` | `number` | Hyperliquid outcome ID |
-| `name` | `string` | Human-readable market name. From 1.3.0-beta.0, `fetchMarkets` renders template market names from Hyperliquid's template registry |
+| `name` | `string` | Market name as Hyperliquid sends it (e.g. `"template:priceTouch"`). `defaultBinary` markets get a label such as `"BTC > $69070 (1d)"` |
+| `parsedName?` | `string` | Readable market name, rendered from Hyperliquid's template registry for template markets (e.g. `"BTC touches 90000 by Nov 1, 00:00 UTC"`). A template question's fallback outcome reads `"Other"`. Other markets repeat `name`. Available from 1.3.0-beta.1 |
 | `description` | `string` | Human-readable market description |
 | `sides` | `[MarketSide, MarketSide]` | Both tradeable sides with pre-computed identifiers |
 | `raw` | `HLOutcome` | Raw Hyperliquid API response, for escape-hatch access |
@@ -53,7 +54,8 @@ Fields shared across all market types:
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `name` | `string` | Side label (e.g. `"Yes"`, `"No"`, `"Hypurr"`) |
+| `name` | `string` | Side label as Hyperliquid sends it (e.g. `"Yes"`, `"Hypurr"`, `"template:Yes"`) |
+| `parsedName?` | `string` | Readable side label (`"template:Yes"` reads `"Yes"`). Other sides repeat `name`. Available from 1.3.0-beta.1 |
 | `coinNum` | `number` | Raw coin number: `outcomeId * 10 + sideIndex` |
 | `coin` | `string` | Coin string for API calls (e.g. `"#5160"`) |
 | `asset` | `number` | Order asset field: `100_000_000 + coinNum` |
@@ -86,7 +88,8 @@ Outcomes grouped under a parent question, with a fallback outcome representing "
 | --- | --- | --- |
 | `type` | `"multiOutcome"` | Type discriminant |
 | `questionId` | `number` | Parent question ID |
-| `questionName` | `string` | Parent question name |
+| `questionName` | `string` | Parent question name as Hyperliquid sends it |
+| `parsedQuestionName?` | `string` | Readable parent question name, rendered like `parsedName`. Available from 1.3.0-beta.1 |
 | `questionDescription` | `string` | Parent question description |
 | `isFallback` | `boolean` | `true` if this is the fallback ("Other") outcome |
 | `rawQuestion` | `HLQuestion` | Raw parent question from the API |
@@ -103,7 +106,8 @@ Multi-bucket price range markets where each outcome covers a specific price band
 | `priceThresholds` | `number[]` | Sorted ascending price boundaries; N thresholds produce N\+1 buckets |
 | `period` | `string` | Market period (e.g. `"15m"`) |
 | `questionId` | `number` | Parent question ID |
-| `questionName` | `string` | Parent question name |
+| `questionName` | `string` | Parent question name as Hyperliquid sends it |
+| `parsedQuestionName?` | `string` | Readable parent question name, rendered like `parsedName`. Available from 1.3.0-beta.1 |
 | `questionDescription` | `string` | Parent question description (the raw `priceBucket` spec) |
 | `isFallback` | `boolean` | `true` if this is the settlement fallback outcome |
 | `bucketIndex` | `number` | Index within the question's named outcomes; `-1` for fallback |
@@ -120,7 +124,8 @@ Events are the top-level grouping for prediction markets.
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `string` | Event ID (`"q<n>"` for questions, `"o<n>"` for standalone outcomes) |
-| `title` | `string` | Display title |
+| `title` | `string` | Title as Hyperliquid sends it (e.g. `"template:priceTouch"`) |
+| `parsedTitle?` | `string` | Readable title, rendered from Hyperliquid's template registry for template events. Other events repeat `title`. Available from 1.3.0-beta.1 |
 | `description` | `string` | Full description |
 | `category` | `string` | Category slug (`"custom"` or `"recurring"`) |
 | `markets` | `PredictionMarket[]` | Markets belonging to this event |
@@ -138,7 +143,8 @@ A single question within an event containing tradeable outcome tokens.
 | --- | --- | --- |
 | `id` | `string` | Market ID (the outcome ID as a string) |
 | `eventId` | `string` | Parent event ID |
-| `question` | `string` | Market question text |
+| `question` | `string` | Market question text as Hyperliquid sends it |
+| `parsedQuestion?` | `string` | Readable question text, rendered like `PredictionEvent.parsedTitle`. Available from 1.3.0-beta.1 |
 | `outcomes` | `PredictionOutcome[]` | Tradeable sides |
 | `volume` | `string` | Trading volume. Always `"0"` in the HIP-4 adapter |
 | `liquidity` | `string` | Current liquidity. Always `"0"` in the HIP-4 adapter |
@@ -150,9 +156,10 @@ One tradeable side of a prediction market.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `name` | `string` | Side name (e.g. `"Yes"`, `"No"`) |
+| `name` | `string` | Side name as Hyperliquid sends it (e.g. `"Yes"`, `"template:Yes"`) |
+| `parsedName?` | `string` | Readable side name (`"template:Yes"` reads `"Yes"`). Available from 1.3.0-beta.1 |
 | `tokenId` | `string` | Side coin identifier (e.g. `"#5160"`) |
-| `price` | `string` | Current mid-price (0–1 range) |
+| `price` | `string` | Current mid-price (0 to 1 range) |
 
 ### `PredictionCategory`
 
@@ -203,7 +210,8 @@ Returned by `hip4.trading.placeOrder` and `hip4.trading.modifyOrder`. Rejections
 | `orderId?` | `string` | Order ID for filled or resting orders |
 | `status?` | `string` | Exchange status string (`"filled"`, `"resting"`, `"error"`, `"unknown"`) |
 | `shares?` | `string` | Filled size (for filled orders) |
-| `error?` | `string` | Rejection reason (when `success` is `false`). From 1.3.0-beta.0, a whole-request rejection carries Hyperliquid's own message |
+| `error?` | `string` | Rejection reason (when `success` is `false`). A whole-request rejection reads `"Exchange returned non-ok status"` |
+| `raw?` | `string` | Hyperliquid's own message for a whole-request rejection (e.g. `"User or API Wallet 0x... does not exist."`), when it sends one. Available from 1.3.0-beta.1 |
 
 ### `PredictionBatchOrderResult`
 
@@ -234,13 +242,18 @@ An open position in a prediction market outcome, derived from spot balances.
 | --- | --- | --- |
 | `marketId` | `string` | Outcome ID |
 | `eventTitle` | `string` | Title of the parent event |
+| `parsedEventTitle?` | `string` | Readable title of the parent event. Available from 1.3.0-beta.1 |
 | `marketQuestion` | `string` | Question text of the parent market |
+| `parsedMarketQuestion?` | `string` | Readable question text of the parent market. Available from 1.3.0-beta.1 |
 | `outcome` | `string` | Balance coin as Hyperliquid reports it (e.g. `"+90"`) |
-| `outcomeName` | `string` | Resolved side name (e.g. `"Hypurr"`, `"Yes"`) |
+| `outcomeName` | `string` | Side name from `sideSpecs` (e.g. `"Hypurr"`, `"Yes"`, `"template:Yes"`) |
+| `parsedOutcomeName?` | `string` | Readable side name (`"template:Yes"` reads `"Yes"`). Available from 1.3.0-beta.1 |
 | `shares` | `string` | Number of shares held |
 | `avgCost` | `string` | Average entry cost per share (entry notional / shares) |
-| `currentPrice` | `string` | Current mid-price |
-| `unrealizedPnl` | `string` | Unrealized profit/loss in USDC |
+| `currentPrice` | `string` | Mid-price looked up by the balance coin. `"0"` for outcome positions, because mids name the coin `#<coin>`. Use `livePrice` |
+| `unrealizedPnl` | `string` | Unrealized profit/loss in USDC at `currentPrice`. Use `liveUnrealizedPnl` |
+| `livePrice?` | `string` | The side's live mid-price, or `"0"` when it has none. Available from 1.3.0-beta.1 |
+| `liveUnrealizedPnl?` | `string` | Unrealized profit/loss in USDC at `livePrice`. Available from 1.3.0-beta.1 |
 | `potentialPayout` | `string` | Maximum payout if the outcome resolves in your favor |
 | `eventStatus` | `"active" \| "pending_resolution" \| "resolved"` | Event lifecycle state. Always `"active"` in the HIP-4 adapter |
 
@@ -292,7 +305,7 @@ The current authentication state of the trading adapter.
 | Field | Type | Description |
 | --- | --- | --- |
 | `marketId` | `string` | Outcome ID |
-| `outcomes` | `Array<{ name: string; price: string; midpoint: string }>` | Current prices for both sides, with side names from `sideSpecs` |
+| `outcomes` | `Array<{ name: string; parsedName?: string; price: string; midpoint: string }>` | Current prices for both sides, with side names from `sideSpecs`. `parsedName` is the readable side name (`"template:Yes"` reads `"Yes"`), available from 1.3.0-beta.1 |
 | `timestamp` | `number` | Price snapshot timestamp in milliseconds |
 
 ### `PredictionTrade`

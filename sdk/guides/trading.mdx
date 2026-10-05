@@ -88,7 +88,7 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     }
     ```
 
-    When Hyperliquid rejects the whole request, `result.error` carries Hyperliquid's own message, for example `User or API Wallet 0x... does not exist.` when the agent isn't approved. Versions before 1.3.0-beta.0 return the generic `Exchange returned non-ok status` instead.
+    When Hyperliquid rejects the whole request, `result.error` is `Exchange returned non-ok status`. From 1.3.0-beta.1, `result.raw` carries Hyperliquid's own message, for example `User or API Wallet 0x... does not exist.` when the agent isn't approved.
   </Step>
 </Steps>
 
@@ -155,7 +155,13 @@ console.log(res.status, res.response?.data.statuses);
 
 ## Pricing rules
 
-**Tick-aligned prices**: the SDK rounds limit prices to the HIP-4 price grid before signing. From 1.3.0-beta.0, that's at most 5 significant figures and at most 5 decimals (a tick of `0.00001`), so `"0.550012"` becomes `"0.55001"` and `"0.0123456"` becomes `"0.01235"`. Earlier versions round to 5 significant figures only. You don't need to pre-format prices yourself.
+**Tick-aligned prices**: the SDK rounds limit prices to 5 significant figures before signing, so `"0.550012"` becomes `"0.55001"`. HIP-4 outcome prices also allow at most 5 decimals (a tick of `0.00001`). Below 0.1, 5 significant figures can leave 6 decimals: `"0.0123456"` becomes `"0.012346"`, which the exchange rejects. Round limit prices with `formatOutcomePrice` before you place the order:
+
+```typescript
+import { formatOutcomePrice } from "@outcome.xyz/hip4";
+
+const price = formatOutcomePrice("0.0123456"); // "0.01235"
+```
 
 **Min-notional**: the SDK rejects limit orders below the \$1 minimum notional (`MIN_NOTIONAL`) before signing or sending them. To use a stricter floor, pass `minOrderNotional` to `createHIP4Adapter`. Without `markPx`, the SDK measures notional as `price × amount`. With `markPx`, it uses the cheaper side's price, `amount × max(0.01, min(markPx, 1 - markPx))`, and also checks that `amount` is at least `getMinShares(markPx)`. Set `skipMinNotionalCheck: true` to skip both checks.
 

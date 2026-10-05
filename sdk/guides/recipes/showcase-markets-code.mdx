@@ -118,7 +118,7 @@ This page walks through [`examples/web-showcase`](https://github.com/Outcome-xyz
         link.rel = "noopener";
         // A side with no price yet (or 0) shows "-" instead of NaN%.
         const chance = price > 0 ? `${Math.round(price * 100)}%` : "-";
-        link.textContent = `${market.name} ${chance}`;
+        link.textContent = `${market.parsedName ?? market.name} ${chance}`;
         document.body.append(link);
       }
     }

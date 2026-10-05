@@ -117,7 +117,7 @@ HIP-4 markets fall into four types, each with its own structure and set of field
 </Tabs>
 
 <Note>
-  Since 1.3.0-beta.0, `fetchMarkets` renders the names of template markets from Hyperliquid's template registry. A market shows `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of the raw `"template:priceTouch"`, and a template question's fallback leg is named `"Other"`. Events, position side names, and `outcomeCreated` updates use the same names.
+  `name` and `sides[n].name` are the names Hyperliquid sends. A template market reads `"template:priceTouch"`. From 1.3.0-beta.1, `parsedName` and `sides[n].parsedName` carry the names rendered from Hyperliquid's template registry, such as `"BTC touches 90000 by Nov 1, 00:00 UTC"`, and a template question's fallback outcome reads `"Other"`. See [Template market names](/sdk/guides/fetch-markets#template-market-names).
 </Note>
 
 ## Market type summary

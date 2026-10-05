@@ -54,7 +54,7 @@ This page walks through [`examples/web-trading`](https://github.com/Outcome-xyz/
 
     // Shown in the user's API wallets on Hyperliquid. Approving the same name again
     // replaces the previous agent.
-    const AGENT_NAME = "Acme Games";
+    const AGENT_NAME = "OUTsdk";
 
     /**
      * The wallet approves your builder fee, once per user, and a new agent key.
@@ -123,7 +123,7 @@ This page walks through [`examples/web-trading`](https://github.com/Outcome-xyz/
       price: "0.61",
       amount: "20", // whole shares
     });
-    if (!result.success) console.error(result.error);
+    if (!result.success) console.error(result.raw ?? result.error);
 
     if (result.status === "resting") {
       const cancel = await hip4.trading.cancelOrder([

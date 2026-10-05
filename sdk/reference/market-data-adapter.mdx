@@ -86,8 +86,9 @@ const price = await adapter.marketData.fetchPrice("516");
 
 <ResponseField name="outcomes" type="array" required>
   One entry per side. Each entry contains:
-  - `name` - the side name from the outcome's `sideSpecs` (e.g. `"Yes"`, `"No"`, `"Hypurr"`). The adapter loads side names before resolving them, so you only see the generic `"Side 0"` / `"Side 1"` for an outcome it doesn't know.
-  - `price` - current midpoint as a decimal string (0–1). `"0"` when no mid is available.
+  - `name` - the side name from the outcome's `sideSpecs` (e.g. `"Yes"`, `"No"`, `"Hypurr"`, `"template:Yes"`). The adapter loads side names before resolving them, so you only see the generic `"Side 0"` / `"Side 1"` for an outcome it doesn't know.
+  - `parsedName` - the readable side name. Template sides are rendered from Hyperliquid's template registry (`"template:Yes"` reads `"Yes"`); other sides repeat `name`. Available from 1.3.0-beta.1.
+  - `price` - current midpoint as a decimal string (0 to 1). `"0"` when no mid is available.
   - `midpoint` - same value as `price` (both fields are set identically).
 </ResponseField>
 
@@ -101,7 +102,7 @@ const price = await adapter.marketData.fetchPrice("516");
 const price = await adapter.marketData.fetchPrice("516");
 
 for (const side of price.outcomes) {
-  console.log(side.name, side.midpoint);
+  console.log(side.parsedName ?? side.name, side.midpoint);
   // "Yes" "0.62"
   // "No" "0.38"
 }
@@ -269,7 +270,7 @@ unsubscribe();
 
 ## `subscribePrice(marketId, cb)`
 
-Opens a real-time WebSocket subscription to midpoint prices for both sides of a market outcome. The callback fires on every `allMids` frame that includes a mid for either side. Side names resolve once the adapter has loaded them (call `initialize()` first); until then they read `"Side 0"` and `"Side 1"`.
+Opens a real-time WebSocket subscription to midpoint prices for both sides of a market outcome. The callback fires on every `allMids` frame that includes a mid for either side. Side names resolve once the adapter has loaded them (call `initialize()` first); until then they read `"Side 0"` and `"Side 1"`. Each side carries `name` and `parsedName`, as in `fetchPrice`.
 
 ```typescript
 const unsubscribe = adapter.marketData.subscribePrice("516", (price) => {
