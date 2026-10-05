@@ -4,3 +4,6 @@ node_modules/
 # The phc_ project token in analytics.js is publishable and belongs in git;
 # the phx_ key here is not.
 .env.local
+
+# Git worktrees for isolated feature work.
+.worktrees/

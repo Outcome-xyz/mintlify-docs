@@ -91,6 +91,14 @@ import { MIN_NOTIONAL } from "@outcome.xyz/hip4";
 console.log(MIN_NOTIONAL);   // 1
 ```
 
+<Note>
+  Want a stricter floor than the protocol minimum? Don't try to override `MIN_NOTIONAL` itself -
+  it always reflects Hyperliquid's real minimum. Instead, pass `minOrderNotional` to
+  `createHIP4Adapter` to raise the client-side pre-submission floor for that adapter instance. See
+  [`minOrderNotional`](/sdk/reference/trading-adapter#minordernotional) in the Trading Adapter
+  reference.
+</Note>
+
 ## Market discovery
 
 These functions help you find and describe recurring HIP-4 markets from raw metadata.

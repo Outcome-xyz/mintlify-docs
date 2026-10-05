@@ -14,6 +14,39 @@ The Trading Adapter (`adapter.trading`) lets you submit, modify, and cancel orde
 
 ---
 
+## Configuration
+
+### `minOrderNotional`
+
+Client-side order-notional floor in USD, checked before submission. Optional - defaults to the
+SDK's own `MIN_NOTIONAL` (the real Hyperliquid protocol minimum, currently $1). Set it on
+`createHIP4Adapter` to apply a stricter, business-chosen floor on top of the protocol minimum:
+
+```typescript
+const adapter = createHIP4Adapter({
+  testnet: false,
+  minOrderNotional: 10, // reject orders below $10 notional, even though the protocol allows $1
+});
+```
+
+`minOrderNotional` can only raise the effective floor, never lower it - the adapter constructor
+throws if you pass a value below `MIN_NOTIONAL`. Once set, it applies to both of `placeOrder`'s
+local checks: the notional check and, when `markPx` is provided, the minimum
+shares check (`getMinShares(markPx, minOrderNotional)`). Pass `skipMinNotionalCheck: true` on an
+individual `placeOrder` call to skip these SDK-side pre-checks - this does **not** change anything
+Hyperliquid itself enforces; it only matters for cases like closing an existing position, where the
+residual size may be below the configured minimum but the exchange still accepts the order. See
+[`skipMinNotionalCheck`](#param-skip-min-notional-check) below, and
+[`MIN_NOTIONAL`](/sdk/reference/utilities#min_notional) in the Utilities reference for the
+underlying constant.
+
+<Note>
+  `minOrderNotional` is set once, at adapter construction - there is no per-order override. Use
+  `skipMinNotionalCheck` on an individual `placeOrder` call if a specific order needs to bypass it.
+</Note>
+
+---
+
 ## `placeOrder(params)`
 
 Places a single order on a HIP-4 outcome. Validation failures and exchange rejections come back in the result, so check the `success` field and the `error` message instead of catching. The method throws only for an unsupported `timeInForce` (`"FOK"` or `"GTD"`) or an `outcome` coin whose side index isn't 0 or 1.
@@ -21,7 +54,7 @@ Places a single order on a HIP-4 outcome. Validation failures and exchange rejec
 For limit orders, the SDK performs these local checks before signing:
 
 - Rounds the price to the HIP-4 price grid. From 1.2.0-beta.3, that's at most 5 significant figures and at most 5 decimals (`formatOutcomePrice`). Earlier versions round to 5 significant figures (`formatPrice`).
-- Checks that the notional value meets the minimum: \$1 (`MIN_NOTIONAL`), or the adapter's `minOrderNotional` if you set a higher one. Notional is `price × amount`, or `amount × max(0.01, min(markPx, 1 - markPx))` when you pass `markPx`.
+- Checks that the notional value meets the minimum: \$1 (`MIN_NOTIONAL`), or the adapter's [`minOrderNotional`](#minordernotional) if you set a higher one. Notional is `price × amount`, or `amount × max(0.01, min(markPx, 1 - markPx))` when you pass `markPx`.
 - When `markPx` is provided, checks that `amount` is at least `getMinShares(markPx)`.
 
 `skipMinNotionalCheck: true` skips both checks.
