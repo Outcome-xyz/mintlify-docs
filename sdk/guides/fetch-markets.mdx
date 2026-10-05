@@ -8,17 +8,16 @@ The events adapter gives you structured access to every HIP-4 prediction market 
 
 ## Fetch all markets
 
-`hip4.events.fetchMarkets()` returns a flat `HIP4Market[]` array covering all active outcomes.
+`hip4.events.fetchMarkets()` returns a flat `HIP4Market[]` array covering every outcome in Hyperliquid's `outcomeMeta` catalog.
 
 ```typescript
 import { createHIP4Adapter } from "@outcome.xyz/hip4";
-import type { HIP4Market } from "@outcome.xyz/hip4outcome.xyz/hip4";
 import type { HIP4Market } from "@outcome.xyz/hip4";
 
 const hip4 = createHIP4Adapter({ testnet: true });
 await hip4.initialize();
 
-const markets: HIP4Market[] = await hip4.events.fetchMarkets();
+const markets = (await hip4.events.fetchMarkets()) as HIP4Market[];
 console.log(`${markets.length} markets available`);
 ```
 
@@ -58,46 +57,15 @@ const grouped = (await hip4.events.fetchMarkets({
 const defaultBinaryMarkets = (grouped.defaultBinary ??
   []) as DefaultBinaryMarket[];
 const multiOutcomeMarkets = (grouped.multiOutcome ??
- 
-  MarketsByType,
-  DefaultBinaryMarket,
-  MultiOutcomeMarket,
-} from "@outcome.xyz/hip4";
-
-const grouped = (await hip4.events.fetchMarkets({
-  groupBy: "type",
-})) as MarketsByType;
-
-const defaultBinaryMarkets = (grouped.defaultBinary ??
-  []) as DefaultBinaryMarket[];
-const multiOutcomeMarkets = (grouped.multiOutcome ??
   []) as MultiOutcomeMarket[];
 ```
 
 ## Group multi-outcome markets by question
 
-Multi-outcome markets share a parent question. Grouping by question returns a `MarketsByQuestion` object keyed by question ID (or `"standalone"` for unclaimed outcomes).
+Multi-outcome markets share a parent question. Grouping by question returns a `MarketsByQuestion` object keyed by question ID (or `"standalone"` for outcomes that don't belong to a multi-outcome question).
 
 ```typescript
 import type { MultiOutcomeMarket } from "@outcome.xyz/hip4";
-
-const byQuestion = (await hip4.events.fetchMarkets({
-  type: "multiOutcome",
-  groupBy: "question",
-})) as Record<string, MultiOutcomeMarket[]>;
-
-for (const [questionId, options] of Object.entries(byQuestion)) {
-  if (questionId === "standalone") continue;
-
-  const first = options[0];
-  console.log(`Question #${questionId}: ${first.questionName}`);
-
-  for (const option of options) {
-    const tag = option.isFallback ? " (fallback)" : "";
-    console.log(`  [${option.outcomeId}] ${option.name}${tag}`);
-    console.log(
-      `    Yes: ${option.sides[0].coin} | No: ${option.sides[1].coin}`,
-    outcome.xyz/hip4";
 
 const byQuestion = (await hip4.events.fetchMarkets({
   type: "multiOutcome",
@@ -122,27 +90,53 @@ for (const [questionId, options] of Object.entries(byQuestion)) {
 
 ## Paginate results
 
-Use `limit` and `offset` to page through large result sets.
+Use `limit` and `offset` to page through large result sets. Without `limit`, you get every matching market.
 
 ```typescript
 // Second page of 10
 const page2 = await hip4.events.fetchMarkets({ limit: 10, offset: 10 });
 ```
 
+<Note>
+  `limit` and `offset` apply only to the flat list. When you pass `groupBy`, the result contains every matching market.
+</Note>
+
 ## Sort results
 
-Control the order of returned markets with `sortBy`.
+Control the order of returned markets with `sortBy`. When you omit it, markets stay in Hyperliquid's catalog order (the order of `outcomeMeta`).
 
 ```typescript
-// Highest volume first
+// Highest 24h volume first (costs one extra request)
 const byVolume = await hip4.events.fetchMarkets({ sortBy: "volume" });
 
-// Soonest expiry first
+// Soonest event time first; markets without one come last
 const byExpiry = await hip4.events.fetchMarkets({ sortBy: "expiry" });
 
-// Most recently listed first (default)
+// Highest outcome ID (most recently created) first
 const byNewest = await hip4.events.fetchMarkets({ sortBy: "newest" });
 ```
+
+<Note>
+  `sortBy` takes effect from SDK 1.3.0-beta.0. Earlier versions accept the parameter but ignore it.
+</Note>
+
+## Template market names
+
+Many markets are created from Hyperliquid's template registry (`outcomeTemplates`). Their `name`, `sides[].name`, and `questionName` are the names Hyperliquid sends, such as `"template:priceTouch"`. From SDK 1.3.0, `parsedName`, `sides[].parsedName`, and `parsedQuestionName` carry the names rendered from the registry. Use them for display.
+
+```typescript
+const market = markets.find((m) => m.name === "template:priceTouch")!;
+
+market.name;                // "template:priceTouch"
+market.parsedName;          // "BTC touches 90000 by Nov 1, 00:00 UTC"
+market.sides[0].parsedName; // "Yes"
+```
+
+A template question's fallback outcome has the `parsedName` `"Other"`. Other markets repeat their `name`. If the registry can't be fetched, the parsed names keep the wire names, except that the `template:` prefix is removed from plain names such as `"template:Yes"`. The original outcome is always available on `market.raw`.
+
+Events, prices, and positions carry the same names: `parsedTitle`, `parsedQuestion`, and `outcomes[].parsedName` from `fetchEvents` and `fetchEvent`, `outcomes[].parsedName` from `fetchPrice`, and `parsedEventTitle`, `parsedMarketQuestion`, and `parsedOutcomeName` from `fetchPositions`.
+
+Refreshing the market or event cache makes one extra `outcomeTemplates` request, cached for 30 seconds.
 
 ## Access typed fields on DefaultBinaryMarket
 
@@ -167,33 +161,15 @@ m.sides[0].asset; // 100005160
 m.sides[1].name; // "No"
 m.sides[1].coin; // "#5161"
 
-m.raw;outcome.xyz/hip4";
-
-const markets = (await hip4.events.fetchMarkets({
-  type: "defaultBinary",
-})) as DefaultBinaryMarket[];
-const m = markets[0];
-
-m.underlying; // "BTC"
-m.targetPrice; // 69070
-m.expiry; // Date (UTC)
-m.period; // "1d"
-
-m.sides[0].name; // "Yes"
-m.sides[0].coin; // "#5160"  - use this in placeOrder
-m.sides[0].asset; // 100005160
-m.sides[1].name; // "No"
-m.sides[1].coin; // "#5161"
-
 m.raw; // original HLOutcome for direct API access
 ```
 
 ## Fetch events and categories
 
-Markets belong to events. You can query at the event level when you need the full context-title, description, volume, status, and the markets list together.
+Markets belong to events. You can query at the event level when you need the event title, description, status, and markets list together.
 
 ```typescript
-// All events
+// First 50 events (fetchEvents defaults to limit: 50)
 const events = await hip4.events.fetchEvents();
 
 // Active events only
@@ -202,7 +178,7 @@ const active = await hip4.events.fetchEvents({ active: true });
 // Events in the "recurring" category
 const recurring = await hip4.events.fetchEvents({ category: "recurring" });
 
-// Full-text search
+// Case-insensitive search in titles and descriptions
 const btcEvents = await hip4.events.fetchEvents({ query: "BTC" });
 
 // Single event by ID

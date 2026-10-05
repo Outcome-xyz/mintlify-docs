@@ -7,7 +7,7 @@ description: "A typed TypeScript SDK for building on HIP-4 - fetch markets, stre
 `@outcome.xyz/hip4` — a modular stack of HIP-4 & its financial primitives.
 
 ```bash
-pnpm add @outcome.xyz/hip4
+pnpm add @outcome.xyz/hip4@beta
 ```
 
 <div className="hero-frame">
@@ -21,7 +21,7 @@ pnpm add @outcome.xyz/hip4
 
 <CardGroup cols={2}>
   <Card title="Market discovery" icon="search" href="/sdk/guides/fetch-markets">
-    Fetch and filter prediction markets by type (`defaultBinding`, `labelledBinding`, `priceBucket`), category, or status. Paginate results and group by type or parent question.
+    Fetch prediction markets and filter them by type (`defaultBinary`, `labelledBinary`, `multiOutcome`, `priceBucket`). Sort, paginate, or group results by type or parent question.
   </Card>
   <Card title="Real-time data" icon="activity" href="/sdk/guides/real-time-data">
     Subscribe to live order books, mid prices, and trade streams via WebSocket. The SDK handles connection management and auto-reconnect with exponential backoff.
@@ -33,7 +33,7 @@ pnpm add @outcome.xyz/hip4
 
 ## Architecture
 
-The SDK is organized around a single `HIP4Client` that handles HTTP routing, 5xx retry logic, and WebSocket connection management. Six sub-adapters wrap that client and expose domain-specific methods:
+The SDK is organized around a single `HIP4Client` that handles HTTP routing, retries info requests once on 5xx and network errors, and manages the WebSocket connection. Six sub-adapters wrap that client and expose domain-specific methods:
 
 | Adapter | Property | Responsibility |
 |---------|----------|----------------|
@@ -41,10 +41,12 @@ The SDK is organized around a single `HIP4Client` that handles HTTP routing, 5xx
 | `HIP4MarketDataAdapter` | `hip4.marketData` | Order books, prices, trades, candles |
 | `HIP4AccountAdapter` | `hip4.account` | Positions, balances, open orders |
 | `HIP4TradingAdapter` | `hip4.trading` | Place and cancel orders |
-| `HIP4Auth` | `hip4.auth` | Agent key approval and auth state |
-| `HIP4WalletAdapter` | `hip4.wallet` | USDH deposits, withdrawals, transfers |
+| `HIP4Auth` | `hip4.auth` | Agent signer and auth state |
+| `HIP4WalletAdapter` | `hip4.wallet` | Spot and perp transfers, withdrawals, sends |
 
-You create the adapter with `createHIP4Adapter()` and call `initialize()` once to warm up the event cache. After that, all sub-adapters are accessible as properties on the returned object.
+The adapter also exposes `hip4.client` for raw Hyperliquid API calls and an experimental `hip4.deployer` for registering and settling markets.
+
+You create the adapter with `createHIP4Adapter()` and call `initialize()` once. It loads the side names that prices and positions use. All sub-adapters are properties on the returned object.
 
 ```typescript
 import { createHIP4Adapter } from "@outcome.xyz/hip4";
@@ -63,5 +65,5 @@ const status  = hip4.auth.getAuthStatus();
 </Note>
 
 <Note>
-  Both testnet and mainnet are supported. Pass `{ testnet: true }` (the default) to target the Hyperliquid testnet, or `{ testnet: false }` for mainnet. The SDK automatically routes REST and WebSocket connections to the correct endpoints.
+  Both mainnet and testnet are supported. The SDK targets the Hyperliquid testnet by default (`testnet: true`). Pass `{ testnet: false }` to target mainnet. The SDK routes REST and WebSocket connections to the matching endpoints.
 </Note>

@@ -11,20 +11,24 @@ The SDK is published to npm as `@outcome.xyz/hip4`. It ships with full TypeScrip
 <CodeGroup>
 
 ```bash pnpm
-pnpm add @outcome.xyz/hip4
+pnpm add @outcome.xyz/hip4@beta
 ```
 
 ```bash npm
-npm install @outcome.xyz/hip4
+npm install @outcome.xyz/hip4@beta
 ```
 
 ```bash yarn
-yarn add @outcome.xyz/hip4
+yarn add @outcome.xyz/hip4@beta
 ```
 
 </CodeGroup>
 
-Current version: **1.2.0-beta.2** - see the [changelog](/sdk/changelog)
+Current version: **1.3.0**. See the [changelog](/sdk/changelog).
+
+<Note>
+  Releases are published to the npm `beta` dist-tag. Install with `@beta` to get the current release. Without it, npm resolves the `latest` tag, which can point to an older version.
+</Note>
 
 ## Entry points
 
@@ -46,12 +50,12 @@ import type { HIP4Market, MarketType } from "@outcome.xyz/hip4/types";
 
 ## TypeScript requirements
 
-The SDK targets ES2020 and uses features such as optional chaining, nullish coalescing, and `BigInt`. Strict mode is recommended:
+The SDK is compiled for ES2022 and uses features such as optional chaining, nullish coalescing, and `BigInt`. Strict mode is recommended:
 
 ```json tsconfig.json
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true

@@ -6,26 +6,90 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
+<Update label="1.3.0" description="October 5, 2026">
+  Changes compared with 1.2.0-beta.2. Every field that existed there returns what it did there, and the new values are in new fields beside them.
+
+  ### Added
+
+  - **Readable names in `parsed*` fields.** `parsedName`, `sides[].parsedName`, and `parsedQuestionName` on markets, `parsedTitle`, `parsedQuestion`, and `outcomes[].parsedName` on events, `outcomes[].parsedName` on prices, and `parsedEventTitle`, `parsedMarketQuestion`, and `parsedOutcomeName` on positions carry the names rendered from Hyperliquid's template registry (`outcomeTemplates`), for example `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of `"template:priceTouch"`. A template question's fallback leg is rendered as `"Other"`. If the registry can't be fetched, the `template:` prefix is still removed from plain names such as `"template:Yes"`. `getParsedSideNameResolver()` returns the rendered side names, and `getSideNameResolver()` keeps returning the wire names. See [Fetch markets](/sdk/guides/fetch-markets).
+  - **`raw` on order results.** Hyperliquid's own message when it rejects the whole `placeOrder` or `placeOrders` request, for example `User or API Wallet 0x... does not exist.`. `error` stays `Exchange returned non-ok status`.
+  - **`formatOutcomePrice(price)`** formats a HIP-4 outcome price (number or string) for the order wire. See [Utilities](/sdk/reference/utilities).
+  - **`HIP4Client.fetchSpotAssetCtxs()`** returns the asset contexts (24h volume and prices) for every spot asset, outcome side coins included.
+  - **`classifyOutcome` and `classifyAllOutcomes`** take the template registry as an optional last argument.
+  - **`readDeployedOutcome(outcome, question, declared)`** and `parseInstanceDescription(description, declared)` take an optional set of declared keyword names to drop the segments of a `metadata=` tag body.
+
+  ### Changed
+
+  - **`fetchMarkets` honors `sortBy`.** It was ignored before. `"newest"` puts the highest outcome ID first, `"expiry"` puts the soonest event time first (markets without one go last), and `"volume"` puts the highest 24h volume first (one extra `spotMetaAndAssetCtxs` request). When you omit `sortBy`, results stay in catalog order. See [Events](/sdk/reference/events-adapter).
+  - **Limit prices round to the outcome tick.** `placeOrder` and `placeOrders` round limit-order prices to at most 5 significant figures and at most 5 decimals (a 0.00001 tick) before signing. Previously a price below 0.1 could keep 6 decimals, which the exchange rejects.
+  - **`parseInstanceDescription`, `readDeployedOutcome`, and `readDeployedOutcomes`** cut the `metadata=` routing tag that deployers glue onto a value, so `threshold:65000 metadata=category:economics` reads as `65000`.
+  - **Template-name cache.** Refreshing the market or event cache makes one extra `outcomeTemplates` request, cached for 30 seconds.
+
+  ### Fixed
+
+  - **`fetchPositions` prices.** `currentPrice` and `unrealizedPnl` now use the live mid. Spot balances name side coins `+<coin>` while mids use `#<coin>`, so the lookup always returned `"0"`.
+  - The `fetchApprovedBuilders` documentation now states that an address can approve up to 10 builders, not 3.
+
+  ### Coming from 1.3.0-beta.0
+
+  1.3.0-beta.0 was published to npm under the `latest` tag. Compared with it, 1.3.0 changes two things:
+
+  - **Names.** The existing name fields are the names Hyperliquid sends again: `name`, `sides[].name`, and `questionName` on markets, `title`, `question`, and outcome `name` on events, side names on prices, and `eventTitle`, `marketQuestion`, and `outcomeName` on positions. Read the rendered names from the `parsed*` fields above.
+  - **Order errors.** When Hyperliquid rejects a whole `placeOrder` or `placeOrders` request, `error` is `Exchange returned non-ok status` again. Read Hyperliquid's message from `raw`.
+
+  The limit-price rounding, the `fetchPositions` price fix, the `metadata=` tag cut, and `sortBy` stay as in 1.3.0-beta.0.
+
+  [Pull request #20](https://github.com/Outcome-xyz/hip4/pull/20) | [Pull request #23](https://github.com/Outcome-xyz/hip4/pull/23) | [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.2.0-beta.2...v1.3.0)
+</Update>
+
+<Update label="1.3.0-beta.0" description="October 5, 2026">
+  ### Changed
+
+  - **Hyperliquid's own rejection message.** When Hyperliquid rejects a whole `placeOrder` or `placeOrders` request, `result.error` now carries Hyperliquid's message (for example `User or API Wallet 0x... does not exist.`) instead of the generic `Exchange returned non-ok status`.
+  - **Limit prices round to 5 decimals.** Before signing, limit-order prices are rounded to at most 5 significant figures and at most 5 decimals (a 0.00001 tick). Previously a price below 0.1 could keep 6 decimals, which the exchange rejects.
+  - **`fetchMarkets` honors `sortBy`.** It was ignored before. `"newest"` puts the highest outcome ID first, `"expiry"` puts the soonest event time first (markets without one go last), and `"volume"` puts the highest 24h volume first (one extra `spotMetaAndAssetCtxs` request). When you omit `sortBy`, results stay in catalog order. See [Events](/sdk/reference/events-adapter).
+  - **Readable names for template markets.** `fetchMarkets`, `fetchEvents`, `fetchEvent`, the side names on `fetchPositions`, and `outcomeCreated` updates render template markets from Hyperliquid's template registry (`outcomeTemplates`), for example `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of `"template:priceTouch"`. A template question's fallback leg is named `"Other"`. If the registry can't be fetched, the `template:` prefix is still removed from plain names such as `"template:Yes"`. Refreshing the market or event cache makes one extra `outcomeTemplates` request, cached for 30 seconds.
+  - **`classifyOutcome` and `classifyAllOutcomes`** take the template registry as an optional last argument. See [Utilities](/sdk/reference/utilities).
+  - **`parseInstanceDescription`** cuts the `metadata=` routing tag that deployers glue onto a value, and takes an optional set of declared keyword names to drop the tag's body segments.
+
+  ### Added
+
+  - **`formatOutcomePrice(price)`** formats a HIP-4 outcome price (number or string) for the order wire. `formatPrice` is unchanged. See [Utilities](/sdk/reference/utilities).
+  - **`HIP4Client.fetchSpotAssetCtxs()`** returns the asset contexts (24h volume and prices) for every spot asset, outcome side coins included.
+
+  ### Fixed
+
+  - **`fetchPositions` prices.** `currentPrice` and `unrealizedPnl` now use the live mid. Spot balances name side coins `+<coin>` while mids use `#<coin>`, so the lookup always returned `"0"`.
+  - The `fetchApprovedBuilders` documentation now states that an address can approve up to 10 builders, not 3.
+
+  Two behaviours from this release changed again in 1.3.0: the readable names moved to new `parsed*` fields, and `error` is the generic `Exchange returned non-ok status` again, with Hyperliquid's message in `raw`.
+
+  [Pull request #20](https://github.com/Outcome-xyz/hip4/pull/20) | [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.2.0-beta.2...v1.3.0-beta.0)
+</Update>
+
 <Update label="1.2.0-beta.2" description="September 29, 2026">
   ### Fixed
 
-  - **Unsubscribing before the WebSocket opens now cancels the subscription.** Previously a subscription cancelled before the socket was open was still sent when it opened, with no unsubscribe to follow, so its frames kept arriving on the shared response channel (for example a coarse `l2Book` with `nSigFigs` overwriting a full-precision book subscribed right after it). Identical subscribe messages are also no longer queued twice, so a socket that drops before opening and reconnects sends each subscription once. See [Real-time data](/sdk/guides/real-time-data).
+  - **Unsubscribing before the WebSocket opens.** Calling an unsubscribe function before the socket has opened now removes the queued subscribe message. Previously the cancelled subscription was still sent when the socket opened, so its frames kept arriving on the shared channel (for example, a coarse `l2Book` overwriting a full-precision book subscribed right after it).
+  - **No duplicate queued subscriptions.** Identical subscribe messages are queued once, so a socket that drops before opening and reconnects sends each subscription once.
 
-  [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.2.0-beta.1...v1.2.0-beta.2)
+  [Pull request #18](https://github.com/Outcome-xyz/hip4/pull/18)
 </Update>
 
 <Update label="1.2.0-beta.1" description="September 22, 2026">
   ### Added
 
-  - **`minOrderNotional` adapter config.** `createHIP4Adapter({ minOrderNotional })` lets you raise the client-side order-notional floor above the protocol `MIN_NOTIONAL` ($1) - useful when your integration wants a stricter minimum than the exchange requires. `getMinShares(markPx, minNotional?)` gains the same optional second parameter. Additive and backward-compatible: `MIN_NOTIONAL` itself is unchanged, and omitting `minOrderNotional` keeps the existing $1 floor. The adapter constructor throws if you pass a value below `MIN_NOTIONAL`. See [Trading Adapter](/sdk/reference/trading-adapter#minordernotional).
+  - **`minOrderNotional` option.** `createHIP4Adapter({ minOrderNotional })` raises the client-side order-notional floor above the protocol `MIN_NOTIONAL` (\$1). A value below `MIN_NOTIONAL` throws when you create the adapter.
+  - **`getMinShares(markPx, minNotional?)`** takes an optional second parameter for the same purpose. `MIN_NOTIONAL` itself is unchanged.
 
-  [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.2.0-beta.0...v1.2.0-beta.1)
+  [Pull request #16](https://github.com/Outcome-xyz/hip4/pull/16)
 </Update>
 
 <Update label="1.2.0-beta.0" description="September 16, 2026">
   ### Changed
 
-  - **Minimum order notional dropped from $10 to $1.** Hyperliquid lowered the protocol-level minimum order notional for HIP-4 outcome orders. `MIN_NOTIONAL` now reflects the new $1 floor, and every check derived from it - the SDK's client-side pre-submission rejection in `placeOrder` and `getMinShares(markPx)` - follows automatically. `getMinShares` now returns roughly a tenth of its previous value at any given mark price, since it's `ceil(MIN_NOTIONAL / cheaper-side price)`.
+  - **`MIN_NOTIONAL` lowered from 10 to 1.** The Hyperliquid network upgrade lowered the minimum order notional for HIP-4 outcome orders to \$1. The SDK's client-side check follows, and `getMinShares(markPx)` now returns about a tenth of its previous value.
+  - **Release versions.** Versions now use the `X.Y.Z-beta.N` format, and each release carries a signed npm provenance attestation.
 
   [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.1.0-beta...v1.2.0-beta.0)
 </Update>

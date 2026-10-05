@@ -4,10 +4,10 @@ sidebarTitle: "Trading"
 description: "Authenticate an agent key, place limit and market orders, handle results, cancel resting orders, and understand pricing and fee rules for HIP-4 trading."
 ---
 
-Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetch the market and side you want to trade, place the order, and inspect the result. The SDK handles signing, tick alignment, and notional validation automatically-`placeOrder` never throws, so you can always branch on `result.success`.
+Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetch the market and side you want to trade, place the order, and inspect the result. The SDK handles signing, price formatting, and notional validation automatically. `placeOrder` reports validation and exchange rejections in its result instead of throwing, so you can branch on `result.success`.
 
 <Warning>
-  You must call `hip4.auth.initAuth` before placing or cancelling any orders. Attempting to trade without authentication will return `{ success: false, error: "auth not initialized" }`.
+  You must call `hip4.auth.initAuth` before placing or cancelling any orders. Without it, `placeOrder` returns `{ success: false, error: "Not authenticated. Call auth.initAuth() first." }` and `cancelOrder` throws the same message.
 </Warning>
 
 ## Place a limit order
@@ -17,11 +17,14 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     Generate or load an agent key and pass it to `initAuth`. The agent key signs orders silently on behalf of the user's wallet.
 
     ```typescript
-    import { createHIP4Adapter } from "@outcome.xyz/hip4outcome.xyz/hip4";
-    import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+    import { createHIP4Adapter } from "@outcome.xyz/hip4";
+    import { privateKeyToAccount } from "viem/accounts";
     
     const hip4 = createHIP4Adapter({ testnet: true });
     await hip4.initialize();
+    
+    // The user's main wallet address (not the agent's address)
+    const userAddress = "0xUserWalletAddress";
     
     // Load your pre-approved agent key
     const agentKey = process.env.AGENT_PRIVATE_KEY as `0x${string}`;
@@ -38,7 +41,7 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     Retrieve the market you want to trade. The `sides` array on each market object carries the pre-computed coin identifier you pass to `placeOrder`.
 
     ```typescript
-    import type { DefaultBinaryMarket } from "@outcome.xyz/hip4outcome.xyz/hip4";
+    import type { DefaultBinaryMarket } from "@outcome.xyz/hip4";
     
     const markets = await hip4.events.fetchMarkets({
       type: "defaultBinary",
@@ -53,7 +56,7 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
     Call `hip4.trading.placeOrder` with the market ID, the side coin, and your price and amount. Pass `markPx` to enable pre-submission min-shares validation.
 
     ```typescript
-    import { getMinShares } from "@outcome.xyz/hip4outcome.xyz/hip4";
+    import { getMinShares } from "@outcome.xyz/hip4";
     
     // Fetch current mid price for validation
     const priceData = await hip4.marketData.fetchPrice(String(market.outcomeId));
@@ -84,6 +87,8 @@ Trading on HIP-4 markets follows a four-step flow: initialize an agent key, fetc
       console.error("Order rejected:", result.error);
     }
     ```
+
+    When Hyperliquid rejects the whole request, `result.error` is `Exchange returned non-ok status`. From 1.3.0, `result.raw` carries Hyperliquid's own message, for example `User or API Wallet 0x... does not exist.` when the agent isn't approved.
   </Step>
 </Steps>
 
@@ -103,38 +108,33 @@ const result = await hip4.trading.placeOrder({
 if (result.success) {
   console.log(
     `Filled ${result.shares ?? "?"} shares - status: ${result.status}`,
-  market.sides[0].coin,
-  side: "buy",
-  type: "market",
-  amount: "20",
-});
-
-if (result.success) {
-  console.log(
-    `Filled ${result.shares ?? "?"} shares - status: ${result.status}`,
   );
 } else {
   console.error("Failed:", result.error);
 }
 ```
 
+The SDK doesn't run its minimum-notional check on market orders. The exchange still enforces its own minimum.
+
 ## Cancel an order
 
-Pass an array of cancel targets to `hip4.trading.cancelOrder`. Each target requires the `marketId`, `orderId`, and the `outcome` coin (used to resolve the correct asset ID).
+Pass an array of cancel targets to `hip4.trading.cancelOrder`. Each target requires the `marketId` and `orderId`. Pass the `outcome` coin too, so the SDK resolves the correct side. Without it, the SDK cancels on side 0.
 
 ```typescript
-await hip4.trading.cancelOrder([
+const res = await hip4.trading.cancelOrder([
   {
     marketId: "516",
     orderId: "12345",
-    outcome:"12345",
     outcome: "#5160",
   },
 ]);
+
+// One status per cancel: "success" or { error: string }
+console.log(res.status, res.response?.data.statuses);
 ```
 
 <Note>
-  `cancelOrder` throws on failure. Wrap it in a try/catch if you need to handle errors gracefully.
+  `cancelOrder` throws when you aren't authenticated, when you pass an empty array, or when the request itself fails (for example a network or HTTP error). Exchange-level rejections don't throw: they come back in the returned Hyperliquid response, as `status: "err"` or as an `{ error }` entry in `response.data.statuses`.
 </Note>
 
 ## Order params reference
@@ -143,35 +143,43 @@ await hip4.trading.cancelOrder([
 | --- | --- | --- | --- |
 | `marketId` | `string` | Yes | Outcome ID as a string (e.g. `"516"`) |
 | `outcome` | `string` | Yes | Side coin (e.g. `"#5160"`) |
-| `side` | `"buy" | "sell"` | Yes | Direction |
-| `type` | `"limit" | "market"` | Yes | Order type |
+| `side` | `"buy" \| "sell"` | Yes | Direction |
+| `type` | `"limit" \| "market"` | Yes | Order type |
 | `price` | `string` | Limit only | Limit price (e.g. `"0.65"`) |
 | `amount` | `string` | Yes | Number of shares |
-| `timeInForce` | `"GTC" | "GTD" | "FOK" | "FAK"` | No | Default: `"GTC"` |
+| `timeInForce` | `"GTC" \| "ALO" \| "FAK" \| "FOK" \| "GTD"` | No | Default: `"GTC"`. `"FOK"` and `"GTD"` aren't supported and throw |
 | `markPx` | `number` | No | Current mark price; enables min-shares validation |
-| `builderAddress` | `string` | No | Builder referral address (required when using `builderFee`) |
-| `builderFee` | `number` | No | Fee in tenths of basis points - `100` = 0.1% |
+| `builderAddress` | `string` | No | Builder address that receives the builder fee |
+| `builderFee` | `number` | No | Fee in tenths of basis points (`100` = 0.1%). Ignored when no builder address is set |
+| `skipMinNotionalCheck` | `boolean` | No | Skip the SDK's local min-notional and min-shares checks (for closing small positions) |
 
 ## Pricing rules
 
-**Tick-aligned prices** - limit order prices are rounded to 5 significant figures before signing. For example, `0.55001` becomes `0.55001` and `0.550012` becomes `0.55001`. You don't need to pre-format prices yourself.
+**Tick-aligned prices**: the SDK rounds limit prices to the outcome price tick before signing: at most 5 significant figures and at most 5 decimals (a tick of `0.00001`). `"0.550012"` becomes `"0.55001"` and `"0.0123456"` becomes `"0.01235"`, so a price below 0.1 is never sent with 6 or more decimals. `placeOrder` and `placeOrders` both do this. To show or store the price the SDK will send, use the exported `formatOutcomePrice`:
 
-**Min-notional** - orders below 1 USDC notional value are rejected client-side before the order is signed or sent. Notional is calculated as `price × amount`. Pass `markPx` to enable this check; omit it to skip it. Need a stricter floor than the protocol minimum? Set `minOrderNotional` on `createHIP4Adapter` - see [`minOrderNotional`](/sdk/reference/trading-adapter#minordernotional) in the Trading Adapter reference.
+```typescript
+import { formatOutcomePrice } from "@outcome.xyz/hip4";
+
+const price = formatOutcomePrice("0.0123456"); // "0.01235"
+```
+
+**Min-notional**: the SDK rejects limit orders below the \$1 minimum notional (`MIN_NOTIONAL`) before signing or sending them. To use a stricter floor, pass `minOrderNotional` to `createHIP4Adapter`. Without `markPx`, the SDK measures notional as `price × amount`. With `markPx`, it uses the cheaper side's price, `amount × max(0.01, min(markPx, 1 - markPx))`, and also checks that `amount` is at least `getMinShares(markPx)`. Set `skipMinNotionalCheck: true` to skip both checks.
 
 ## Time-in-force options
 
-| Value | Behavior |
-| --- | --- |
-| `GTC` | Good Til Cancelled - default for limit orders; rests on the book until filled or cancelled |
-| `GTD` | Good Til Date - currently behaves like GTC (expiration field accepted but not enforced by the exchange) |
-| `FOK` | Fill or Kill - mapped to IOC; may result in partial fills |
-| `FAK` | Fill and Kill - mapped to IOC |
+| Value | Hyperliquid TIF | Behavior |
+| --- | --- | --- |
+| `GTC` | `Gtc` | Good Til Cancelled. Default for limit orders; rests on the book until filled or cancelled |
+| `ALO` | `Alo` | Add Liquidity Only (post-only). Hyperliquid cancels the order instead of letting it take liquidity |
+| `FAK` | `Ioc` | Fill and Kill (immediate or cancel). Fills what it can now and cancels the rest |
+| `FOK` | None | Not supported. `placeOrder` throws an error |
+| `GTD` | None | Not supported. `placeOrder` throws an error |
 
 Market orders always use `FrontendMarket` regardless of the `timeInForce` field.
 
 ## Builder fees
 
-Builder fees let you attach a referral address and collect a fee on every order placed through your integration. Set `builderFee` in tenths of basis points (`100` = 0.1%) and provide `builderAddress`. Both fields must be present together.
+Builder fees let you attach a builder address and collect a fee on orders placed through your integration. Set `builderFee` in tenths of basis points (`100` = 0.1%, maximum `1000`) and provide `builderAddress`. A builder address without `builderFee` attaches the builder with a fee of 0. A `builderFee` is ignored when no builder address is set, either on the order or on the adapter.
 
 ```typescript
 const result = await hip4.trading.placeOrder({
@@ -180,3 +188,5 @@ const result = await hip4.trading.placeOrder({
   builderFee: 50, // 0.05%
 });
 ```
+
+You can also set `builderAddress` and `builderFee` once on `createHIP4Adapter`. Per-order values override them in `placeOrder`, while `placeOrders` always uses the adapter-level values. The user must first approve your builder's maximum fee. See [builder fee approval](/sdk/reference/auth-adapter#builder-fee-approval).

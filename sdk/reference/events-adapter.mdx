@@ -4,7 +4,7 @@ sidebarTitle: "Events"
 description: "Reference for PredictionEventAdapter: list and filter prediction events, fetch categories, and discover typed HIP-4 markets with grouping and pagination."
 ---
 
-The Events Adapter (`adapter.events`) is your entry point for discovering what is tradeable on HIP-4. It maps raw Hyperliquid outcome metadata into structured `PredictionEvent` objects and typed `HIP4Market` objects, enriching each with live midpoint prices. Results are cached for 30 seconds, so repeated calls within that window return immediately without hitting the API.
+The Events Adapter (`adapter.events`) is your entry point for discovering what is tradeable on HIP-4. It maps raw Hyperliquid outcome metadata into structured `PredictionEvent` objects, with live midpoint prices on each outcome, and into typed `HIP4Market` objects. Results are cached for 30 seconds, so repeated calls within that window return immediately without hitting the API.
 
 ---
 
@@ -50,7 +50,11 @@ const events = await adapter.events.fetchEvents({ active: true, limit: 20 });
 </ResponseField>
 
 <ResponseField name="title" type="string" required>
-  Human-readable event title.
+  Event title, as Hyperliquid sends it (e.g. `"template:priceTouch"` for a template event). Recurring events get a label such as `"BTC > $69070 (1d)"`.
+</ResponseField>
+
+<ResponseField name="parsedTitle" type="string">
+  Readable event title. Template events are rendered from Hyperliquid's template registry, as in `fetchMarkets`; other events repeat `title`. Available from 1.3.0.
 </ResponseField>
 
 <ResponseField name="description" type="string" required>
@@ -62,11 +66,14 @@ const events = await adapter.events.fetchEvents({ active: true, limit: 20 });
 </ResponseField>
 
 <ResponseField name="markets" type="PredictionMarket[]" required>
-  Markets belonging to this event. Each market corresponds to one HIP-4 outcome.
+  Markets belonging to this event. Each market corresponds to one HIP-4 outcome. A market's `question` and its `outcomes[].name` are the names Hyperliquid sends. `parsedQuestion` and `outcomes[].parsedName` carry the readable ones, available from 1.3.0.
 </ResponseField>
 
 <ResponseField name="status" type="string" required>
-  `"active"` | `"pending_resolution"` | `"resolved"` | `"cancelled"`
+  `"active"` | `"pending_resolution"` | `"resolved"` | `"cancelled"`. The HIP-4
+  adapter currently sets only `"active"` and `"resolved"`: a question event is
+  `"resolved"` once all its named outcomes have settled, and standalone outcome
+  events are always `"active"`.
 </ResponseField>
 
 <ResponseField name="endDate" type="string" required>
@@ -95,12 +102,12 @@ const events = await adapter.events.fetchEvents({
 });
 
 for (const event of events) {
-  console.log(event.id, event.title, event.status);
+  console.log(event.id, event.parsedTitle ?? event.title, event.status);
   // e.g. "o1338", "BTC > $69070 (1d)", "active"
 
   for (const market of event.markets) {
     for (const outcome of market.outcomes) {
-      console.log(outcome.name, outcome.tokenId, outcome.price);
+      console.log(outcome.parsedName ?? outcome.name, outcome.tokenId, outcome.price);
       // e.g. "Yes", "#13380", "0.62"
     }
   }
@@ -135,7 +142,7 @@ Throws `"HIP-4 event not found: {eventId}"` if the ID does not match any event.
 ```typescript
 // Fetch a question-based event
 const questionEvent = await adapter.events.fetchEvent("q5");
-console.log(questionEvent.title); // e.g. "Who will win the race?"
+console.log(questionEvent.parsedTitle); // e.g. "Who will win the race?"
 console.log(questionEvent.markets.length); // number of competing outcomes
 
 // Fetch a standalone recurring outcome event
@@ -181,6 +188,10 @@ const categories = await adapter.events.fetchCategories();
 
 Returns typed `HIP4Market` objects for all HIP-4 outcomes. Each market is classified into one of four types based on the outcome's metadata, and carries pre-computed side coin identifiers ready for order placement.
 
+`name`, `sides[].name`, and `questionName` are the names Hyperliquid sends, so a template market reads `"template:priceTouch"`. The readable names, rendered from Hyperliquid's template registry (`outcomeTemplates`), are in `parsedName`, `sides[].parsedName`, and `parsedQuestionName`: `"BTC touches 90000 by Nov 1, 00:00 UTC"`. A template question's fallback outcome has the `parsedName` `"Other"`, and markets that aren't templates repeat their names. If the registry can't be fetched, the parsed fields keep the wire names, except that the `template:` prefix is removed from plain names such as `"template:Yes"`. The parsed fields are available from 1.3.0.
+
+Refreshing the market or event cache, and `initialize()`, make one `outcomeTemplates` request, cached for 30 seconds.
+
 The return type changes depending on whether you pass `groupBy`:
 
 | `groupBy` value | Return type         |
@@ -191,12 +202,15 @@ The return type changes depending on whether you pass `groupBy`:
 
 ```typescript
 import { createHIP4Adapter } from "@outcome.xyz/hip4";
+import type { HIP4Market } from "@outcome.xyz/hip4";
 
 const adapter = createHIP4Adapter({ testnet: false });
 await adapter.initialize();
 
-const markets = await adapter.events.fetchMarkets();
+const markets = (await adapter.events.fetchMarkets()) as HIP4Market[];
 ```
+
+Because the return type depends on `groupBy`, TypeScript types the result as a union. Cast it to the shape you asked for, as in the examples below.
 
 ### Parameters
 
@@ -205,22 +219,28 @@ const markets = await adapter.events.fetchMarkets();
   `"multiOutcome"`, `"priceBucket"`.
 </ParamField>
 
-<ParamField path="params.sortBy" default="newest" type="string">
-  Sort order. `"newest"` | `"volume"` | `"expiry"`.
+<ParamField path="params.sortBy" type="string">
+  Sort order. `"newest"` puts the highest outcome ID first. `"expiry"` puts the
+  soonest event time first, with markets that have none last. `"volume"` puts
+  the highest 24h volume first and costs one extra request. When omitted, results
+  stay in catalog order (the order of Hyperliquid's `outcomeMeta`). Takes effect
+  from 1.3.0-beta.0; earlier versions ignore it.
 </ParamField>
 
 <ParamField path="params.groupBy" type="string">
   Group the results. `"type"` returns a `MarketsByType` object keyed by market
   type. `"question"` returns a `MarketsByQuestion` object keyed by question ID
-  (or `"standalone"` for unattached outcomes).
+  for `multiOutcome` markets. Every other market, including `priceBucket`
+  markets, goes under the `"standalone"` key.
 </ParamField>
 
-<ParamField path="params.limit" default="100" type="number">
-  Maximum number of markets to return (applied after filtering).
+<ParamField path="params.limit" type="number">
+  Maximum number of markets to return (applied after filtering and sorting). When omitted,
+  every matching market is returned. Ignored when `groupBy` is set.
 </ParamField>
 
 <ParamField path="params.offset" default="0" type="number">
-  Pagination offset.
+  Pagination offset. Ignored when `groupBy` is set.
 </ParamField>
 
 ### Market types
@@ -231,36 +251,45 @@ All four types extend a shared `BaseMarket` with these fields:
 | ------------- | -------------------------- | -------------------------------------------------------------------------------------------- |
 | `type`        | `MarketType`               | Discriminant: `"defaultBinary"` \| `"labelledBinary"` \| `"multiOutcome"` \| `"priceBucket"` |
 | `outcomeId`   | `number`                   | Hyperliquid outcome ID                                                                       |
-| `name`        | `string`                   | Human-readable name                                                                          |
+| `name`        | `string`                   | Name as Hyperliquid sends it (e.g. `"template:priceTouch"`)                                  |
+| `parsedName`  | `string`                   | Readable name (e.g. `"BTC touches 90000 by Nov 1, 00:00 UTC"`). Available from 1.3.0  |
 | `description` | `string`                   | Description text                                                                             |
 | `sides`       | `[MarketSide, MarketSide]` | Both tradeable sides with pre-computed identifiers                                           |
 | `raw`         | `HLOutcome`                | Raw Hyperliquid API response for escape-hatch access                                         |
 
 Each `MarketSide` exposes:
 
-| Field     | Type     | Description                                     |
-| --------- | -------- | ----------------------------------------------- |
-| `name`    | `string` | Human-readable side name (e.g. `"Yes"`, `"No"`) |
-| `coinNum` | `number` | `outcomeId * 10 + sideIndex`                    |
-| `coin`    | `string` | Coin string for API calls (e.g. `"#5160"`)      |
-| `asset`   | `number` | Order asset ID (`100_000_000 + coinNum`)        |
+| Field        | Type     | Description                                                                      |
+| ------------ | -------- | -------------------------------------------------------------------------------- |
+| `name`       | `string` | Side name as Hyperliquid sends it (e.g. `"Yes"`, `"template:Yes"`)               |
+| `parsedName` | `string` | Readable side name (`"template:Yes"` reads `"Yes"`). Available from 1.3.0 |
+| `coinNum`    | `number` | `outcomeId * 10 + sideIndex`                                                     |
+| `coin`       | `string` | Coin string for API calls (e.g. `"#5160"`)                                       |
+| `asset`      | `number` | Order asset ID (`100_000_000 + coinNum`)                                         |
+
+`multiOutcome` and `priceBucket` markets also carry `questionName`, the parent question's name as Hyperliquid sends it, and `parsedQuestionName`, its readable name (available from 1.3.0).
 
 ### Examples
 
 ```typescript
 import type {
   DefaultBinaryMarket,
+  HIP4Market,
   LabelledBinaryMarket,
+  MarketsByQuestion,
+  MarketsByType,
   MultiOutcomeMarket,
   PriceBucketMarket,
 } from "@outcome.xyz/hip4";
 
 // --- Flat list of all markets ---
-const all = await adapter.events.fetchMarkets();
+const all = (await adapter.events.fetchMarkets()) as HIP4Market[];
 
 // --- defaultBinary: recurring price binary (Yes/No sides) ---
-const recurring = await adapter.events.fetchMarkets({ type: "defaultBinary" });
-const m = recurring[0] as DefaultBinaryMarket;
+const recurring = (await adapter.events.fetchMarkets({
+  type: "defaultBinary",
+})) as DefaultBinaryMarket[];
+const m = recurring[0];
 
 console.log(m.underlying); // "BTC"
 console.log(m.targetPrice); // 69070
@@ -272,45 +301,53 @@ console.log(m.sides[1].name); // "No"
 console.log(m.raw); // original HLOutcome
 
 // --- labelledBinary: standalone with custom side labels ---
-const labelled = await adapter.events.fetchMarkets({ type: "labelledBinary" });
-const lb = labelled[0] as LabelledBinaryMarket;
-console.log(lb.sides[0].name); // e.g. "Hypurr"
-console.log(lb.sides[1].name); // e.g. "Usain Bolt"
+const labelled = (await adapter.events.fetchMarkets({
+  type: "labelledBinary",
+})) as LabelledBinaryMarket[];
+const lb = labelled[0];
+console.log(lb.sides[0].parsedName); // e.g. "Hypurr"
+console.log(lb.sides[1].parsedName); // e.g. "Usain Bolt"
 
 // --- multiOutcome: one of several outcomes under a parent question ---
-const multi = await adapter.events.fetchMarkets({ type: "multiOutcome" });
-const mo = multi[0] as MultiOutcomeMarket;
+const multi = (await adapter.events.fetchMarkets({
+  type: "multiOutcome",
+})) as MultiOutcomeMarket[];
+const mo = multi[0];
 console.log(mo.questionId); // 5
-console.log(mo.questionName); // "Who wins?"
+console.log(mo.parsedQuestionName); // "Who wins?"
 console.log(mo.isFallback); // false
 
 // --- priceBucket: multi-bucket price range markets ---
-const buckets = await adapter.events.fetchMarkets({ type: "priceBucket" });
-const pb = buckets[0] as PriceBucketMarket;
+const buckets = (await adapter.events.fetchMarkets({
+  type: "priceBucket",
+})) as PriceBucketMarket[];
+const pb = buckets[0];
 console.log(pb.underlying); // "BTC"
 console.log(pb.priceThresholds); // [81015.3, 81258.7]
 console.log(pb.lowerBound); // null (unbounded) or a price number
 console.log(pb.upperBound); // null (unbounded) or a price number
-console.log(pb.bucketIndex); // 0, 1, 2 … or -1 for the fallback
+console.log(pb.bucketIndex); // 0, 1, 2, ... or -1 for the fallback
 
 // --- Group all markets by type ---
-const byType = await adapter.events.fetchMarkets({ groupBy: "type" });
+const byType = (await adapter.events.fetchMarkets({
+  groupBy: "type",
+})) as MarketsByType;
 console.log(byType.defaultBinary?.length); // recurring market count
 console.log(byType.labelledBinary?.length); // labelled binary count
 
 // --- Group multi-outcome markets by parent question ---
-const byQuestion = await adapter.events.fetchMarkets({
+const byQuestion = (await adapter.events.fetchMarkets({
   type: "multiOutcome",
   groupBy: "question",
-});
-// byQuestion["5"] → all MultiOutcomeMarket objects under question 5
+})) as MarketsByQuestion;
+// byQuestion["5"] holds all MultiOutcomeMarket objects under question 5
 
 // --- Pagination ---
 const page2 = await adapter.events.fetchMarkets({ limit: 10, offset: 10 });
 ```
 
 <Note>
-  When using `groupBy`, `limit` and `offset` apply to the flat list before
-  grouping. The resulting grouped object may therefore contain fewer items than
-  `limit` if the outcomes span multiple groups.
+  When you use `groupBy`, `limit` and `offset` are ignored: the grouped object
+  contains every market that matches `type`. Pagination applies only to the flat
+  list.
 </Note>

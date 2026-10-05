@@ -1,0 +1,161 @@
+---
+title: "Let users trade Outcome markets: the code"
+sidebarTitle: "Code"
+description: "Connect the user's wallet, approve trading, move USDC to spot, and place and cancel orders with the SDK."
+---
+
+This page walks through [`examples/web-trading`](https://github.com/Outcome-xyz/hip4/tree/main/examples/web-trading). Read the [overview](/sdk/guides/recipes/full-trading-integration) first for who signs what. Markets load as in [Showcase markets code](/sdk/guides/recipes/showcase-markets-code), and `market` below is one `HIP4Market` from `loadEvents`.
+
+<Steps>
+  <Step title="Install">
+    ```bash
+    pnpm add @outcome.xyz/hip4@beta viem
+    ```
+  </Step>
+
+  <Step title="Connect the wallet">
+    ```typescript src/trading.ts
+    import { arbitrum, arbitrumSepolia } from "viem/chains";
+
+    // Hyperliquid signs approvals for Arbitrum, or Arbitrum Sepolia on testnet.
+    // Follow the adapter's network, and pass isMainnet to the approvals below.
+    const isMainnet = !hip4.client.testnet;
+    const signingChain = isMainnet ? arbitrum : arbitrumSepolia;
+
+    export async function connectWallet() {
+      if (!window.ethereum) throw new Error("No browser wallet found.");
+      const [account] = await window.ethereum.request({ method: "eth_requestAccounts" });
+      if (!account) throw new Error("The wallet returned no account.");
+      const wallet = createWalletClient({ account, chain: signingChain, transport: custom(window.ethereum) });
+      // Wallets only sign for the chain they're on. If the wallet doesn't know the
+      // chain yet, add it, then switch again: adding a chain doesn't always switch to it.
+      if ((await wallet.getChainId()) !== signingChain.id) {
+        try {
+          await wallet.switchChain({ id: signingChain.id });
+        } catch {
+          await wallet.addChain({ chain: signingChain });
+          await wallet.switchChain({ id: signingChain.id });
+        }
+        if ((await wallet.getChainId()) !== signingChain.id) {
+          throw new Error(`Switch your wallet to ${signingChain.name} to trade.`);
+        }
+      }
+      return wallet;
+    }
+    ```
+
+    If `hip4.client.fetchUserRole(address)` returns `{ role: "missing" }`, the wallet has no Hyperliquid account yet. The user deposits USDC on Hyperliquid first.
+  </Step>
+
+  <Step title="Enable trading">
+    ```typescript src/trading.ts
+    // Optional. The fee is in tenths of a basis point: 10 is 0.01%, 1000 is the 1% maximum.
+    export const BUILDER: { address: Address; fee: number } | null = null;
+
+    // Shown in the user's API wallets on Hyperliquid. Approving the same name again
+    // replaces the previous agent.
+    const AGENT_NAME = "OUTsdk";
+
+    /**
+     * The wallet approves your builder fee, once per user, and a new agent key.
+     * The agent key stays in memory and signs every order, with no wallet popup.
+     */
+    export async function enableTrading(wallet: WalletClient): Promise<void> {
+      const account = wallet.account!;
+      if (BUILDER && (await hip4.client.fetchMaxBuilderFee(account.address, BUILDER.address)) < BUILDER.fee) {
+        const rate = `${BUILDER.fee / 1000}%`;
+        const nonce = Date.now();
+        const typed = getBuilderFeeApprovalTypedData(BUILDER.address, rate, nonce, isMainnet);
+        const signature = await wallet.signTypedData({ account, ...typed });
+        const result = await submitBuilderFeeApproval(signature, BUILDER.address, rate, nonce, isMainnet);
+        if (!result.success) throw new Error(result.error ?? "Builder fee approval failed");
+      }
+
+      const agent = privateKeyToAccount(generatePrivateKey());
+      const nonce = Date.now();
+      const typed = getAgentApprovalTypedData(agent.address, AGENT_NAME, nonce, isMainnet);
+      const signature = await wallet.signTypedData({ account, ...typed });
+      const result = await submitAgentApproval(signature, agent.address, AGENT_NAME, nonce, isMainnet);
+      if (!result.success) throw new Error(result.error ?? "Agent approval failed");
+      await hip4.auth.initAuth(account.address, agent);
+    }
+    ```
+  </Step>
+
+  <Step title="Move USDC to spot">
+    Outcome trades use the spot balance. Check when the wallet connects, and offer the move if USDC sits in perps.
+
+    ```typescript src/trading.ts
+    /** USDC to move from perps to spot before trading. Unified accounts have one balance. */
+    export async function usdcInPerps(user: Address): Promise<string> {
+      if (!isUsdClassTransferRequired(await hip4.client.fetchUserAbstraction(user))) return "0";
+      return (await hip4.client.fetchClearinghouseState(user)).withdrawable;
+    }
+
+    export async function moveToSpot(wallet: WalletClient, amount: string): Promise<void> {
+      const account = wallet.account!;
+      hip4.wallet.setSigner({
+        address: account.address,
+        signTypedData: (args: unknown) =>
+          wallet.signTypedData({ ...(args as Parameters<WalletClient["signTypedData"]>[0]), account }),
+      });
+      const result = await hip4.wallet.transferToSpot(amount);
+      if (!result.success) throw new Error(result.error ?? "Transfer failed");
+    }
+    ```
+  </Step>
+
+  <Step title="Show the order book">
+    ```typescript
+    const book = await hip4.marketData.fetchOrderBook(String(market.outcomeId), 0);
+    ```
+
+    Pass side 0 or 1. Asks come lowest first and bids highest first, as `{ price: "0.61", size: "120.0" }`.
+  </Step>
+
+  <Step title="Place and cancel orders">
+    ```typescript
+    const result = await hip4.trading.placeOrder({
+      marketId: String(market.outcomeId),
+      outcome: market.sides[0].coin,
+      side: "buy",
+      type: "limit", // or "market"
+      price: "0.61",
+      amount: "20", // whole shares
+    });
+    if (!result.success) console.error(result.raw ?? result.error);
+
+    if (result.status === "resting") {
+      const cancel = await hip4.trading.cancelOrder([
+        { marketId: String(market.outcomeId), orderId: result.orderId!, outcome: market.sides[0].coin },
+      ]);
+      // A rejected cancel doesn't throw. Check the status and each order's result.
+      const failed = cancel.response?.data.statuses.find((s) => s !== "success");
+      if (cancel.status !== "ok" || failed) {
+        console.error(typeof failed === "object" ? failed.error : "Cancel was rejected");
+      }
+    }
+    ```
+
+    To charge your builder fee, add `builderAddress` and `builderFee` to each order, or pass them to `createHIP4Adapter`.
+  </Step>
+
+  <Step title="Show the account">
+    ```typescript
+    const [balances, orders] = await Promise.all([
+      hip4.account.fetchBalance(address),
+      hip4.account.fetchOpenOrders(address),
+    ]);
+    const usdc = balances.find((b) => b.coin === "USDC");
+    // Balances name side coins "+14730". Books, prices and orders use "#14730".
+    const positions = balances.filter((b) => b.coin.startsWith("+") && Number(b.total) > 0);
+    ```
+
+    The example app puts all of this on one page. See `src/main.ts`.
+  </Step>
+</Steps>
+
+## Next steps
+
+- [Trading](/sdk/guides/trading), for every option of `placeOrder`, `placeOrders` and `cancelOrder`
+- [Authentication](/sdk/concepts/authentication), for how the session key signs

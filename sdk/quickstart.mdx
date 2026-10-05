@@ -7,7 +7,7 @@ description: "Install the HIP-4 SDK, fetch live prediction markets, authenticate
 This guide walks you through the full integration path, meaning that by the end, you'll have a working adapter, a list of available markets, and order submissions functional and verifiable (via the Hyperliquid exchange).
 
 <Tip>
-  Use `testnet: true` while you're getting started. The Hyperliquid testnet gives you a free environment to experiment without risking real funds.
+  The SDK targets the Hyperliquid testnet by default, a free environment to experiment without risking real funds. Pass `testnet: false` to target mainnet.
 </Tip>
 
 <Steps>
@@ -15,11 +15,11 @@ This guide walks you through the full integration path, meaning that by the end,
     Add `@outcome.xyz/hip4` to your project:
 
     ```bash
-    pnpm add @outcome.xyz/hip4
+    pnpm add @outcome.xyz/hip4@beta
     ```
   </Step>
   <Step title="Create and initialize the adapter">
-    Import `createHIP4Adapter` and call `initialize()` to warm up the event cache. Every other SDK method depends on this step completing first.
+    Import `createHIP4Adapter` and call `initialize()`. It loads the market side names that prices and positions use.
 
     ```typescript
     import { createHIP4Adapter } from "@outcome.xyz/hip4";
@@ -28,7 +28,7 @@ This guide walks you through the full integration path, meaning that by the end,
     await hip4.initialize();
     ```
 
-    The adapter automatically connects to the correct Hyperliquid testnet endpoints for both REST and WebSocket traffic. Switch to `{ testnet: false }` when you're ready for mainnet.
+    The adapter connects to the Hyperliquid testnet endpoints for both REST and WebSocket traffic. `testnet: true` is also the default when you omit the option. Pass `{ testnet: false }` when you're ready for mainnet.
   </Step>
   <Step title="Fetch markets">
     Call `fetchMarkets()` to retrieve live prediction markets. The response is an array of typed market objects - each one carries pre-computed side identifiers, expiry dates, and outcome metadata.
@@ -50,7 +50,7 @@ This guide walks you through the full integration path, meaning that by the end,
     }
     ```
 
-    `defaultBinary` markets are recurring price binary markets (e.g. "Will BTC be above \$69,070 at expiry?"). You can also filter by `"labelledBinary"` or `"multiOutcome"`, or omit the `type` filter to get all markets.
+    `defaultBinary` markets are recurring price binary markets (e.g. "Will BTC be above \$69,070 at expiry?"). You can also filter by `"labelledBinary"`, `"multiOutcome"`, or `"priceBucket"`, or omit the `type` filter to get all markets.
   </Step>
   <Step title="Set up authentication">
     Trading requires an approved ephemeral agent key. The agent key signs orders on your behalf without exposing your main wallet's private key. The approval flow is a one-time operation per agent.
@@ -116,7 +116,7 @@ This guide walks you through the full integration path, meaning that by the end,
     After `initAuth()` completes, the adapter signs all subsequent orders automatically using the agent key.
   </Step>
   <Step title="Place a limit order">
-    With auth initialized, call `hip4.trading.placeOrder()` to submit a limit order. The method returns a result object - it never throws.
+    With auth initialized, call `hip4.trading.placeOrder()` to submit a limit order. The method returns a result object instead of throwing on rejections.
 
     <Warning>
       Placing orders on mainnet (`testnet: false`) uses real funds. Make sure your account has sufficient USDC balance before submitting.
@@ -140,7 +140,7 @@ This guide walks you through the full integration path, meaning that by the end,
       side: "buy",
       type: "limit",
       price: String(markPx),
-      amount: String(getMinShares(markPx)), // minimum shares for 1 USDC notional
+      amount: String(getMinShares(markPx)), // minimum shares for the $1 notional floor
       markPx, // enables pre-submission min-shares check
     });
     
@@ -153,7 +153,7 @@ This guide walks you through the full integration path, meaning that by the end,
     }
     ```
 
-    `getMinShares(markPx)` computes the minimum number of shares required to meet the 1 USDC notional floor at the given price. Passing `markPx` to `placeOrder` enables the SDK to validate this before signing and submitting.
+    `getMinShares(markPx)` computes the minimum number of shares required to meet the \$1 notional floor (`MIN_NOTIONAL`) at the given price. Passing `markPx` to `placeOrder` makes the SDK check this before signing and submitting.
   </Step>
 </Steps>
 

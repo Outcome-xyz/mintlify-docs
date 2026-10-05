@@ -65,6 +65,28 @@ HIP-4 markets fall into four types, each with its own structure and set of field
     market.sides[0].coin;  // "#900"
     ```
   </Tab>
+  <Tab title="multiOutcome">
+    Outcomes grouped under a parent question. Each named outcome is its own binary market with "Yes" / "No" sides, and every question has one fallback outcome.
+
+    <Info>
+      e.g. "Who wins the tournament?" with options "Team A", "Team B", and a fallback "Other"
+    </Info>
+
+    **Distinguishing fields:** `questionId`, `questionName`, `questionDescription`, `isFallback`
+
+    ```typescript
+    import type { MultiOutcomeMarket } from "@outcome.xyz/hip4";
+    
+    const market = markets[0] as MultiOutcomeMarket;
+    
+    market.type;           // "multiOutcome"
+    market.questionId;     // 42
+    market.questionName;   // "Who wins the tournament?"
+    market.name;           // "Team A"
+    market.isFallback;     // false
+    market.sides[0].name;  // "Yes"
+    ```
+  </Tab>
   <Tab title="priceBucket">
     Multi-bucket price range markets. Instead of a single binary threshold, the parent question defines N price thresholds that create N\+1 buckets. Each bucket is its own `priceBucket` market, representing whether the price will land in that range at expiry.
 
@@ -94,13 +116,18 @@ HIP-4 markets fall into four types, each with its own structure and set of field
   </Tab>
 </Tabs>
 
+<Note>
+  `name` and `sides[n].name` are the names Hyperliquid sends. A template market reads `"template:priceTouch"`. From 1.3.0, `parsedName` and `sides[n].parsedName` carry the names rendered from Hyperliquid's template registry, such as `"BTC touches 90000 by Nov 1, 00:00 UTC"`, and a template question's fallback outcome reads `"Other"`. See [Template market names](/sdk/guides/fetch-markets#template-market-names).
+</Note>
+
 ## Market type summary
 
 | Type | Description | Key fields |
 | --- | --- | --- |
 | `defaultBinary` | Recurring price binary (auto-generated) | `underlying`, `targetPrice`, `expiry`, `period` |
 | `labelledBinary` | Standalone binary with custom side names | Custom `sides[n].name` values |
-| `priceBucket` | Grouped under a parent question | `questionId`, `questionName`, `isFallback` |
+| `multiOutcome` | Outcome grouped under a parent question | `questionId`, `questionName`, `isFallback` |
+| `priceBucket` | Price-range bucket under a parent question | `priceThresholds`, `lowerBound`, `upperBound`, `bucketIndex` |
 
 ## Data hierarchy
 
@@ -162,6 +189,8 @@ Every `PredictionEvent` has a `status` field that reflects its current lifecycle
 | `"pending_resolution"` | Market has closed; awaiting settlement |
 | `"resolved"` | Outcome has been determined |
 | `"cancelled"` | Market was voided |
+
+The HIP-4 adapter currently sets only `"active"` and `"resolved"`. A question event becomes `"resolved"` once all its named outcomes have settled. Standalone outcome events are always `"active"`.
 
 ```typescript
 const events = await hip4.events.fetchEvents({ active: true });
