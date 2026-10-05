@@ -10,7 +10,7 @@ The Account Adapter (`adapter.account`) gives you read access to a wallet's stat
 
 ## `fetchPositions(address)`
 
-Returns a wallet's open HIP-4 positions. Positions are derived from the spot clearinghouse state - each non-zero outcome token balance becomes a `PredictionPosition`. Midpoint prices and the event list are fetched in parallel to populate `currentPrice`, `unrealizedPnl`, `eventTitle`, and `marketQuestion`.
+Returns a wallet's open HIP-4 positions. Positions are derived from the spot clearinghouse state - each non-zero outcome token balance becomes a `PredictionPosition`. Midpoint prices and the event list are fetched in parallel to populate the prices and the event and market names.
 
 ```typescript
 const positions = await adapter.account.fetchPositions("0xYourAddress");
@@ -35,8 +35,11 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="outcomeName" type="string" required>
-  Human-readable side name resolved from `sideSpecs` (e.g. `"Yes"`, `"Hypurr"`). Template markets use the name rendered from the template registry.
-  Use this for display.
+  Side name from `sideSpecs`, as Hyperliquid sends it (e.g. `"Yes"`, `"Hypurr"`, `"template:Yes"`).
+</ResponseField>
+
+<ResponseField name="parsedOutcomeName" type="string">
+  Readable side name. Template sides are rendered from Hyperliquid's template registry (`"template:Yes"` reads `"Yes"`); other sides repeat `outcomeName`. Use this for display. Available from 1.3.0-beta.1.
 </ResponseField>
 
 <ResponseField name="shares" type="string" required>
@@ -49,11 +52,19 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 </ResponseField>
 
 <ResponseField name="currentPrice" type="string" required>
-  Current midpoint price from `allMids`. `"0"` when no mid is available. Spot balances name side coins `+<coin>` while mids use `#<coin>`; the adapter maps between them. Before 1.3.0-beta.0 the lookup found nothing and this was always `"0"`.
+  Looks up the balance coin in `allMids`. Spot balances name side coins `+<coin>` while mids use `#<coin>`, so for outcome positions this is `"0"`. Use `livePrice` instead.
 </ResponseField>
 
 <ResponseField name="unrealizedPnl" type="string" required>
-  `(currentPrice − avgCost) × shares`, formatted to 6 decimal places.
+  `(currentPrice - avgCost) * shares`, formatted to 6 decimal places. Use `liveUnrealizedPnl` instead.
+</ResponseField>
+
+<ResponseField name="livePrice" type="string">
+  The side's live midpoint price from `allMids`, or `"0"` when it has none. Available from 1.3.0-beta.1.
+</ResponseField>
+
+<ResponseField name="liveUnrealizedPnl" type="string">
+  `(livePrice - avgCost) * shares`, formatted to 6 decimal places. Available from 1.3.0-beta.1.
 </ResponseField>
 
 <ResponseField name="potentialPayout" type="string" required>
@@ -70,14 +81,22 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
   Title of the event the market belongs to, from `adapter.events.fetchEvents()`.
 </ResponseField>
 
+<ResponseField name="parsedEventTitle" type="string">
+  Readable event title, from the event's `parsedTitle`. Available from 1.3.0-beta.1.
+</ResponseField>
+
 <ResponseField name="marketQuestion" type="string" required>
   Question text of the market, from the same event list.
+</ResponseField>
+
+<ResponseField name="parsedMarketQuestion" type="string">
+  Readable question text, from the market's `parsedQuestion`. Available from 1.3.0-beta.1.
 </ResponseField>
 
 <Note>
   `fetchPositions` reads the first 200 events (`fetchEvents({ limit: 200 })`).
   For a position in a market outside those events, or if the event fetch fails,
-  `eventTitle` and `marketQuestion` are empty strings. Look the market up with
+  the event and market names are empty strings. Look the market up with
   `adapter.events.fetchEvent()` in that case.
 </Note>
 
@@ -87,11 +106,11 @@ const positions = await adapter.account.fetchPositions("0xYourAddress");
 const positions = await adapter.account.fetchPositions("0xYourAddress");
 
 for (const pos of positions) {
-  console.log(`Outcome: ${pos.outcomeName} (${pos.outcome})`);
+  console.log(`Outcome: ${pos.parsedOutcomeName ?? pos.outcomeName} (${pos.outcome})`);
   console.log(`  Shares:         ${pos.shares}`);
   console.log(`  Avg cost:       ${pos.avgCost}`);
-  console.log(`  Current price:  ${pos.currentPrice}`);
-  console.log(`  Unrealized PnL: ${pos.unrealizedPnl}`);
+  console.log(`  Live price:     ${pos.livePrice}`);
+  console.log(`  Unrealized PnL: ${pos.liveUnrealizedPnl}`);
   console.log(`  Max payout:     ${pos.potentialPayout}`);
 }
 ```
@@ -270,7 +289,7 @@ const unsubscribe = adapter.account.subscribePositions(
   "0xYourAddress",
   (positions) => {
     for (const pos of positions) {
-      console.log(pos.outcomeName, pos.shares, pos.unrealizedPnl);
+      console.log(pos.parsedOutcomeName ?? pos.outcomeName, pos.shares, pos.liveUnrealizedPnl);
     }
   },
 );
