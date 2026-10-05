@@ -74,7 +74,7 @@ Every order on Hyperliquid's L1 requires a signature. Without an agent key, your
       agentAccount.address,
       "My Trading App",
       nonce,
-      false, // must match the testnet flag used above
+      false, // must match the isMainnet flag used above
     );
     
     if (!result.success) {
@@ -104,7 +104,7 @@ The SDK uses two distinct signing paths depending on the operation.
 
 ### L1 agent signing
 
-Used for: order placement, order cancellation, USDH spot buy/sell.
+Used for: order placement, modification, and cancellation, share conversions, and the wallet adapter's spot orders and `agentSetAbstraction`.
 
 The agent key signs silently without any user interaction. The SDK serializes the action using MessagePack, hashes it with keccak-256, then produces an EIP-712 signature with the `Agent` type on the Hyperliquid phantom domain (`chainId: 1337`). This happens automatically whenever you call `hip4.trading.placeOrder`, `hip4.trading.cancelOrder`, or `hip4.wallet.buyUsdh` / `hip4.wallet.sellUsdh`.
 
@@ -134,18 +134,18 @@ Any object that implements `HIP4Signer` can be passed to `hip4.auth.initAuth`. T
 ```typescript
 interface HIP4Signer {
   /** Returns the signer's Ethereum address. */
-  getAddress(): Promise<string>;
+  getAddress(): string | Promise<string>;
 
   /** Produces an EIP-712 signature for the given domain, types, and value. */
   signTypedData(
-    domain: TypedDataDomain,
-    types: Record<string, TypedDataField[]>,
+    domain: Record<string, unknown>,
+    types: Record<string, Array<{ name: string; type: string }>>,
     value: Record<string, unknown>,
   ): Promise<HLSignature | string>;
 }
 ```
 
-`HIP4Signer` is compatible with viem's `PrivateKeyAccount` (returned by `privateKeyToAccount`) and with ethers `Wallet` objects. The SDK normalizes the return value, so either an `HLSignature` object (`{ r, s, v }`) or a hex string is accepted.
+`initAuth` also accepts a viem `PrivateKeyAccount` (returned by `privateKeyToAccount`) and wraps it for you, and an ethers v6 `Wallet` matches `HIP4Signer` as is. The SDK normalizes the return value, so either an `HLSignature` object (`{ r, s, v }`) or a hex string is accepted.
 
 ## Checking auth status
 
@@ -155,14 +155,16 @@ Call `hip4.auth.getAuthStatus()` at any time to inspect the current state.
 const status = hip4.auth.getAuthStatus();
 
 // status.status is one of:
-//   "disconnected"     - no auth initialized
-//   "pending_approval" - initAuth called but not yet confirmed
-//   "ready"            - agent key is active and orders can be placed
+//   "disconnected" - no signer stored (initial state, or after clearAuth)
+//   "ready"        - initAuth stored a signer; the SDK signs orders with it
+// "pending_approval" is part of the type but initAuth moves straight to "ready".
 
 if (status.status !== "ready") {
   // prompt user to complete auth before placing orders
 }
 ```
+
+`"ready"` doesn't mean Hyperliquid has approved the agent. `initAuth` doesn't check the approval on-chain. If the agent isn't approved, the exchange rejects its orders (for example with `User or API Wallet 0x... does not exist.`).
 
 ## Clearing auth
 

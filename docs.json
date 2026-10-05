@@ -148,14 +148,31 @@
       {
         "tab": "Guides",
         "pages": [
+          {
+            "group": "Integration recipes",
+            "icon": "chef-hat",
+            "pages": [
+              "sdk/guides/recipes/embedded-markets",
+              {
+                "group": "Showcase markets",
+                "pages": [
+                  "sdk/guides/recipes/showcase-markets",
+                  "sdk/guides/recipes/showcase-markets-code"
+                ]
+              },
+              {
+                "group": "Full trading integration",
+                "pages": [
+                  "sdk/guides/recipes/full-trading-integration",
+                  "sdk/guides/recipes/full-trading-integration-code"
+                ]
+              }
+            ]
+          },
           "sdk/guides/fetch-markets",
           "sdk/guides/trading",
           "sdk/guides/conversions",
-          "sdk/guides/real-time-data",
-          {
-            "group": "Untitled Group",
-            "pages": []
-          }
+          "sdk/guides/real-time-data"
         ]
       },
       {

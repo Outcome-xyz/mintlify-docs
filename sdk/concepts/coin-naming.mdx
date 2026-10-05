@@ -4,27 +4,28 @@ sidebarTitle: "Coin naming"
 description: "The two coin formats used in HIP-4, how asset IDs are computed, the coin helper functions and sideIndex conventions."
 ---
 
-HIP-4 uses two distinct coin name formats to represent prediction market instruments. One format identifies an outcome at the AMM level and is used for price lookups. The other identifies a specific tradeable side within that outcome and is what you use when placing orders, reading order books, or querying fills. Understanding which format to use - and how the SDK's helper functions convert between them - is essential for working with market data and the trading API.
+HIP-4 uses two distinct coin name formats to represent prediction market instruments. One format names an outcome as a whole. The other identifies a specific tradeable side within that outcome and is what you use when placing orders, reading order books and prices, or querying fills. Understanding which format to use - and how the SDK's helper functions convert between them - is essential for working with market data and the trading API.
 
 ## The two coin formats
 
 | Format                    | Example          | Use case                                                |
 | ------------------------- | ---------------- | ------------------------------------------------------- |
-| `@{outcomeId}`            | `@516`           | AMM-level price lookup (allMids, spot pair name)        |
-| `#{outcomeId}{sideIndex}` | `#5160`, `#5161` | Tradeable side instrument (order books, trading, fills) |
+| `@{outcomeId}`            | `@516`           | Outcome-level name (`outcomeCoin()`); not used for prices or orders |
+| `#{outcomeId}{sideIndex}` | `#5160`, `#5161` | Tradeable side instrument (order books, prices, trading, fills) |
 
 ### Outcome coin (`@{outcomeId}`)
 
-The `@`-prefixed coin represents an outcome at the AMM level. You use this format when fetching mid-market prices via `allMids` or when referencing a spot pair name. You do **not** use it for order placement.
+The `@`-prefixed coin names an outcome as a whole. The SDK builds it with `outcomeCoin()` and parses it with `parseOutcomeCoin()`. You do **not** use it for order placement or price lookups: `allMids` keys HIP-4 prices by side coin (`#5160`), and an `@` key in `allMids` (such as `@107`) is a regular spot pair.
 
 ```typescript
-// Internal use: price lookup via allMids
-// "@516" → current AMM price for outcome 516
+outcomeCoin(516); // "@516"
 ```
 
 ### Side coin (`#{outcomeId}{sideIndex}`)
 
-The `#`-prefixed coin is the tradeable instrument for a specific side of an outcome. This is what you pass to order placement, order book queries, and what appears in fill records. The outcome ID and side index are concatenated with no separator - `#5160` means outcome 516, side 0.
+The `#`-prefixed coin is the tradeable instrument for a specific side of an outcome. You pass it to order placement and order book queries, and it keys prices in `allMids` and appears in fill records. The outcome ID and side index are concatenated with no separator: `#5160` means outcome 516, side 0.
+
+Spot balances use a third prefix. Hyperliquid's `spotClearinghouseState` reports an outcome side balance as `+5160`, so position `outcome` values use that form. `parseSideCoin()` accepts both `#` and `+`.
 
 ```typescript
 // Place an order on the "Yes" side of outcome 516
@@ -60,13 +61,13 @@ For example, outcome 516, side 0:
 100_000_000 + 516 * 10 + 0 = 100_005_160
 ```
 
-**Spot tokens (including USDC):**
+**Spot pairs** (for example USDH/USDC or HYPE/USDC):
 
 ```
-assetId = 10_000 + spotIndex
+assetId = 10_000 + spotPairIndex
 ```
 
-The two ranges don't overlap, so the format tells you what kind of token you're looking at.
+The two ranges don't overlap, so the asset ID tells you which kind of market an order targets.
 
 ## Coin helper functions
 
@@ -113,7 +114,7 @@ parseSideCoin("#90"); // { outcomeId: 9, sideIndex: 0 }
 
 ### `outcomeCoin(outcomeId)`
 
-Builds an outcome coin string for AMM-level price lookups.
+Builds the outcome-level coin string. Use side coins, not this value, for prices and orders.
 
 ```typescript
 outcomeCoin(516); // "@516"

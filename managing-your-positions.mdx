@@ -72,22 +72,12 @@ For each open position, the math behind what you see in your portfolio.
 **Average entry price**
 
 $$
-
-\text{average entry} = \frac{\text{total spent on buys}}{\text{total tokens bought}}
-$$
-
-$$
 \text{average entry} = \frac{\text{total spent on buys}}{\text{total tokens bought}}
 $$
 
 The size-weighted average across all your buys of the same outcome.
 
 **Cost basis (of current position)**
-
-$$
-
-\text{cost basis} = \text{average entry} \times \text{tokens held}
-$$
 
 $$
 \text{cost basis} = \text{average entry} \times \text{tokens held}
@@ -98,22 +88,12 @@ What you've paid for the tokens you still hold.
 **Unrealized gain or loss**
 
 $$
-
-\text{unrealized PnL} = (\text{current price} - \text{average entry}) \times \text{tokens held}
-$$
-
-$$
 \text{unrealized PnL} = (\text{current price} - \text{average entry}) \times \text{tokens held}
 $$
 
 The paper value of your position right now.
 
 **Realized gain or loss on a sale**
-
-$$
-
-\text{realized PnL} = (\text{sale price} - \text{average entry}) \times \text{tokens sold}
-$$
 
 $$
 \text{realized PnL} = (\text{sale price} - \text{average entry}) \times \text{tokens sold}
@@ -125,15 +105,6 @@ Locked in when you close part or all of a position.
 
 $$
 \text{payoff per token} = \begin{cases} 1 \text{ USDC} & \text{if your outcome resolves} \\ 0 & \text{otherwise} \end{cases}
-$$
-
-$$
-\text{payoff per token} = \begin{cases} 1 \text{ USDC} & \text{if your outcome resolves} \\ 0 & \text{otherwise} \end{cases}
-$$
-
-$$
-
-\text{total payoff} = \text{tokens held} \times \text{payoff per token}
 $$
 
 $$

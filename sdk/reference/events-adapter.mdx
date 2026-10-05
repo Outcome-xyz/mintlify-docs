@@ -4,7 +4,7 @@ sidebarTitle: "Events"
 description: "Reference for PredictionEventAdapter: list and filter prediction events, fetch categories, and discover typed HIP-4 markets with grouping and pagination."
 ---
 
-The Events Adapter (`adapter.events`) is your entry point for discovering what is tradeable on HIP-4. It maps raw Hyperliquid outcome metadata into structured `PredictionEvent` objects and typed `HIP4Market` objects, enriching each with live midpoint prices. Results are cached for 30 seconds, so repeated calls within that window return immediately without hitting the API.
+The Events Adapter (`adapter.events`) is your entry point for discovering what is tradeable on HIP-4. It maps raw Hyperliquid outcome metadata into structured `PredictionEvent` objects, with live midpoint prices on each outcome, and into typed `HIP4Market` objects. Results are cached for 30 seconds, so repeated calls within that window return immediately without hitting the API.
 
 ---
 
@@ -66,7 +66,10 @@ const events = await adapter.events.fetchEvents({ active: true, limit: 20 });
 </ResponseField>
 
 <ResponseField name="status" type="string" required>
-  `"active"` | `"pending_resolution"` | `"resolved"` | `"cancelled"`
+  `"active"` | `"pending_resolution"` | `"resolved"` | `"cancelled"`. The HIP-4
+  adapter currently sets only `"active"` and `"resolved"`: a question event is
+  `"resolved"` once all its named outcomes have settled, and standalone outcome
+  events are always `"active"`.
 </ResponseField>
 
 <ResponseField name="endDate" type="string" required>
@@ -181,6 +184,8 @@ const categories = await adapter.events.fetchCategories();
 
 Returns typed `HIP4Market` objects for all HIP-4 outcomes. Each market is classified into one of four types based on the outcome's metadata, and carries pre-computed side coin identifiers ready for order placement.
 
+From 1.2.0-beta.3, `fetchMarkets` renders the `name`, `sides[].name`, and `questionName` of template markets from Hyperliquid's template registry (`outcomeTemplates`). A market reads `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of `"template:priceTouch"`, and a template question's fallback leg is named `"Other"`. If the registry can't be fetched, the raw names are kept.
+
 The return type changes depending on whether you pass `groupBy`:
 
 | `groupBy` value | Return type         |
@@ -191,12 +196,15 @@ The return type changes depending on whether you pass `groupBy`:
 
 ```typescript
 import { createHIP4Adapter } from "@outcome.xyz/hip4";
+import type { HIP4Market } from "@outcome.xyz/hip4";
 
 const adapter = createHIP4Adapter({ testnet: false });
 await adapter.initialize();
 
-const markets = await adapter.events.fetchMarkets();
+const markets = (await adapter.events.fetchMarkets()) as HIP4Market[];
 ```
+
+Because the return type depends on `groupBy`, TypeScript types the result as a union. Cast it to the shape you asked for, as in the examples below.
 
 ### Parameters
 
@@ -205,22 +213,28 @@ const markets = await adapter.events.fetchMarkets();
   `"multiOutcome"`, `"priceBucket"`.
 </ParamField>
 
-<ParamField path="params.sortBy" default="newest" type="string">
-  Sort order. `"newest"` | `"volume"` | `"expiry"`.
+<ParamField path="params.sortBy" type="string">
+  Sort order. `"newest"` puts the highest outcome ID first. `"expiry"` puts the
+  soonest event time first, with markets that have none last. `"volume"` puts
+  the highest 24h volume first and costs one extra request. When omitted, results
+  stay in catalog order (the order of Hyperliquid's `outcomeMeta`). Takes effect
+  from 1.2.0-beta.3; earlier versions ignore it.
 </ParamField>
 
 <ParamField path="params.groupBy" type="string">
   Group the results. `"type"` returns a `MarketsByType` object keyed by market
   type. `"question"` returns a `MarketsByQuestion` object keyed by question ID
-  (or `"standalone"` for unattached outcomes).
+  for `multiOutcome` markets. Every other market, including `priceBucket`
+  markets, goes under the `"standalone"` key.
 </ParamField>
 
-<ParamField path="params.limit" default="100" type="number">
-  Maximum number of markets to return (applied after filtering).
+<ParamField path="params.limit" type="number">
+  Maximum number of markets to return (applied after filtering). When omitted,
+  every matching market is returned. Ignored when `groupBy` is set.
 </ParamField>
 
 <ParamField path="params.offset" default="0" type="number">
-  Pagination offset.
+  Pagination offset. Ignored when `groupBy` is set.
 </ParamField>
 
 ### Market types
@@ -250,17 +264,22 @@ Each `MarketSide` exposes:
 ```typescript
 import type {
   DefaultBinaryMarket,
+  HIP4Market,
   LabelledBinaryMarket,
+  MarketsByQuestion,
+  MarketsByType,
   MultiOutcomeMarket,
   PriceBucketMarket,
 } from "@outcome.xyz/hip4";
 
 // --- Flat list of all markets ---
-const all = await adapter.events.fetchMarkets();
+const all = (await adapter.events.fetchMarkets()) as HIP4Market[];
 
 // --- defaultBinary: recurring price binary (Yes/No sides) ---
-const recurring = await adapter.events.fetchMarkets({ type: "defaultBinary" });
-const m = recurring[0] as DefaultBinaryMarket;
+const recurring = (await adapter.events.fetchMarkets({
+  type: "defaultBinary",
+})) as DefaultBinaryMarket[];
+const m = recurring[0];
 
 console.log(m.underlying); // "BTC"
 console.log(m.targetPrice); // 69070
@@ -272,45 +291,53 @@ console.log(m.sides[1].name); // "No"
 console.log(m.raw); // original HLOutcome
 
 // --- labelledBinary: standalone with custom side labels ---
-const labelled = await adapter.events.fetchMarkets({ type: "labelledBinary" });
-const lb = labelled[0] as LabelledBinaryMarket;
+const labelled = (await adapter.events.fetchMarkets({
+  type: "labelledBinary",
+})) as LabelledBinaryMarket[];
+const lb = labelled[0];
 console.log(lb.sides[0].name); // e.g. "Hypurr"
 console.log(lb.sides[1].name); // e.g. "Usain Bolt"
 
 // --- multiOutcome: one of several outcomes under a parent question ---
-const multi = await adapter.events.fetchMarkets({ type: "multiOutcome" });
-const mo = multi[0] as MultiOutcomeMarket;
+const multi = (await adapter.events.fetchMarkets({
+  type: "multiOutcome",
+})) as MultiOutcomeMarket[];
+const mo = multi[0];
 console.log(mo.questionId); // 5
 console.log(mo.questionName); // "Who wins?"
 console.log(mo.isFallback); // false
 
 // --- priceBucket: multi-bucket price range markets ---
-const buckets = await adapter.events.fetchMarkets({ type: "priceBucket" });
-const pb = buckets[0] as PriceBucketMarket;
+const buckets = (await adapter.events.fetchMarkets({
+  type: "priceBucket",
+})) as PriceBucketMarket[];
+const pb = buckets[0];
 console.log(pb.underlying); // "BTC"
 console.log(pb.priceThresholds); // [81015.3, 81258.7]
 console.log(pb.lowerBound); // null (unbounded) or a price number
 console.log(pb.upperBound); // null (unbounded) or a price number
-console.log(pb.bucketIndex); // 0, 1, 2 … or -1 for the fallback
+console.log(pb.bucketIndex); // 0, 1, 2, ... or -1 for the fallback
 
 // --- Group all markets by type ---
-const byType = await adapter.events.fetchMarkets({ groupBy: "type" });
+const byType = (await adapter.events.fetchMarkets({
+  groupBy: "type",
+})) as MarketsByType;
 console.log(byType.defaultBinary?.length); // recurring market count
 console.log(byType.labelledBinary?.length); // labelled binary count
 
 // --- Group multi-outcome markets by parent question ---
-const byQuestion = await adapter.events.fetchMarkets({
+const byQuestion = (await adapter.events.fetchMarkets({
   type: "multiOutcome",
   groupBy: "question",
-});
-// byQuestion["5"] → all MultiOutcomeMarket objects under question 5
+})) as MarketsByQuestion;
+// byQuestion["5"] holds all MultiOutcomeMarket objects under question 5
 
 // --- Pagination ---
 const page2 = await adapter.events.fetchMarkets({ limit: 10, offset: 10 });
 ```
 
 <Note>
-  When using `groupBy`, `limit` and `offset` apply to the flat list before
-  grouping. The resulting grouped object may therefore contain fewer items than
-  `limit` if the outcomes span multiple groups.
+  When you use `groupBy`, `limit` and `offset` are ignored: the grouped object
+  contains every market that matches `type`. Pagination applies only to the flat
+  list.
 </Note>

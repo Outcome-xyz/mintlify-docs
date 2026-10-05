@@ -6,6 +6,52 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
+<Update label="1.2.0-beta.3" description="Upcoming">
+  ### Changed
+
+  - **Mainnet is the default network (breaking).** `createHIP4Adapter()` and `new HIP4Client()` now default to `testnet: false`. Pass `{ testnet: true }` to keep targeting the Hyperliquid testnet.
+  - **Hyperliquid's own rejection message.** When Hyperliquid rejects a whole `placeOrder` or `placeOrders` request, `result.error` now carries Hyperliquid's message (for example `User or API Wallet 0x... does not exist.`) instead of the generic `Exchange returned non-ok status`.
+  - **Limit prices snap to the HIP-4 price grid.** Before signing, limit-order prices are rounded to at most 5 significant figures and at most 5 decimals (a 0.00001 tick). Previously a price below 0.1 could keep 6 decimals, which the exchange rejects.
+  - **`fetchMarkets` honors `sortBy`.** `"newest"` puts the highest outcome ID first, `"expiry"` puts the soonest event time first (markets without one go last), and `"volume"` puts the highest 24h volume first (one extra request). When you omit `sortBy`, results stay in catalog order. See [Events](/sdk/reference/events-adapter).
+  - **Readable names for template markets.** `fetchMarkets` renders `name`, `sides[].name`, and `questionName` of template markets from Hyperliquid's template registry (`outcomeTemplates`), for example `"BTC touches 90000 by Nov 1, 00:00 UTC"` instead of `"template:priceTouch"`. A template question's fallback leg is named `"Other"`. If the registry can't be fetched, the raw names are kept.
+
+  ### Added
+
+  - **`formatOutcomePrice(price)`** formats a HIP-4 outcome price (number or string) for the order wire. `formatPrice` is unchanged. See [Utilities](/sdk/reference/utilities).
+
+  ### Fixed
+
+  - **`fetchPositions` prices.** `currentPrice` and `unrealizedPnl` now use the live mid. Spot balances name side coins `+<coin>` while mids use `#<coin>`, so the lookup always returned `"0"`.
+  - The `fetchApprovedBuilders` documentation now states that an address can approve up to 10 builders, not 3.
+</Update>
+
+<Update label="1.2.0-beta.2" description="September 29, 2026">
+  ### Fixed
+
+  - **Unsubscribing before the WebSocket opens.** Calling an unsubscribe function before the socket has opened now removes the queued subscribe message. Previously the cancelled subscription was still sent when the socket opened, so its frames kept arriving on the shared channel (for example, a coarse `l2Book` overwriting a full-precision book subscribed right after it).
+  - **No duplicate queued subscriptions.** Identical subscribe messages are queued once, so a socket that drops before opening and reconnects sends each subscription once.
+
+  [Pull request #18](https://github.com/Outcome-xyz/hip4/pull/18)
+</Update>
+
+<Update label="1.2.0-beta.1" description="September 22, 2026">
+  ### Added
+
+  - **`minOrderNotional` option.** `createHIP4Adapter({ minOrderNotional })` raises the client-side order-notional floor above the protocol `MIN_NOTIONAL` (\$1). A value below `MIN_NOTIONAL` throws when you create the adapter.
+  - **`getMinShares(markPx, minNotional?)`** takes an optional second parameter for the same purpose. `MIN_NOTIONAL` itself is unchanged.
+
+  [Pull request #16](https://github.com/Outcome-xyz/hip4/pull/16)
+</Update>
+
+<Update label="1.2.0-beta.0" description="September 16, 2026">
+  ### Changed
+
+  - **`MIN_NOTIONAL` lowered from 10 to 1.** The Hyperliquid network upgrade lowered the minimum order notional for HIP-4 outcome orders to \$1. The SDK's client-side check follows, and `getMinShares(markPx)` now returns about a tenth of its previous value.
+  - **Release versions.** Versions now use the `X.Y.Z-beta.N` format, and each release carries a signed npm provenance attestation.
+
+  [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.1.0-beta...v1.2.0-beta.0)
+</Update>
+
 <Update label="1.1.0-beta" description="September 2, 2026">
   ### Removed
 

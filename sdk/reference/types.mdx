@@ -44,7 +44,7 @@ Fields shared across all market types:
 | --- | --- | --- |
 | `type` | `MarketType` | Discriminant for narrowing the union |
 | `outcomeId` | `number` | Hyperliquid outcome ID |
-| `name` | `string` | Human-readable market name |
+| `name` | `string` | Human-readable market name. From 1.2.0-beta.3, `fetchMarkets` renders template market names from Hyperliquid's template registry |
 | `description` | `string` | Human-readable market description |
 | `sides` | `[MarketSide, MarketSide]` | Both tradeable sides with pre-computed identifiers |
 | `raw` | `HLOutcome` | Raw Hyperliquid API response, for escape-hatch access |
@@ -87,7 +87,9 @@ Outcomes grouped under a parent question, with a fallback outcome representing "
 | `type` | `"multiOutcome"` | Type discriminant |
 | `questionId` | `number` | Parent question ID |
 | `questionName` | `string` | Parent question name |
+| `questionDescription` | `string` | Parent question description |
 | `isFallback` | `boolean` | `true` if this is the fallback ("Other") outcome |
+| `rawQuestion` | `HLQuestion` | Raw parent question from the API |
 
 ### `PriceBucketMarket`
 
@@ -102,10 +104,12 @@ Multi-bucket price range markets where each outcome covers a specific price band
 | `period` | `string` | Market period (e.g. `"15m"`) |
 | `questionId` | `number` | Parent question ID |
 | `questionName` | `string` | Parent question name |
+| `questionDescription` | `string` | Parent question description (the raw `priceBucket` spec) |
 | `isFallback` | `boolean` | `true` if this is the settlement fallback outcome |
 | `bucketIndex` | `number` | Index within the question's named outcomes; `-1` for fallback |
-| `lowerBound` | `number | null` | Inclusive lower bound; `null` = unbounded below |
-| `upperBound` | `number | null` | Exclusive upper bound; `null` = unbounded above |
+| `lowerBound` | `number \| null` | Inclusive lower bound; `null` = unbounded below |
+| `upperBound` | `number \| null` | Exclusive upper bound; `null` = unbounded above |
+| `rawQuestion` | `HLQuestion` | Raw parent question from the API |
 
 ## Event types
 
@@ -120,11 +124,11 @@ Events are the top-level grouping for prediction markets.
 | `description` | `string` | Full description |
 | `category` | `string` | Category slug (`"custom"` or `"recurring"`) |
 | `markets` | `PredictionMarket[]` | Markets belonging to this event |
-| `totalVolume` | `string` | Total trading volume across all markets |
+| `totalVolume` | `string` | Total trading volume across all markets. Always `"0"` in the HIP-4 adapter |
 | `endDate` | `string` | Expiry date string; populated for recurring markets, empty otherwise |
 | `status` | `PredictionEventStatus` | Current lifecycle status |
-| `imageUrl?` | `string` | Optional cover image URL |
-| `resolutionSource?` | `string` | Optional link to resolution criteria |
+| `imageUrl?` | `string` | Optional cover image URL. Not set by the HIP-4 adapter |
+| `resolutionSource?` | `string` | Optional link to resolution criteria. Not set by the HIP-4 adapter |
 
 ### `PredictionMarket`
 
@@ -136,9 +140,9 @@ A single question within an event containing tradeable outcome tokens.
 | `eventId` | `string` | Parent event ID |
 | `question` | `string` | Market question text |
 | `outcomes` | `PredictionOutcome[]` | Tradeable sides |
-| `volume` | `string` | Trading volume |
-| `liquidity` | `string` | Current liquidity |
-| `isNegRisk?` | `boolean` | Whether the market uses negative-risk (multi-outcome) pricing |
+| `volume` | `string` | Trading volume. Always `"0"` in the HIP-4 adapter |
+| `liquidity` | `string` | Current liquidity. Always `"0"` in the HIP-4 adapter |
+| `isNegRisk?` | `boolean` | Whether the market uses negative-risk (multi-outcome) pricing. Not set by the HIP-4 adapter |
 
 ### `PredictionOutcome`
 
@@ -166,6 +170,8 @@ The SDK defines two built-in categories: `"custom"` (manually created markets) a
 type PredictionEventStatus = "active" | "pending_resolution" | "resolved" | "cancelled";
 ```
 
+The HIP-4 adapter currently sets only `"active"` and `"resolved"`.
+
 ## Trading types
 
 ### `PredictionOrderParams`
@@ -176,28 +182,28 @@ Parameters for placing an order via `hip4.trading.placeOrder`.
 | --- | --- | --- | --- |
 | `marketId` | `string` | Yes | Outcome ID string (e.g. `"516"`) |
 | `outcome` | `string` | Yes | Side coin (e.g. `"#5160"`) |
-| `side` | `"buy" | "sell"` | Yes | Trade direction |
-| `type` | `"market" | "limit"` | Yes | Order type |
-| `price` | `string` | For limit | Limit price in 0–1 range (e.g. `"0.65"`) |
+| `side` | `"buy" \| "sell"` | Yes | Trade direction |
+| `type` | `"market" \| "limit"` | Yes | Order type |
+| `price` | `string` | For limit | Limit price in the 0 to 1 range (e.g. `"0.65"`) |
 | `amount` | `string` | Yes | Number of shares as a string |
-| `timeInForce` | `"GTC" | "GTD" | "FOK" | "FAK" | "ALO"` | No | Default: `"GTC"` for limit orders |
-| `expiration` | `string` | No | GTD expiry (currently maps to GTC behavior) |
+| `timeInForce` | `"GTC" \| "GTD" \| "FOK" \| "FAK" \| "ALO"` | No | Default: `"GTC"` for limit orders. `"GTD"` and `"FOK"` aren't supported and throw |
+| `expiration` | `string` | No | Not used by the HIP-4 adapter (GTD isn't supported) |
 | `markPx` | `number` | No | Mark price; enables min-shares validation when provided |
-| `builderAddress` | `string` | No | Referral address for builder fees |
+| `builderAddress` | `string` | No | Builder address that receives builder fees |
 | `builderFee` | `number` | No | Fee in tenths of a basis point (100 = 0.1%, max 1000) |
-| `skipMinNotionalCheck` | `boolean` | No | Skip the \$10 minimum check; use for position-closing flows |
+| `skipMinNotionalCheck` | `boolean` | No | Skip the \$1 minimum (or `minOrderNotional`) and min-shares checks; use for position-closing flows |
 
 ### `PredictionOrderResult`
 
-Returned by `hip4.trading.placeOrder`. Never throws - always check `success`.
+Returned by `hip4.trading.placeOrder` and `hip4.trading.modifyOrder`. Rejections come back in this object instead of being thrown, so always check `success`.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `success` | `boolean` | Whether the order was accepted |
-| `orderId?` | `string` | Order ID for resting orders |
-| `status?` | `string` | Exchange status string (`"filled"`, `"resting"`, `"error"`) |
+| `orderId?` | `string` | Order ID for filled or resting orders |
+| `status?` | `string` | Exchange status string (`"filled"`, `"resting"`, `"error"`, `"unknown"`) |
 | `shares?` | `string` | Filled size (for filled orders) |
-| `error?` | `string` | Rejection reason (when `success` is `false`) |
+| `error?` | `string` | Rejection reason (when `success` is `false`). From 1.2.0-beta.3, a whole-request rejection carries Hyperliquid's own message |
 
 ### `PredictionBatchOrderResult`
 
@@ -229,14 +235,14 @@ An open position in a prediction market outcome, derived from spot balances.
 | `marketId` | `string` | Outcome ID |
 | `eventTitle` | `string` | Title of the parent event |
 | `marketQuestion` | `string` | Question text of the parent market |
-| `outcome` | `string` | Coin identifier (e.g. `"#90"`) |
+| `outcome` | `string` | Balance coin as Hyperliquid reports it (e.g. `"+90"`) |
 | `outcomeName` | `string` | Resolved side name (e.g. `"Hypurr"`, `"Yes"`) |
 | `shares` | `string` | Number of shares held |
 | `avgCost` | `string` | Average entry cost per share (entry notional / shares) |
 | `currentPrice` | `string` | Current mid-price |
 | `unrealizedPnl` | `string` | Unrealized profit/loss in USDC |
 | `potentialPayout` | `string` | Maximum payout if the outcome resolves in your favor |
-| `eventStatus` | `"active" | "pending_resolution" | "resolved"` | Current event lifecycle state |
+| `eventStatus` | `"active" \| "pending_resolution" \| "resolved"` | Event lifecycle state. Always `"active"` in the HIP-4 adapter |
 
 ### `PredictionActivity`
 
@@ -245,10 +251,10 @@ A historical account activity record.
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `string` | Activity record ID |
-| `type` | `"trade" | "redeem" | "deposit" | "withdrawal"` | Activity type |
+| `type` | `"trade" \| "redeem" \| "deposit" \| "withdrawal"` | Activity type. The HIP-4 adapter only returns `"trade"` |
 | `marketId?` | `string` | Outcome ID (for trade and redeem entries) |
 | `outcome?` | `string` | Side coin (for trade entries) |
-| `side?` | `"buy" | "sell"` | Trade direction (for trade entries) |
+| `side?` | `"buy" \| "sell"` | Trade direction (for trade entries) |
 | `price?` | `string` | Fill price (for trade entries) |
 | `size?` | `string` | Fill size (for trade entries) |
 | `amount?` | `string` | USDC amount (for deposit and withdrawal entries) |
@@ -260,7 +266,7 @@ The current authentication state of the trading adapter.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `status` | `"disconnected" | "pending_approval" | "ready"` | Auth lifecycle state |
+| `status` | `"disconnected" \| "pending_approval" \| "ready"` | Auth lifecycle state (`initAuth` goes straight to `"ready"`) |
 | `address?` | `string` | The user's wallet address, set after `initAuth` |
 
 ## Market data types
@@ -286,7 +292,7 @@ The current authentication state of the trading adapter.
 | Field | Type | Description |
 | --- | --- | --- |
 | `marketId` | `string` | Outcome ID |
-| `outcomes` | `Array<{ name: string; price: string; midpoint: string }>` | Current prices for both sides |
+| `outcomes` | `Array<{ name: string; price: string; midpoint: string }>` | Current prices for both sides, with side names from `sideSpecs` |
 | `timestamp` | `number` | Price snapshot timestamp in milliseconds |
 
 ### `PredictionTrade`
@@ -296,7 +302,7 @@ The current authentication state of the trading adapter.
 | `id` | `string` | Trade ID |
 | `marketId` | `string` | Outcome ID |
 | `outcome` | `string` | Side coin name |
-| `side` | `"buy" | "sell"` | Trade direction |
+| `side` | `"buy" \| "sell"` | Trade direction |
 | `price` | `string` | Fill price |
 | `size` | `string` | Fill size |
 | `timestamp` | `number` | Fill timestamp in milliseconds |

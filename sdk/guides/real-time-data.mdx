@@ -12,16 +12,10 @@ The SDK maintains a single shared WebSocket connection to Hyperliquid and multip
 
 ## Subscribe to the order book
 
-`subscribeOrderBook` delivers a Level 2 book snapshot (bids and asks) on every change.
+`subscribeOrderBook` delivers a Level 2 book snapshot (bids and asks) for side 0 of the market on every change.
 
 ```typescript
 import { createHIP4Adapter } from "@outcome.xyz/hip4";
-
-const hip4 = createHIP4Adapter({ testnet: true });
-await hip4.initialize();
-
-const unsub = hip4.marketData.subscribeOrderBook("516", (book) => {
-  console.log("Bids:", book.bids.slice(0, 3));outcome.xyz/hip4";
 
 const hip4 = createHIP4Adapter({ testnet: true });
 await hip4.initialize();
@@ -37,12 +31,12 @@ unsub();
 
 ## Subscribe to live prices
 
-`subscribePrice` delivers both sides of a market via Hyperliquid's `allMids` feed. Side names are resolved from the outcome's `sideSpecs` so you always get the real labels.
+`subscribePrice` delivers both sides of a market via Hyperliquid's `allMids` feed. Side names come from the outcome's `sideSpecs` once the adapter has loaded them, so call `initialize()` first. Until then, they read `"Side 0"` and `"Side 1"`.
 
 ```typescript
 const unsub = hip4.marketData.subscribePrice("516", (price) => {
-  const yes = price.outcomes[0]; // { name: "Yes", price: "0.6500", midpoint: "0.6500" }
-  const no = price.outcomes[1]; // { name: "No",  price: "0.3500", midpoint: "0.3500" }
+  const yes = price.outcomes[0]; // { name: "Yes", price: "0.65", midpoint: "0.65" }
+  const no = price.outcomes[1]; // { name: "No",  price: "0.35", midpoint: "0.35" }
 
   console.log(`${yes.name}: ${yes.price} | ${no.name}: ${no.price}`);
 });
@@ -53,13 +47,11 @@ unsub();
 
 ## Subscribe to the trade stream
 
-`subscribeTrades` delivers each executed trade as it happens.
+`subscribeTrades` delivers each executed trade on side 0 of the market as it happens.
 
 ```typescript
 const unsub = hip4.marketData.subscribeTrades("516", (trade) => {
   console.log(
-    `${trade.side} ${trade.size} @ ${trade.price} - ${new Date(trade.timestamp).toISOString()}`,
-  
     `${trade.side} ${trade.size} @ ${trade.price} - ${new Date(trade.timestamp).toISOString()}`,
   );
 });
@@ -99,20 +91,6 @@ const unsub = createPriceFeed(
   {
     interval: "1h", // candle interval - default: "1h"
     lookbackMs: 7 * 24 * 60 * 60 * 1000, // 7 days of history - default: 14 days
-    sideIndex: 0,outcome.xyz/hip4";
-
-const unsub = createPriceFeed(
-  hip4.marketData,
-  "516",
-  (snap) => {
-    if (!snap.ready) return; // still loading historical candles
-
-    renderChart(snap.candles); // full candle array (historical + live)
-    console.log("Current mid:", snap.currentMid);
-  },
-  {
-    interval: "1h", // candle interval - default: "1h"
-    lookbackMs: 7 * 24 * 60 * 60 * 1000, // 7 days of history - default: 14 days
     sideIndex: 0, // 0 = Yes side, 1 = No side - default: 0
   },
 );
@@ -127,7 +105,11 @@ unsub();
 | --- | --- | --- | --- |
 | `interval` | `string` | `"1h"` | Candle interval accepted by Hyperliquid (e.g. `"1m"`, `"5m"`, `"1h"`, `"1d"`) |
 | `lookbackMs` | `number` | 14 days | How far back to fetch historical candles, in milliseconds |
-| `sideIndex` | `number` | `0` | Which side to track - `0` for Yes, `1` for No |
+| `sideIndex` | `number` | `0` | Which side's live ticks to track: `0` for Yes, `1` for No |
+
+<Note>
+  Historical candles always come from side 0, because `fetchCandles` reads side 0. With `sideIndex: 1`, only the live ticks follow side 1.
+</Note>
 
 ### PriceFeedSnapshot
 
@@ -135,12 +117,12 @@ unsub();
 | --- | --- | --- |
 | `marketId` | `string` | The market ID passed to `createPriceFeed` |
 | `candles` | `PriceFeedCandle[]` | Full OHLCV array: historical candles merged with live ticks |
-| `currentMid` | `number | null` | Latest mid-price received (may be newer than the last candle close) |
+| `currentMid` | `number \| null` | Latest mid-price received (may be newer than the last candle close) |
 | `ready` | `boolean` | `false` until the initial candle fetch completes |
 
 ## Subscribe to account positions
 
-`subscribePositions` delivers updated position data for a wallet address. Because Hyperliquid does not expose spot balance updates over WebSocket, this subscription polls at 10-second intervals.
+`subscribePositions` delivers updated position data for a wallet address. It polls `fetchPositions` instead of using a WebSocket: you get the first result right away, then a new one 10 seconds after each poll finishes.
 
 ```typescript
 const unsub = hip4.account.subscribePositions(

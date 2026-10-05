@@ -1,0 +1,77 @@
+---
+title: "Showcase Outcome markets on your site"
+sidebarTitle: "Overview"
+description: "List Outcome's live markets by category on your own site and open each one on outcome.xyz in a new tab. No wallet, no keys, no backend."
+---
+
+Add a read-only markets section to your site. Visitors see Outcome's live markets and odds, filter them by category, and click through to [outcome.xyz](https://outcome.xyz) to trade.
+
+<Frame caption="Outcome's markets by category, with live odds. Every row opens outcome.xyz in a new tab.">
+  <img src="/images/recipes/showcase.webp" alt="A grid of Outcome market cards with category tabs and live probabilities" />
+</Frame>
+
+## What you need
+
+- `@outcome.xyz/hip4` 1.2.0-beta.3 or later.
+- A frontend that runs JavaScript. The example uses plain TypeScript and Vite.
+- No API key and no backend. The data comes from Hyperliquid's public API, called from the visitor's browser.
+
+## How it works
+
+1. `hip4.events.fetchMarkets()` returns every live HIP-4 market with a readable name and the coins of both sides.
+2. Keep Outcome's markets: their `raw.venue` is `"out"`. Other deployers publish on Hyperliquid too, and outcome.xyz doesn't open their markets.
+3. Show a question as one card with its options, such as a match with Arsenal, Draw and Leeds United. Show every other market as a card of its own.
+4. Price each side with `hip4.client.fetchAllMids()`. A side's mid price is its implied probability.
+5. Give each card a category, and link it to outcome.xyz.
+
+The code for each step is in [Showcase markets code](/sdk/guides/recipes/showcase-markets-code).
+
+## Categories
+
+outcome.xyz files every event under one category. Apply the same rules, in this order:
+
+| Category | Rule |
+| --- | --- |
+| Sports or Esports | The market has a `sport:` keyword. Esports titles such as `cs2`, `dota2` and `lol` go to Esports. |
+| The template's category | The market's template tags it in its description, e.g. `metadata=category:economics`. |
+| Finance | The market tracks a perp on the `xyz` dex, such as `xyz:GOLD`. |
+| Crypto | The market tracks a core Hyperliquid perp, such as `BTC`. |
+| All | Anything else. It shows under **All** only. |
+
+## Links to outcome.xyz
+
+| Link to | URL |
+| --- | --- |
+| A question | `https://outcome.xyz/markets/{category}/q{questionId}` |
+| One option of a question | `https://outcome.xyz/markets/{category}/q{questionId}?outcome={outcomeId}` |
+| Any other market | `https://outcome.xyz/markets/{category}/o{outcomeId}` |
+
+- Use `all` as the category of an uncategorized event.
+- Add `utm_source` with your brand and `utm_medium=referral`. outcome.xyz records them on a visitor's first visit.
+- Open links in a new tab with `target="_blank"` and `rel="noopener"`.
+
+## Run the example
+
+The example is in the SDK repository, in [`examples/web-showcase`](https://github.com/Outcome-xyz/hip4/tree/main/examples/web-showcase).
+
+```bash
+git clone https://github.com/Outcome-xyz/hip4.git
+cd hip4
+pnpm install && pnpm build
+cd examples/web-showcase
+pnpm install
+pnpm dev
+```
+
+Open `http://localhost:5173`. Before you ship, replace `acme-games` in `src/markets.ts` with your brand.
+
+## Before you go live
+
+- Hyperliquid allows 1,200 request weight per minute per IP. The requests run in each visitor's browser, so every visitor has their own budget. One refresh weighs 84, and the example refreshes once a minute. If you fetch on a server instead, cache the result, because all your traffic then shares one IP.
+- If a refresh fails, keep showing the last result.
+- Outcome isn't available in some jurisdictions. See [Risks](/risks#geographic-restrictions), and promote markets only where your users can trade them.
+
+## Next steps
+
+- [Showcase markets code](/sdk/guides/recipes/showcase-markets-code)
+- [Full trading integration](/sdk/guides/recipes/full-trading-integration), to let users trade on your site

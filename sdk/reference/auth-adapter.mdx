@@ -14,18 +14,18 @@ The `signer` argument you pass to `initAuth` must implement `HIP4Signer`:
 interface HIP4Signer {
   getAddress(): string | Promise<string>;
   signTypedData(
-    domain: unknown,
-    types: unknown,
-    value: unknown,
+    domain: Record<string, unknown>,
+    types: Record<string, Array<{ name: string; type: string }>>,
+    value: Record<string, unknown>,
   ): Promise<HLSignature | string>;
 }
 ```
 
-This interface is compatible with:
+`initAuth` accepts:
 
-- **viem** `PrivateKeyAccount` (from `privateKeyToAccount`)
-- **ethers** `Signer` (v5 and v6)
-- Any other EIP-712-capable signer that returns a hex string or `{ r, s, v }` object
+- **viem** `PrivateKeyAccount` (from `privateKeyToAccount`), which the SDK wraps to match `HIP4Signer`
+- **ethers** v6 `Wallet` or `Signer`, which has `getAddress()` and `signTypedData()`
+- Any other object with `getAddress()` and `signTypedData()` that returns a hex string or `{ r, s, v }` object
 
 Note that `signer` here is the **agent key**, not the user's wallet. The agent has a different address from the user's wallet by design.
 
@@ -33,7 +33,7 @@ Note that `signer` here is the **agent key**, not the user's wallet. The agent h
 
 ### `initAuth(walletAddress, signer)`
 
-Sets the adapter to `"ready"` state and stores the agent signer for use by the trading and wallet adapters.
+Stores the agent signer for use by the trading and wallet adapters and sets the state to `"ready"`. It doesn't check that Hyperliquid has approved the agent; an unapproved agent's orders are rejected by the exchange. Throws if `signer` isn't an object with a `signTypedData()` method.
 
 ```typescript
 const state = await hip4.auth.initAuth(walletAddress, agentSigner);
@@ -57,11 +57,11 @@ const status = hip4.auth.getAuthStatus();
 // { status: "disconnected" | "pending_approval" | "ready", address?: string }
 ```
 
-| Status               | Meaning                                                    |
-| -------------------- | ---------------------------------------------------------- |
-| `"disconnected"`     | No agent key configured; orders will fail                  |
-| `"pending_approval"` | Agent approval transaction submitted but not yet confirmed |
-| `"ready"`            | Agent key approved and initialized; orders are ready       |
+| Status               | Meaning                                                              |
+| -------------------- | -------------------------------------------------------------------- |
+| `"disconnected"`     | No agent signer stored (initial state, or after `clearAuth()`)       |
+| `"pending_approval"` | Part of the type, but `initAuth` moves straight to `"ready"`         |
+| `"ready"`            | `initAuth` stored an agent signer; the SDK signs orders with it      |
 
 ### `clearAuth()`
 
@@ -75,36 +75,74 @@ hip4.auth.clearAuth();
 
 These functions are exported from `@outcome.xyz/hip4` and are used to create and submit the one-time agent approval before calling `initAuth`.
 
-### `getAgentApprovalTypedData(agentAddress, name, nonce, testnet)`
+### `getAgentApprovalTypedData(agentAddress, agentName, nonce, isMainnet?)`
 
 Builds the EIP-712 typed data object for the user to sign when approving an agent.
 
-| Parameter      | Type      | Description                                         |
-| -------------- | --------- | --------------------------------------------------- |
-| `agentAddress` | `string`  | The agent keypair's public address                  |
-| `name`         | `string`  | A human-readable label shown in the approval prompt |
-| `nonce`        | `number`  | Timestamp (use `Date.now()`) to prevent replay      |
-| `testnet`      | `boolean` | `true` for testnet, `false` for mainnet             |
+| Parameter      | Type      | Description                                                    |
+| -------------- | --------- | -------------------------------------------------------------- |
+| `agentAddress` | `string`  | The agent keypair's public address                             |
+| `agentName`    | `string`  | A human-readable label shown in the approval prompt            |
+| `nonce`        | `number`  | Timestamp (use `Date.now()`) to prevent replay                 |
+| `isMainnet`    | `boolean` | `true` (default) for mainnet, `false` for testnet              |
 
-Returns the typed data object ready for `walletClient.signTypedData`.
+Returns an object with `domain`, `types`, `primaryType`, and `message`, ready for `walletClient.signTypedData`.
 
-### `submitAgentApproval(sig, agentAddress, name, nonce, testnet)`
+### `submitAgentApproval(signature, agentAddress, agentName, nonce, isMainnet?, exchangeUrl?)`
 
 Submits the signed agent approval to Hyperliquid. After this call succeeds, the agent can sign orders on the user's behalf.
 
-| Parameter      | Type      | Description                                              |
-| -------------- | --------- | -------------------------------------------------------- |
-| `sig`          | `string`  | The EIP-712 signature from the user's wallet             |
-| `agentAddress` | `string`  | The agent keypair's public address                       |
-| `name`         | `string`  | Must match the value used in `getAgentApprovalTypedData` |
-| `nonce`        | `number`  | Must match the value used in `getAgentApprovalTypedData` |
-| `testnet`      | `boolean` | `true` for testnet, `false` for mainnet                  |
+| Parameter      | Type      | Description                                                    |
+| -------------- | --------- | -------------------------------------------------------------- |
+| `signature`    | `string`  | The EIP-712 signature from the user's wallet                   |
+| `agentAddress` | `string`  | The agent keypair's public address                             |
+| `agentName`    | `string`  | Must match the value used in `getAgentApprovalTypedData`       |
+| `nonce`        | `number`  | Must match the value used in `getAgentApprovalTypedData`       |
+| `isMainnet`    | `boolean` | `true` (default) for mainnet, `false` for testnet. Must match  |
+| `exchangeUrl`  | `string`  | Optional override for the Hyperliquid `/exchange` endpoint     |
 
-Returns `Promise<{ success: boolean; error?: string }>`. Check `success` before proceeding to `initAuth`.
+Returns `Promise<{ success: boolean; error?: string }>`. It doesn't throw: network errors come back as `success: false`. Check `success` before proceeding to `initAuth`.
+
+### Builder fee approval
+
+Before orders can carry your builder fee, the user must approve a maximum fee rate for your builder address. The flow mirrors agent approval: build the typed data, have the user's wallet sign it, then submit it. Hyperliquid lets one address approve up to 10 builders.
+
+```typescript
+import {
+  getBuilderFeeApprovalTypedData,
+  submitBuilderFeeApproval,
+} from "@outcome.xyz/hip4";
+
+const nonce = Date.now();
+const maxFeeRate = "0.1%"; // a percentage string; 0.1% = builderFee 100
+
+const typedData = getBuilderFeeApprovalTypedData(
+  "0xYourBuilderAddress",
+  maxFeeRate,
+  nonce,
+  true, // isMainnet
+);
+const sig = await walletClient.signTypedData({
+  account: userAccount,
+  domain: typedData.domain,
+  types: typedData.types,
+  primaryType: typedData.primaryType,
+  message: typedData.message,
+});
+const result = await submitBuilderFeeApproval(
+  sig,
+  "0xYourBuilderAddress",
+  maxFeeRate,
+  nonce,
+  true, // isMainnet, must match
+);
+```
+
+`getBuilderFeeApprovalTypedData(builderAddress, maxFeeRate, nonce, isMainnet?)` and `submitBuilderFeeApproval(signature, builderAddress, maxFeeRate, nonce, isMainnet?, exchangeUrl?)` take the same `isMainnet` flag (default `true`) as the agent functions. `submitBuilderFeeApproval` returns `Promise<{ success: boolean; error?: string }>`. To check an existing approval, call `hip4.client.fetchMaxBuilderFee(user, builder)`, which returns the approved fee in tenths of a basis point (`0` if none).
 
 ## Full agent approval flow
 
-The following example shows the complete setup using viem. You run this flow once per user (or when rotating the agent key), then persist `agentKey` in secure storage.
+The following example shows the complete setup using viem. You run this flow once for each new agent key.
 
 ```typescript
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -124,19 +162,29 @@ const typedData = getAgentApprovalTypedData(
   agent.address,
   "My App",
   nonce,
-  false,
+  true, // isMainnet, matching testnet: false below
 );
 
 // 3. Ask the user's wallet to sign it
-const sig = await walletClient.signTypedData(typedData);
+// (userAccount: the user's viem account; walletClient: a viem WalletClient)
+const sig = await walletClient.signTypedData({
+  account: userAccount,
+  domain: typedData.domain,
+  types: typedData.types,
+  primaryType: typedData.primaryType,
+  message: typedData.message,
+});
 
 // 4. Submit the approval to Hyperliquid
-await submitAgentApproval(sig, agent.address, "My App", nonce, false);
+const approval = await submitAgentApproval(sig, agent.address, "My App", nonce, true);
+if (!approval.success) {
+  throw new Error(`Agent approval failed: ${approval.error}`);
+}
 
 // 5. Initialize the auth adapter with the agent signer
 const hip4 = createHIP4Adapter({ testnet: false });
 await hip4.initialize();
-await hip4.auth.initAuth(userAddress, agent);
+await hip4.auth.initAuth(userAccount.address, agent);
 
 // Auth is now ready - place orders without prompting the user
 console.log(hip4.auth.getAuthStatus());

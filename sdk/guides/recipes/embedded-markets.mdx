@@ -1,0 +1,74 @@
+---
+title: "Embed Outcome markets on your site"
+sidebarTitle: "Embedded markets"
+mode: "wide"
+description: "Add a live Outcome market to any page with one iframe: odds chart, live trades, and buy buttons that open outcome.xyz."
+---
+
+The card shows the market's odds chart, live trades and buy buttons, and the odds update on their own. A click on the card or a buy button opens the market on outcome.xyz in a new tab. You need no SDK, no wallet and no backend.
+
+<Frame caption="A live market in an article. Hover the chart for earlier odds, or click through to trade on outcome.xyz.">
+  <video autoPlay muted loop playsInline controls className="w-full h-auto" width="1600" height="1200" poster="/images/recipes/embed-hero-poster.webp">
+    <source src="/images/recipes/embed-hero.webm" type='video/webm; codecs="av01.0.08M.08"' />
+    <source src="/images/recipes/embed-hero.mp4" type="video/mp4" />
+  </video>
+</Frame>
+
+## Embed a market
+
+On [outcome.xyz](https://outcome.xyz), open the market and click the embed button (`</>`) under the chart. Pick the options and copy the code.
+
+<Frame>
+  <video autoPlay muted loop playsInline controls className="w-full h-auto" width="1600" height="1000" poster="/images/recipes/embed-get-code-poster.webp">
+    <source src="/images/recipes/embed-get-code.webm" type='video/webm; codecs="av01.0.08M.08"' />
+    <source src="/images/recipes/embed-get-code.mp4" type="video/mp4" />
+  </video>
+</Frame>
+
+Or write the iframe yourself:
+
+```html
+<iframe
+  title="2026/2027 English Premier League winner on Outcome"
+  src="https://outcome.xyz/embed/1473"
+  width="400"
+  height="300"
+  style="width:100%;max-width:400px;height:300px;border:0"
+></iframe>
+```
+
+`1473` is the market's outcome id. Here it's Arsenal, one option of the English Premier League winner question. For a question, any option's id works, and the card shows the whole question. The id is in the market's URL on outcome.xyz: `/o{id}` for a single market, or `?outcome={id}` on a question page.
+
+## Options
+
+<Frame>
+  <video autoPlay muted loop playsInline controls className="w-full h-auto" width="1600" height="916" poster="/images/recipes/embed-options-poster.webp">
+    <source src="/images/recipes/embed-options.webm" type='video/webm; codecs="av01.0.08M.08"' />
+    <source src="/images/recipes/embed-options.mp4" type="video/mp4" />
+  </video>
+</Frame>
+
+Every option is on by default. To turn one off, add it to the `src` URL with `0`, for example `?chart=0&buy=0`.
+
+| Parameter | Shows |
+| --- | --- |
+| `chart` | The odds chart |
+| `grid` | The chart's grid |
+| `yaxis` | The chart's price labels |
+| `activity` | Live trades over the chart |
+| `buy` | Buy buttons. A question shows its options instead. |
+
+The card fills the iframe, so the iframe's size sets its shape. The embed button offers three:
+
+| Shape | Width | Height |
+| --- | --- | --- |
+| Square | 400 | 400 |
+| Landscape | 400 | 300 |
+| Portrait | 340 | 604 |
+
+Without the chart, the card is shorter. The embed button on outcome.xyz gives you the exact size.
+
+## Before you go live
+
+- Links in the embed carry no `utm` parameters, so outcome.xyz can't attribute those visitors to you. For attributed links, see [Showcase markets](/sdk/guides/recipes/showcase-markets).
+- Outcome isn't available in some jurisdictions. See [Risks](/risks#geographic-restrictions).

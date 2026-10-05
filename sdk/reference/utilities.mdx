@@ -12,29 +12,30 @@ These functions handle Hyperliquid's magnitude-based decimal precision and minim
 
 ### `computeTickSize(price)`
 
-Returns the tick size for a given price using 5 significant figures.
+Returns the tick size for a given price using 5 significant figures. Returns `0.00001` for a price of 0 or less.
 
 ```typescript
 import { computeTickSize } from "@outcome.xyz/hip4";
 
 computeTickSize(0.55);    // 0.00001
 computeTickSize(1.25);    // 0.0001
-computeTickSize(100);     // 0.001
+computeTickSize(100);     // 0.01
 ```
 
 ### `roundToTick(price)`
 
-Rounds a price to the nearest tick boundary.
+Rounds a price to the nearest tick boundary (5 significant figures).
 
 ```typescript
 import { roundToTick } from "@outcome.xyz/hip4";
 
-roundToTick(0.55123);    // 0.5512 (rounded to nearest 0.0001)
+roundToTick(0.551234);   // 0.55123 (rounded to the nearest 0.00001)
+roundToTick(123.456);    // 123.46
 ```
 
 ### `formatPrice(price)`
 
-Formats a price as a tick-aligned string with trailing zeros stripped. Prices below 1 receive 4 decimal places.
+Formats a price as a tick-aligned string (5 significant figures) with trailing zeros stripped. It's general purpose; below 0.1 it can return 6 or more decimals, which HIP-4 outcome orders don't accept. Use `formatOutcomePrice` for outcome prices.
 
 ```typescript
 import { formatPrice } from "@outcome.xyz/hip4";
@@ -42,6 +43,19 @@ import { formatPrice } from "@outcome.xyz/hip4";
 formatPrice(0.5500);     // "0.55"
 formatPrice(0.6512);     // "0.6512"
 formatPrice(1.20);       // "1.2"
+formatPrice(0.0123456);  // "0.012346"
+```
+
+### `formatOutcomePrice(price)`
+
+Formats a HIP-4 outcome price for the order wire: at most 5 significant figures and at most 5 decimals (a tick of `0.00001`), with trailing zeros stripped. Accepts a number or a string, so user input never has to pass through a float. `placeOrder` uses it for limit prices. Available from 1.2.0-beta.3.
+
+```typescript
+import { formatOutcomePrice } from "@outcome.xyz/hip4";
+
+formatOutcomePrice("0.550012");   // "0.55001"
+formatOutcomePrice("0.0123456");  // "0.01235"
+formatOutcomePrice(0.65);         // "0.65"
 ```
 
 ### `stripZeros(str)`
@@ -55,25 +69,26 @@ stripZeros("0.65000");   // "0.65"
 stripZeros("1.0000");    // "1"
 ```
 
-### `getMinShares(markPx)`
+### `getMinShares(markPx, minNotional?)`
 
-Returns the minimum number of shares required to meet the 10 USDC minimum notional for a given mark price.
+Returns the minimum number of shares required to meet the minimum notional at a given mark price. It divides by the cheaper side's price, clamped to at least 0.01: `ceil(minNotional / max(0.01, min(markPx, 1 - markPx)))`. `minNotional` defaults to `MIN_NOTIONAL` (\$1).
 
 ```typescript
 import { getMinShares } from "@outcome.xyz/hip4";
 
-getMinShares(0.65);    // 29
-getMinShares(0.10);    // 100
+getMinShares(0.65);      // 3   (ceil(1 / 0.35))
+getMinShares(0.10);      // 10  (ceil(1 / 0.10))
+getMinShares(0.65, 5);   // 15  (ceil(5 / 0.35))
 ```
 
 ### `MIN_NOTIONAL`
 
-The minimum order size in USDC. Currently `10`. Orders below this threshold are rejected before submission.
+The minimum order notional in USD. Currently `1`. The SDK rejects limit orders below this threshold (or below the adapter's higher `minOrderNotional`, if set) before submission.
 
 ```typescript
 import { MIN_NOTIONAL } from "@outcome.xyz/hip4";
 
-console.log(MIN_NOTIONAL);   // 10
+console.log(MIN_NOTIONAL);   // 1
 ```
 
 ## Market discovery
@@ -82,7 +97,7 @@ These functions help you find and describe recurring HIP-4 markets from raw meta
 
 ### `parseDescription(desc)`
 
-Parses a pipe-delimited recurring market description string into a structured object.
+Parses a pipe-delimited recurring market description string into a structured object. Returns `null` if the string isn't a valid `priceBinary` description.
 
 ```typescript
 import { parseDescription } from "@outcome.xyz/hip4";
@@ -99,19 +114,23 @@ parseDescription(
 // }
 ```
 
-### `discoverPriceBinaryMarkets(meta)`
+### `discoverPriceBinaryMarkets(meta, mids)`
 
-Scans raw `outcomeMeta` and returns all outcomes that are recurring price binary markets.
+Scans raw `outcomeMeta` and returns the active recurring price binary markets as `PriceBinaryMarket` objects. A market is included when its description parses as `priceBinary`, its expiry is in the future, and `mids` has a price for its underlying.
 
 ```typescript
 import { discoverPriceBinaryMarkets } from "@outcome.xyz/hip4";
 
-const markets = discoverPriceBinaryMarkets(outcomeMeta);
+const outcomeMeta = await hip4.client.fetchOutcomeMeta();
+const mids = await hip4.client.fetchAllMids();
+
+const markets = discoverPriceBinaryMarkets(outcomeMeta, mids);
+// [{ outcomeId, underlying, targetPrice, expiry, period, yesCoin, noCoin, yesAsset, noAsset, ... }]
 ```
 
 ### `periodMinutes(period)`
 
-Converts a period string to its equivalent number of minutes.
+Converts a period string to its equivalent number of minutes. Unrecognized strings return `15`.
 
 ```typescript
 import { periodMinutes } from "@outcome.xyz/hip4";
@@ -123,7 +142,7 @@ periodMinutes("15m");   // 15
 
 ### `formatMarketLabel(market)`
 
-Returns a short human-readable label for a market, combining the underlying asset and period.
+Returns a short human-readable label for a `PriceBinaryMarket`, combining the underlying asset and period.
 
 ```typescript
 import { formatMarketLabel } from "@outcome.xyz/hip4";
@@ -131,23 +150,24 @@ import { formatMarketLabel } from "@outcome.xyz/hip4";
 formatMarketLabel(market);    // "BTC-1d"
 ```
 
-### `timeToExpiry(expiry)`
+### `timeToExpiry(market)`
 
-Returns a human-readable string describing how long until a market expires.
+Returns the number of minutes until a `PriceBinaryMarket` expires, as a number. Negative means the market has already expired.
 
 ```typescript
 import { timeToExpiry } from "@outcome.xyz/hip4";
 
-timeToExpiry(new Date("2026-03-11T03:00:00Z"));    // "2h 34m"
+const [market] = discoverPriceBinaryMarkets(outcomeMeta, mids);
+timeToExpiry(market);    // e.g. 154.2 (minutes)
 ```
 
 ## Market classification
 
 These functions classify raw HIP-4 outcomes into typed `HIP4Market` objects.
 
-### `classifyOutcome(outcome, questions)`
+### `classifyOutcome(outcome, questions, precomputedIndex?)`
 
-Classifies a single outcome from the raw API response. Returns a `HIP4Market` with the appropriate `type` discriminant.
+Classifies a single outcome from the raw API response. Returns a `HIP4Market` with the appropriate `type` discriminant. When you classify many outcomes in a loop, build the question index once with `buildQuestionIndex(questions)` and pass it as the third argument.
 
 ```typescript
 import { classifyOutcome } from "@outcome.xyz/hip4";
@@ -156,14 +176,14 @@ const market = classifyOutcome(outcome, questions);
 // market.type === "defaultBinary" | "labelledBinary" | "multiOutcome" | "priceBucket"
 ```
 
-### `classifyAllOutcomes(meta)`
+### `classifyAllOutcomes(outcomes, questions)`
 
 Classifies all outcomes from a full `outcomeMeta` response. Returns an array of `HIP4Market` objects.
 
 ```typescript
 import { classifyAllOutcomes } from "@outcome.xyz/hip4";
 
-const markets = classifyAllOutcomes(outcomeMeta);
+const markets = classifyAllOutcomes(outcomeMeta.outcomes, outcomeMeta.questions);
 ```
 
 ## Coin helpers
@@ -175,7 +195,7 @@ HIP-4 uses a specific coin naming convention for order book lookups and order pl
 | `sideCoin(outcomeId, sideIndex)` | `"#5160"` | Tradeable side coin string |
 | `sideAssetId(outcomeId, sideIndex)` | `100005160` | Numeric asset ID for order wire format |
 | `parseSideCoin(coin)` | `{ outcomeId: 516, sideIndex: 0 }` | Decode a side coin string |
-| `outcomeCoin(outcomeId)` | `"@516"` | Outcome-level coin for price lookups |
+| `outcomeCoin(outcomeId)` | `"@516"` | Outcome-level coin name (not used for prices or orders) |
 
 ```typescript
 import { sideCoin, sideAssetId, parseSideCoin, outcomeCoin } from "@outcome.xyz/hip4"
@@ -188,16 +208,16 @@ outcomeCoin(516);          // "@516"
 ```
 
 <Note>
-  Use `sideCoin` output (e.g. `"#5160"`) as the `outcome` field when calling `hip4.trading.placeOrder`. Use `outcomeCoin` output (e.g. `"@516"`) for price lookups via `hip4.marketData.fetchPrice`.
+  Use `sideCoin` output (e.g. `"#5160"`) as the `outcome` field when calling `hip4.trading.placeOrder`. `hip4.marketData.fetchPrice` takes the outcome ID as a string (e.g. `"516"`), not an `@` coin.
 </Note>
 
 ## Orderbook utilities
 
-These functions estimate trade cost and potential return from token amounts and prices. Prices are expressed in cents (0–100 range) internally.
+These functions estimate trade cost and potential return from token amounts and prices. You pass prices in cents (0 to 100).
 
 ### `computeEstimatedCost(tokenAmount, orderType, limitPriceCents, marketPriceCents?)`
 
-Estimates the USDC cost for a given token amount. For limit orders, uses `limitPriceCents`. For market orders, uses `marketPriceCents` when provided, otherwise returns `tokenAmount` as a fallback.
+Estimates the USDC cost for a given token amount. For limit orders, uses `limitPriceCents`. For market orders, uses `marketPriceCents` when provided, otherwise returns `tokenAmount` as a fallback (the worst case of 1 USDC per share).
 
 ```typescript
 import { computeEstimatedCost } from "@outcome.xyz/hip4";
@@ -273,23 +293,25 @@ unsub();
 
 `PriceFeedSnapshot` fields:
 
-| Field | Type | Description |  |
-| --- | --- | --- | --- |
-| `marketId` | `string` | The market ID passed to the constructor |  |
-| `candles` | `PriceFeedCandle[]` | Full candle array (historical \+ live updates) |  |
-| `currentMid` | \`number | null\` | Latest mid-price tick; may be newer than the last candle |
-| `ready` | `boolean` | `false` until the initial historical candle fetch completes |  |
+| Field | Type | Description |
+| --- | --- | --- |
+| `marketId` | `string` | The market ID passed to the constructor |
+| `candles` | `PriceFeedCandle[]` | Full candle array (historical \+ live updates) |
+| `currentMid` | `number \| null` | Latest mid-price tick; may be newer than the last candle |
+| `ready` | `boolean` | `false` until the initial historical candle fetch completes |
+
+Historical candles always come from side 0. With `sideIndex: 1`, only the live ticks follow side 1.
 
 ### `createPerpPriceFeed(client, coin, onSnapshot, options?)`
 
 Creates a live price feed for a perpetual market coin (e.g. `"BTC"`, `"ETH"`). Uses the `candle` WebSocket channel for authoritative OHLCV data and `allMids` for the initial mid-price.
 
 ```typescript
-import { HIP4Client, createPerpPriceFeed } from "@outcome.xyz/hip4";
+import { createPerpPriceFeed } from "@outcome.xyz/hip4";
 import type { PerpPriceFeedSnapshot } from "@outcome.xyz/hip4";
 
 const unsub = createPerpPriceFeed(
-  hip4Client,
+  hip4.client, // the adapter's HIP4Client
   "BTC",
   (snapshot: PerpPriceFeedSnapshot) => {
     if (!snapshot.ready) return;

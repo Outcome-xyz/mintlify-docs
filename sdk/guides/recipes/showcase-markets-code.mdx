@@ -1,0 +1,129 @@
+---
+title: "Showcase Outcome markets: the code"
+sidebarTitle: "Code"
+description: "Load Outcome's markets with the SDK, assign outcome.xyz categories, and link each market to outcome.xyz in a new tab."
+---
+
+This page walks through [`examples/web-showcase`](https://github.com/Outcome-xyz/hip4/tree/main/examples/web-showcase). Read the [overview](/sdk/guides/recipes/showcase-markets) first for how it works.
+
+<Steps>
+  <Step title="Install the SDK">
+    ```bash
+    pnpm add @outcome.xyz/hip4@beta
+    ```
+
+    ```typescript src/markets.ts
+    import {
+      createHIP4Adapter,
+      parseInstanceDescription,
+      templateIdOfOutcome,
+    } from "@outcome.xyz/hip4";
+    import type { HIP4Market, HLOutcomeTemplate } from "@outcome.xyz/hip4";
+
+    export const hip4 = createHIP4Adapter();
+    ```
+  </Step>
+
+  <Step title="Load the events">
+    `fetchMarkets` returns one `HIP4Market` per outcome. Keep Outcome's, and group a question's options into one event.
+
+    ```typescript src/markets.ts
+    /**
+     * Outcome's live events, highest 24h volume first. An event is a question's
+     * options (Arsenal, Draw, Leeds United) or a single market.
+     */
+    export async function loadEvents() {
+      const [markets, mids, templates] = await Promise.all([
+        hip4.events.fetchMarkets({ sortBy: "volume" }) as Promise<HIP4Market[]>,
+        hip4.client.fetchAllMids(),
+        hip4.client.fetchOutcomeTemplates(),
+      ]);
+      const events = new Map<string, HIP4Market[]>();
+      for (const market of markets) {
+        // Other deployers publish on Hyperliquid too. Outcome's markets have venue
+        // "out". A question's fallback outcome has no order book.
+        if (market.raw.venue !== "out" || ("isFallback" in market && market.isFallback)) continue;
+        const id = "questionId" in market ? `q${market.questionId}` : `o${market.outcomeId}`;
+        events.set(id, [...(events.get(id) ?? []), market]);
+      }
+      const options = [...events.values()].map((e) => e.sort((a, b) => a.outcomeId - b.outcomeId));
+      return { events: options, mids, templates };
+    }
+    ```
+  </Step>
+
+  <Step title="Assign categories">
+    ```typescript src/markets.ts
+    export const CATEGORIES = ["sports", "crypto", "esports", "economics", "finance"];
+
+    const ESPORTS = ["esport", "esports", "lol", "leagueoflegends", "dota", "dota2", "cs2", "csgo", "counterstrike"];
+
+    /** The category outcome.xyz lists a market under, or "all" if none. */
+    export function categoryOf(market: HIP4Market, templates: HLOutcomeTemplate[]): string {
+      const event = "rawQuestion" in market ? market.rawQuestion : market.raw;
+      const keywords = {
+        ...parseInstanceDescription(market.raw.description),
+        ...parseInstanceDescription(event.description),
+      };
+      if (keywords.sport) {
+        return ESPORTS.includes(keywords.sport.toLowerCase().replace(/[^a-z0-9]/g, "")) ? "esports" : "sports";
+      }
+      // Templates tag their category, e.g. "metadata=category:economics|...".
+      const template = templates.find((t) => t.id === templateIdOfOutcome(event.name));
+      const tag = template?.description.match(/metadata=category:(\w+)/)?.[1];
+      if (tag && CATEGORIES.includes(tag)) return tag;
+      // A market on a Hyperliquid perp: BTC is crypto, xyz:GOLD (the xyz dex) is finance.
+      const perp = keywords.perp ?? keywords.underlying;
+      if (perp?.startsWith("xyz:")) return "finance";
+      if (perp && !perp.includes(":")) return "crypto";
+      return "all";
+    }
+    ```
+  </Step>
+
+  <Step title="Link to outcome.xyz">
+    ```typescript src/markets.ts
+    /**
+     * The market's page on outcome.xyz. outcome.xyz records utm parameters on a
+     * visitor's first visit, so set utm_source to your brand.
+     */
+    export function outcomeUrl(market: HIP4Market, category: string): string {
+      const url =
+        "questionId" in market
+          ? new URL(`https://outcome.xyz/markets/${category}/q${market.questionId}?outcome=${market.outcomeId}`)
+          : new URL(`https://outcome.xyz/markets/${category}/o${market.outcomeId}`);
+      url.searchParams.set("utm_source", "acme-games");
+      url.searchParams.set("utm_medium", "referral");
+      return url.toString();
+    }
+    ```
+  </Step>
+
+  <Step title="Show the markets">
+    Render them however fits your site. A basic example:
+
+    ```typescript
+    const { events, mids, templates } = await loadEvents();
+
+    for (const options of events) {
+      const category = categoryOf(options[0], templates);
+      for (const market of options) {
+        const price = mids[market.sides[0].coin]; // "0.61" is a 61% chance
+        const link = document.createElement("a");
+        link.href = outcomeUrl(market, category);
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.textContent = `${market.name} ${Math.round(Number(price) * 100)}%`;
+        document.body.append(link);
+      }
+    }
+    ```
+
+    The example app shows each event as a card, with category tabs and a refresh every minute. See `src/main.ts`.
+  </Step>
+</Steps>
+
+## Next steps
+
+- [Full trading integration](/sdk/guides/recipes/full-trading-integration), to let users trade on your site
+- [Fetch markets](/sdk/guides/fetch-markets), for every option of `fetchMarkets`
