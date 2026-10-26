@@ -48,6 +48,7 @@ maker_fill_reward_pool = 50% × epoch_reward_amount
 taker_fill_reward_pool = 10% × epoch_reward_amount
 
 payout_method = pro rata by score
+quote_share_cap = min(100%, 2 × quoting_uptime)
 ```
 
 A complete set of mutually exclusive outcomes is one market. Complementary YES and NO books do not receive duplicate reward pools within the same epoch.
@@ -65,6 +66,8 @@ The same split applies within every epoch reward:
 | Taker-fill rewards | 10% | Trading activity and price discovery |
 
 Rewards are distributed pro rata within each pool according to eligible score.
+
+A wallet’s share of the quote pool is capped at twice its quoting uptime, up to 100%. Quoting uptime is the time the wallet quoted at least the minimum in-band depth, divided by the time the outcome was open for rewards in that period, counting at most 24 hours. The quote pool is shared by score, and no wallet receives more than its cap; any remainder is not paid.
 
 ### Price Convention
 
@@ -152,7 +155,7 @@ A to-advance market and a moneyline market may both be eligible when they ask di
 
 A scheduled-decision market covers a defined external announcement. All published decision outcomes together form one market.
 
-Every reward epoch, including the first, uses probability-weighted outcome allocations. For the first epoch, the probability weight is derived from eligible periods with sufficient liquidity conditions. For each later epoch, the probability weight is based on the previous epoch's valid mean Hyperliquid midpoint across eligible periods with sufficient liquidity conditions.
+Every reward epoch, including the first, uses probability-weighted outcome allocations. For the first epoch, the probability weight is derived from eligible periods with sufficient liquidity conditions. For each later epoch, the probability weight is based on the previous epoch’s valid mean Hyperliquid midpoint across eligible periods with sufficient liquidity conditions. Outcomes with a probability weight below 5% receive 0, and their share goes to the other outcomes.
 
 ```text
 eligible_outcome_count = number of eligible outcomes
@@ -240,7 +243,7 @@ Published outcome allocations apply across eligible ranges. A long-dated multi-r
 
 A published sequence of short-duration rolling markets is treated as one rolling market family for reward purposes. Each family receives one fixed epoch reward for each published 24-hour incentive window; individual short-duration instances do not receive separate reward pools. Each instance still calculates its own settlement-band curve from its deployment time to its published expected settlement time.
 
-Quote, maker-fill, and taker-fill scores from every eligible instance in the family are aggregated across the 24-hour window. Each of the family's three reward pools is then distributed pro rata using the corresponding aggregated score.
+Quote, maker-fill, and taker-fill scores from every eligible instance in the family are aggregated across the 24-hour window. Each of the family’s three reward pools is then distributed pro rata using the corresponding aggregated score. For the quote cap, a wallet’s quoting time is added up across the family’s instances and divided by the total time those instances were open for rewards, counting at most 24 hours.
 
 ## Illustrative 24-Hour Epoch Budgets
 
@@ -701,7 +704,7 @@ The payout asset, payout timing, and eligible attribution method are published w
 | Distance multiplier | `5×` at mid, falling quadratically to `0×` at the dynamic logit cutoff |
 | Minimum depth | $50 raw in-band bid-plus-ask notional |
 | Two-sided multiplier | `1×` to `3×` |
-| Payout | Pro rata within each reward pool |
+| Payout | Pro rata within each reward pool; quote share capped at 2 × quoting uptime |
 
 <Info>
 **Who is eligible for Outcome's $1,000,000 in liquidity rewards?**
