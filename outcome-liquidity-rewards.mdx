@@ -25,6 +25,7 @@ Eligible markets are grouped by the type of question each market answers.
 | --- | --- | --- |
 | Moneyline / 1X2 | Participant A wins / Participant B wins; or Participant A wins / draw / Participant B wins | Published mutually exclusive outcomes share each epoch reward equally. |
 | To advance / winner | YES = Participant A / NO = Participant B | One YES/NO order book represents the full market and receives one epoch reward pool. |
+| Competition winner | Which participant wins the competition? | Each participant is an outcome. Probability-weighted allocations apply by reward epoch. |
 | Scheduled decision | Which published decision outcome occurs? | The complete published outcome set forms one market. Long-dated markets may use probability-weighted allocations by reward epoch. |
 | Binary price threshold | Will an underlying finish above a published threshold? | YES and NO form one probability surface and receive one epoch reward, not two. |
 | Multi-range price | Which published price range contains the settlement price? | The complete set of ranges forms one market. Published allocations apply across eligible ranges by reward epoch. |
@@ -67,7 +68,34 @@ The same split applies within every epoch reward:
 
 Rewards are distributed pro rata within each pool according to eligible score.
 
-A wallet’s share of the quote pool is capped at twice its quoting uptime, up to 100%. Quoting uptime is the time the wallet quoted at least the minimum in-band depth, divided by the time the outcome was open for rewards in that period, counting at most 24 hours. The quote pool is shared by score, and no wallet receives more than its cap; any remainder is not paid.
+A wallet's share of the quote pool is capped at twice its quoting uptime, up to 100%. Quoting uptime is the time the wallet quoted at least the minimum in-band depth, divided by the time the outcome was open for rewards in that period, counting at most 24 hours. No wallet receives more than its cap. Any amount above a wallet's cap is shared by score among wallets still under their cap. Any amount that no wallet can take is not paid.
+
+```text
+quoting_uptime =
+  time wallet quoted >= $50 raw in-band notional
+  ÷ min(24 hours, time outcome was open for rewards in the period)
+
+quote_share_cap = min(100%, 2 × quoting_uptime)
+
+score_share =
+  maker_outcome_quote_score
+  ÷ total_maker_outcome_quote_score
+
+# capped wallet = wallet whose final_quote_share would be above quote_share_cap
+# start from the share by score; repeat until no uncapped wallet is above its cap
+
+if capped wallet:
+  final_quote_share = quote_share_cap
+else:
+  final_quote_share =
+    (100% − sum(quote_share_cap across capped wallets))
+    × score_share ÷ sum(score_share across uncapped wallets)
+
+# if every wallet is capped, the rest is not paid
+
+maker_outcome_quote_reward =
+  outcome_quote_reward_pool × final_quote_share
+```
 
 ### Price Convention
 
@@ -151,11 +179,14 @@ outcome_taker_fill_reward_pool =
 
 A to-advance market and a moneyline market may both be eligible when they ask different questions and have separate published settlement rules. Each is treated as its own complete market.
 
-### Scheduled Decision
+### Long-Dated Multi-Outcome Markets
 
-A scheduled-decision market covers a defined external announcement. All published decision outcomes together form one market.
+These markets have several published outcomes, and exactly one occurs. All outcomes together form one market:
 
-Every reward epoch, including the first, uses probability-weighted outcome allocations. For the first epoch, the probability weight is derived from eligible periods with sufficient liquidity conditions. For each later epoch, the probability weight is based on the previous epoch’s valid mean Hyperliquid midpoint across eligible periods with sufficient liquidity conditions. Outcomes with a probability weight below 5% receive 0, and their share goes to the other outcomes.
+- Scheduled decision: which outcome of a defined external announcement occurs.
+- Competition winner: which participant wins a competition.
+
+Every reward epoch, including the first, uses probability-weighted outcome allocations. For the first epoch, the probability weight is derived from eligible periods with sufficient liquidity conditions. For each later epoch, the probability weight is based on the previous epoch's valid mean Hyperliquid midpoint across eligible periods with sufficient liquidity conditions. Outcomes with a probability weight below 5% receive 0, and their share goes to the other outcomes.
 
 ```text
 eligible_outcome_count = number of eligible outcomes
@@ -173,21 +204,20 @@ else:
         valid mean hyperliquid_mid for the outcome
         during the previous reward epoch, using eligible periods with sufficient liquidity conditions
 
-if sufficient probability weights are available:
-    probability weights are normalized across eligible outcomes:
+cutoff = 5%
+
+remaining_outcomes =
+    eligible outcomes with probability_weight >= cutoff
+
+if sufficient probability weights are available for remaining_outcomes:
+    outcomes with probability_weight < cutoff:
+        outcome_allocation_weight = 0
 
     normalization_total =
-        sum(probability_weight across eligible outcomes)
-
-    normalized_probability_weight =
-        probability_weight ÷ normalization_total
-
-    floor_pool_share = published parameter or 0
+        sum(probability_weight across remaining_outcomes)
 
     outcome_allocation_weight =
-        floor_pool_share × equal_outcome_weight
-        + (1 − floor_pool_share)
-          × normalized_probability_weight
+        probability_weight ÷ normalization_total
 else:
     outcome_allocation_weight = equal_outcome_weight
 
@@ -596,10 +626,9 @@ calculated_quote_score =
 maker_outcome_quote_score =
     sum(calculated_quote_score across eligible block-duration intervals)
 
-maker_outcome_quote_reward =
-    outcome_quote_reward_pool
-    × maker_outcome_quote_score
-    ÷ total_maker_outcome_quote_score
+maker_outcome_quote_reward = outcome_quote_reward_pool × final_quote_share
+
+# final_quote_share = score share after the quoting uptime cap (see Reward Split)
 
 maker_quote_reward =
     sum(maker_outcome_quote_reward across markets and scored outcomes)
