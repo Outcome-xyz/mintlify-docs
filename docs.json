@@ -214,5 +214,16 @@
       "mcp",
       "add-mcp"
     ]
-  }
+  },
+  "redirects": [
+    { "source": "/sdk/guides/recipes/showcase-markets", "destination": "/guides/showcase-markets" },
+    { "source": "/sdk/guides/recipes/showcase-markets-code", "destination": "/guides/showcase-markets-code" },
+    { "source": "/sdk/guides/recipes/embedded-markets", "destination": "/guides/embedded-markets" },
+    { "source": "/sdk/guides/recipes/full-trading-integration", "destination": "/guides/full-trading-integration" },
+    { "source": "/sdk/guides/recipes/full-trading-integration-code", "destination": "/guides/full-trading-integration-code" },
+    { "source": "/sdk/guides/fetch-markets", "destination": "/guides/fetch-markets" },
+    { "source": "/sdk/guides/trading", "destination": "/guides/trading" },
+    { "source": "/sdk/guides/conversions", "destination": "/guides/conversions" },
+    { "source": "/sdk/guides/real-time-data", "destination": "/guides/real-time-data" }
+  ]
 }
