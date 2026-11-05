@@ -30,6 +30,7 @@ function extractPages(pages, group) {
 const PAGES = [];
 for (const tab of docsJson.navigation.tabs) {
   if (tab.href) continue;
+  if (tab.tab !== 'Documentation') continue;
   const pages = tab.pages ?? tab.groups?.flatMap(g => extractPages(g.pages, g.group)) ?? [];
   PAGES.push(...extractPages(pages, tab.tab));
 }
