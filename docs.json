@@ -91,7 +91,7 @@
       },
       {
         "tab": "SDK Reference",
-        "groups": [
+        "pages": [
           {
             "group": "Get Started",
             "icon": "rocket",
@@ -150,30 +150,26 @@
         "tab": "Guides",
         "pages": [
           {
-            "group": "Integration recipes",
-            "icon": "chef-hat",
+            "group": "Markets integration",
+            "icon": "search",
             "pages": [
-              "sdk/guides/recipes/embedded-markets",
-              {
-                "group": "Showcase markets",
-                "pages": [
-                  "sdk/guides/recipes/showcase-markets",
-                  "sdk/guides/recipes/showcase-markets-code"
-                ]
-              },
-              {
-                "group": "Full trading integration",
-                "pages": [
-                  "sdk/guides/recipes/full-trading-integration",
-                  "sdk/guides/recipes/full-trading-integration-code"
-                ]
-              }
+              "guides/showcase-markets",
+              "guides/showcase-markets-code",
+              "guides/fetch-markets",
+              "guides/embedded-markets"
             ]
           },
-          "sdk/guides/fetch-markets",
-          "sdk/guides/trading",
-          "sdk/guides/conversions",
-          "sdk/guides/real-time-data"
+          {
+            "group": "Full trading integration",
+            "icon": "arrow-left-right",
+            "pages": [
+              "guides/full-trading-integration",
+              "guides/full-trading-integration-code",
+              "guides/trading",
+              "guides/conversions",
+              "guides/real-time-data"
+            ]
+          }
         ]
       },
       {

@@ -387,7 +387,7 @@ if (cancels.length > 0) {
 
 ## Token conversions
 
-Four protocol-level share-conversion primitives that move value between USDC and outcome tokens without touching the orderbook. They settle directly against your spot balances at the bundle-equivalence mint price - no spread paid, no slippage, no liquidity required. See [Splitting and merging](/outcome-tokens-and-pricing#splitting-and-merging) for the concept, and the [Token conversions guide](/sdk/guides/conversions) for end-to-end code.
+Four protocol-level share-conversion primitives that move value between USDC and outcome tokens without touching the orderbook. They settle directly against your spot balances at the bundle-equivalence mint price - no spread paid, no slippage, no liquidity required. See [Splitting and merging](/outcome-tokens-and-pricing#splitting-and-merging) for the concept, and the [Token conversions guide](/guides/conversions) for end-to-end code.
 
 All four methods use the same `userOutcome` action envelope, sign via L1 agent signing, and return a `WalletActionResult`. None of them throw.
 

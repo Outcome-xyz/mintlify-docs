@@ -26,9 +26,9 @@
           {
             "group": "Guides",
             "pages": [
-              "sdk/guides/fetch-markets",
-              "sdk/guides/trading",
-              "sdk/guides/real-time-data"
+              "guides/fetch-markets",
+              "guides/trading",
+              "guides/real-time-data"
             ]
           },
           {
