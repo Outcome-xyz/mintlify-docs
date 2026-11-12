@@ -19,7 +19,7 @@ An order that rests stays open on the book at its specified price. Other traders
 - You cancel it.
 - The market reaches its resolution time, at which point any open orders are cancelled automatically.
 
-There's no time limit on how long a resting order stays open. If you place a limit order at 30 cents and the market trades at 50 cents for the next 12 hours, your order is still sitting there at 30 cents.
+With the default time in force, GTC, there's no time limit on how long a resting order stays open. (Other settings change this. See [Order types](/order-types#time-in-force).) If you place a limit order at 30 cents and the market trades at 50 cents for the next 12 hours, your order is still sitting there at 30 cents.
 
 ### Matching and filling
 
@@ -32,6 +32,8 @@ Fills happen at the maker's price, not the taker's. If you have a limit buy at 4
 If your order is larger than the volume available at your price, it can partially fill. The portion that has a matching counterparty fills immediately. The rest continues to rest on the book.
 
 A limit buy of 1,000 tokens at 40 cents with only 600 tokens available to sell at 40 cents fills 600 immediately. The remaining 400 stays on the book at 40 cents, waiting for more sellers.
+
+The trading panel doesn't show partial fills. To see what has filled and what is still resting, check **History** and **Open Orders** on the market page or your profile.
 
 Market orders can also partially fill if the book runs out of liquidity before your full size is satisfied. In that case, the unfilled portion is cancelled, since market orders don't rest on the book.
 
@@ -46,5 +48,9 @@ Cancelling has no fee and is generally instant. However, if a fill arrives at th
 When a market order walks through multiple price levels of the book, the average price you pay can differ significantly from the best price you saw before submitting. This is **slippage**.
 
 Slippage is most pronounced in thin markets or when submitting a large order. For example, a market buy of 1,000 tokens with 100 at 40 cents, 200 at 41 cents, and 700 at 43 cents results in an average fill price of around 42.3 cents. The best price on screen (40 cents) was only the starting point.
+
+You control how far a market order can walk with the **slippage allowance** (the default is 8%, and you can set 0.01% to 100%). The order fills only within that allowance of the best price. Any part that would fill beyond it is cancelled instead of filling at a worse price.
+
+The trading panel warns you about high slippage next to **Est. Payout**. The warning appears only when both your slippage setting and the order's estimated slippage are 20% or more, and only for market buys.
 
 To avoid slippage, use a limit order with a price you're willing to accept as your worst-case fill. See [Order types](/order-types) for the difference between limit and market orders.

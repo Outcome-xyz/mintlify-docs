@@ -16,10 +16,12 @@ Each share pays \$1 if its side wins, so every share traded adds $1 to volume. T
 How it adds up:
 
 ```text
-Outcome volume = Yes volume + No volume
+Outcome volume = shares traded, counted once per trade
 
 Event volume = the sum of all its outcomes. For example, a "Champions League winner" event shows the combined volume of every team.
 ```
+
+Every trade moves a Yes share and a No share together, so adding both sides would count the same trade twice.
 
 Where you see it:
 
