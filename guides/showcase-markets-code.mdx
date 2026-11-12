@@ -74,9 +74,7 @@ This page walks through [`examples/web-showcase`](https://github.com/Outcome-xyz
       // Templates tag their category, e.g. "metadata=category:economics|...".
       const template = templates.find((t) => t.id === templateIdOfOutcome(event.name));
       const tag = template?.description.match(/metadata=category:(\w+)/)?.[1];
-      // outcome.xyz renamed its Finance category to TradFi.
-      const category = tag === "finance" ? "tradfi" : tag;
-      if (category && CATEGORIES.includes(category)) return category;
+      if (tag && CATEGORIES.includes(tag)) return tag;
       // A market on a Hyperliquid perp: BTC is crypto, xyz:GOLD (the xyz dex) is tradfi.
       const perp = keywords.perp ?? keywords.underlying;
       if (perp?.startsWith("xyz:")) return "tradfi";
