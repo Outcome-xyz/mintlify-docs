@@ -36,7 +36,7 @@ outcome.xyz files every event under one category. Apply the same rules, in this 
 | --- | --- |
 | Sports or Esports | The market has a `sport:` keyword. Esports titles such as `cs2`, `dota2` and `lol` go to Esports. |
 | The template's category | The market's template tags it in its description, e.g. `metadata=category:economics`. |
-| Finance | The market tracks a perp on the `xyz` dex, such as `xyz:GOLD`. |
+| TradFi | The market tracks a perp on the `xyz` dex, such as `xyz:GOLD`. outcome.xyz used to call this category Finance. |
 | Crypto | The market tracks a core Hyperliquid perp, such as `BTC`. |
 | All | Anything else. It shows under **All** only. |
 
@@ -49,6 +49,8 @@ outcome.xyz files every event under one category. Apply the same rules, in this 
 | Any other market | `https://outcome.xyz/markets/{category}/o{outcomeId}` |
 
 - Use `all` as the category of an uncategorized event.
+- Use `tradfi` for the TradFi category. The old `finance` category page no longer exists: `/markets/finance` returns a 404.
+- Trending is a view of popular markets on outcome.xyz, not a category. Don't use it in a link.
 - Add `utm_source` with your brand and `utm_medium=referral`. outcome.xyz records them on a visitor's first visit.
 - Open links in a new tab with `target="_blank"` and `rel="noopener"`.
 
