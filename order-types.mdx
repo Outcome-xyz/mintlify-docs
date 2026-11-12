@@ -23,7 +23,7 @@ The tradeoff is fill uncertainty. If the market moves away from your price, your
 
 A market order takes whatever price is currently available, starting at the best price and walking through deeper levels of the book if needed.
 
-You set how far it may walk with a **slippage allowance**. The default is 8%, and you can set anything from 0.01% to 100%. The order goes in at the best price plus your allowance and fills what it can within that limit. Any part that can't fill within the allowance is cancelled, because market orders don't rest on the book.
+You set how far it may walk with a **slippage allowance**. The default is 8%, and you can set anything from 0.01% to 100%. For a buy, the order can pay up to your allowance above the best ask. For a sell, it can sell down to your allowance below the best bid. It fills what it can within that limit. Any part that can't fill within the allowance is cancelled, because market orders don't rest on the book.
 
 A market buy of 100 shares with a best ask of 40 cents (for 50 shares) and next ask of 41 cents (for 50 shares) would fill at an average price of 40.5 cents: 50 shares at 40 cents and 50 shares at 41 cents.
 

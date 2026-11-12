@@ -60,10 +60,10 @@ Next to **Scale**, choose how your orders behave on the order book:
 
 ### Before you confirm
 
-- **Orders at or above the best ask fill right away** (with GTC or IOC). Each order is a limit order. Any part of your range at or above the lowest ask fills immediately as a taker order; the rest waits on the order book as maker orders. With ALO, those orders are cancelled instead. See [Fees](/fees).
+- **Orders at or above the best ask fill right away** (with GTC or IOC). Each order is a limit order. Any part of your range at or above the lowest ask fills immediately as a taker order. The rest depends on your time in force: with GTC it waits on the order book as maker orders, and with IOC it is cancelled. With ALO, the orders that would fill right away are cancelled instead. See [Fees](/fees).
 - **Keep each order at $2 or more.** A small amount spread over many orders can leave some orders below the minimum, and those are rejected. Use fewer orders or a larger amount. If any order would round down to zero shares, the panel won't place the scale order.
 - **Slippage doesn't apply.** Each order fills only at its own price or better.
 
 ### After you place it
 
-Your scale order becomes separate limit orders. They appear under **Open Orders**, where you can cancel any of them or use **Cancel All**. Orders that fill become your position under **Positions**. Like any limit order, an order that hasn't filled is cancelled automatically when the market resolves. See [Order lifecycle](/order-lifecycle).
+Your scale order becomes separate limit orders. They appear under **Open Orders**, where you can cancel any of them. **Cancel All** cancels more than these orders (see [Closing a position](/closing-a-position) for its scope). Orders that fill become your position under **Positions**. Like any limit order, an order that hasn't filled is cancelled automatically when the market resolves. See [Order lifecycle](/order-lifecycle).

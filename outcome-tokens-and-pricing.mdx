@@ -42,7 +42,7 @@ Because a YES and NO pair always merges back to 1 USDC, YES \+ NO ≈ 100 cents 
 
 For a multi-outcome market, exactly one outcome resolves YES, so a set containing the YES token of every outcome pays exactly 1 USDC at settlement. That anchors the sum of YES prices across the market to approximately 100 cents.
 
-The word "approximately" matters. In practice, prices sum to slightly less than 100 cents because of the spread (there's always a gap between the best bid and best ask on each side). But the bound is tight enough that the probability interpretation works.
+The word "approximately" matters. Because of the spread (there's always a gap between the best bid and best ask on each side), the best bids sum to slightly less than 100 cents and the best asks sum to slightly more. The odds Outcome shows come from the best ask, so they can add up to slightly more than 100%. The wider the spread, the further the total sits from 100. But in active markets the bound is tight enough that the probability interpretation works.
 
 ### Prices as probabilities
 
