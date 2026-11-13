@@ -15,12 +15,12 @@ Whether the close incurs a taker fee or a maker fee depends on which side your o
 
 ### Closing or cancelling everything at once
 
-If you have multiple open positions and want to exit them all at once, use **Close All**. A confirmation asks how to close: **Market Price** closes each position at the best available price, and **Limit (Mid Price)** places limit orders at the mid price. **Cancel All** cancels your open orders.
+If you have multiple open positions and want to exit them all at once, use **Close All**. A confirmation asks how to close: **Market Price** sends a market order for each position, at the best available price, and **Limit (Mid Price)** places a limit order for each position that rests on the order book until it fills. **Cancel All** cancels your open orders.
 
 Close All and Cancel All appear on the market page and on your own profile. On desktop they also appear on category tables, where they act only on that category.
 
 <Warning>
-  On the market page and on your profile, Close All and Cancel All act on your whole portfolio, not just the market you're viewing. A single confirmation closes every open position or cancels every open order.
+  On the market page and on your profile, Close All and Cancel All act on your whole portfolio, not just the market you're viewing. A single confirmation submits orders for every open position or cancels every open order. A position closes only when its order fills, so a limit close can leave positions open.
 </Warning>
 
 ### Hold to settlement
