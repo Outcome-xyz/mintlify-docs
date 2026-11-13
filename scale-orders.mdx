@@ -1,0 +1,69 @@
+---
+title: "Scale orders: spread one buy across a price range"
+sidebarTitle: "Scale orders"
+description: "Split one amount into up to 100 limit orders between two prices, and choose how the amount is weighted with Skew."
+---
+
+A scale order splits one buy into several limit orders, spaced evenly between two prices. Use it to build a position step by step as the price moves, instead of placing each order by hand.
+
+Scale orders are for buying. To sell, use a market or limit order. See [Order types](/order-types).
+
+### How to place a scale order
+
+1. Open the market and pick the outcome you want to buy.
+2. In the trading panel, choose **Scale** from the order type menu.
+3. Enter the total amount you want to spend, in dollars.
+4. Fill in **Start**, **End**, **Orders** and **Skew** (see below).
+5. Hover **Est. Payout** to check your first and last order, the total order value and the fees, then confirm.
+
+The Buy button appears once every field is filled in.
+
+### The fields
+
+| Field | What it sets | Allowed values |
+| --- | --- | --- |
+| Amount | The total you spend across all the orders | In dollars |
+| Start | The price of the first order | 0.001¢ to 99.999¢ |
+| End | The price of the last order | 0.001¢ to 99.999¢ |
+| Orders | How many limit orders to place | 1 to 100, whole numbers |
+| Skew | How the amount is weighted from the first order to the last | 0.01 to 100 (default 1.00) |
+
+Start and End can run in either direction. The orders are spaced evenly between them: the first at Start, the last at End.
+
+### How Skew splits the amount
+
+With a Skew of 1.00, every order gets the same amount. Above 1, each order is larger than the one before, and the last order is Skew times the first. Below 1, the orders get smaller toward End.
+
+Example: $100 across 5 orders, from 40¢ down to 30¢.
+
+| Order price | Skew 1.00 | Skew 3.00 |
+| --- | --- | --- |
+| 40¢ | $20.00 | $10.72 |
+| 37.5¢ | $20.00 | $14.11 |
+| 35¢ | $20.00 | $18.57 |
+| 32.5¢ | $20.00 | $24.44 |
+| 30¢ | $20.00 | $32.16 |
+
+With a Skew of 3.00 you buy more as the price falls: the 30¢ order is three times the 40¢ one.
+
+Each order buys whole shares, so the number of shares at each price is rounded down. **Est. Payout** is what you'd receive if every order fills and your outcome wins: $1 for each share across all the orders.
+
+### Time in force
+
+Next to **Scale**, choose how your orders behave on the order book:
+
+| Setting | What happens |
+| --- | --- |
+| GTC (Good Til Cancel), the default | Each order rests on the book until it fills, you cancel it, or the market resolves |
+| IOC (Immediate Or Cancel) | Each order fills what it can right away; the rest is cancelled |
+| ALO (Add Liquidity Only) | Each order only rests on the book; an order that would fill right away is cancelled instead |
+
+### Before you confirm
+
+- **Orders at or above the best ask fill right away** (with GTC or IOC). Each order is a limit order. Any part of your range at or above the lowest ask fills immediately as a taker order. The rest depends on your time in force: with GTC it waits on the order book as maker orders, and with IOC it is cancelled. With ALO, the orders that would fill right away are cancelled instead. See [Fees](/fees).
+- **Keep each order at $2 or more.** A small amount spread over many orders can leave some orders below the minimum, and those are rejected. Use fewer orders or a larger amount. If any order would round down to zero shares, the panel won't place the scale order.
+- **Slippage doesn't apply.** Each order fills only at its own price or better.
+
+### After you place it
+
+Your scale order becomes separate limit orders. They appear under **Open Orders**, where you can cancel any of them. **Cancel All** cancels more than these orders (see [Closing a position](/closing-a-position) for its scope). Orders that fill become your position under **Positions**. Like any limit order, an order that hasn't filled is cancelled automatically when the market resolves. See [Order lifecycle](/order-lifecycle).

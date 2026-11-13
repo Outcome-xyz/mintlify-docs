@@ -1,15 +1,15 @@
 ---
-title: "Limit orders vs market orders on Outcome"
+title: "Order types on Outcome: market, limit, 1-Tap, scale, and convert"
 sidebarTitle: "Order types"
 ---
 
-Outcome supports two order types: limit orders and market orders. Each makes a different tradeoff between price control and execution certainty.
+The order menu in the trading panel has five options: **Market**, **1-Tap**, **Limit**, **Scale** and **Convert**. Market and limit orders are the two basic order types, and each makes a different tradeoff between price control and execution certainty. 1-Tap and Scale are shortcuts for buying, and Convert changes your tokens without trading on the order book. The menu shows 1-Tap and Scale only when you buy.
 
 ### Limit orders
 
-A limit order specifies the worst price you're willing to accept. For a buy, that's the maximum price you'll pay. For a sell, the minimum price you'll accept.
+A limit order specifies the worst price you're willing to accept. For a buy, that's the maximum price you'll pay. For a sell, the minimum price you'll accept. The limit price starts at the mid price of the order book, and you can change it.
 
-A limit buy at 40 cents only fills if someone is willing to sell at 40 cents or lower. If no one matches, the order rests on the book at 40 cents until either the price moves to where someone will trade with you, or you cancel.
+A limit buy at 40 cents only fills if someone is willing to sell at 40 cents or lower. If no one matches, the order rests on the book at 40 cents until either the price moves to where someone will trade with you, or you cancel. You can choose how long it rests with [time in force](#time-in-force).
 
 **Use limit orders when:**
 
@@ -23,7 +23,9 @@ The tradeoff is fill uncertainty. If the market moves away from your price, your
 
 A market order takes whatever price is currently available, starting at the best price and walking through deeper levels of the book if needed.
 
-A market buy of 100 tokens with a best ask of 40 cents (for 50 tokens) and next ask of 41 cents (for 50 tokens) would fill at an average price of 40.5 cents: 50 tokens at 40 cents and 50 tokens at 41 cents.
+You set how far it may walk with a **slippage allowance**. The default is 8%, and you can set anything from 0.01% to 100%. For a buy, the order can pay up to your allowance above the best ask. For a sell, it can sell down to your allowance below the best bid. It fills what it can within that limit. Any part that can't fill within the allowance is cancelled, because market orders don't rest on the book.
+
+A market buy of 100 shares with a best ask of 40 cents (for 50 shares) and next ask of 41 cents (for 50 shares) would fill at an average price of 40.5 cents: 50 shares at 40 cents and 50 shares at 41 cents.
 
 **Use market orders when:**
 
@@ -31,7 +33,37 @@ A market buy of 100 tokens with a best ask of 40 cents (for 50 tokens) and next 
 - The spread is tight and slippage will be small.
 - The price you can get right now is acceptable.
 
-The tradeoff is price uncertainty. In a thin book, your market order can walk through multiple price levels and end up with a worse average price than you expected. This is called **slippage**.
+The tradeoff is price uncertainty. In a thin book, your market order can walk through multiple price levels and end up with a worse average price than you expected. This is called **slippage**, and your slippage allowance caps it. See [Order lifecycle](/order-lifecycle#slippage-on-market-orders) for the high-slippage warning.
+
+### 1-Tap orders
+
+1-Tap is a faster way to buy. It shows three saved amounts for the side you pick, and you tap an amount to buy that much. You can edit the three amounts. Each one is a whole number of dollars from $2 to $9,999.
+
+1-Tap works for buying only. On phones, a side with no asks shows **No offer available** and its amounts are dimmed, because there's nothing to buy.
+
+### Scale orders
+
+A scale order splits one buy into several limit orders, spaced evenly between two prices. It works for buying only. See [Scale orders](/scale-orders).
+
+### Convert
+
+Convert changes your tokens directly, without trading on the order book. It offers three actions:
+
+- **Split** turns 1 USDC into one YES and one NO token of the same outcome.
+- **Merge** turns a YES and NO pair of the same outcome back into 1 USDC.
+- **Negate** turns NO shares of one outcome in a multi-outcome market into YES shares of every other outcome in that market.
+
+See [Outcome tokens and pricing](/outcome-tokens-and-pricing) for why these operations keep prices consistent.
+
+### Time in force
+
+For limit and scale orders, you can choose how the order behaves on the order book:
+
+| Setting | What happens |
+| --- | --- |
+| GTC (Good Til Cancel), the default | The order rests on the book until it fills, you cancel it, or the market resolves |
+| IOC (Immediate Or Cancel) | The order fills what it can right away; the rest is cancelled |
+| ALO (Add Liquidity Only) | The order only rests on the book; an order that would fill right away is cancelled instead |
 
 ### Maker vs taker
 
@@ -47,8 +79,10 @@ The fee schedule differs between makers and takers. See [Fees](/fees) for curren
 
 Prices on Outcome are quoted in cents and range from 0.001 cents to 99.999 cents. The tick size is 0.001 cents, meaning prices move in increments of one one-thousandth of a cent. You can place a limit order at 40.001 cents, 40.002 cents, or 40.003 cents, but not at 40.0015 cents.
 
-The minimum order size is 1 USDC in value. For a buy at 50 cents per token, that's at least 2 tokens. For a buy at 10 cents per token, at least 10 tokens. The minimum scales with the price so the total value stays at least 1 USDC.
+The minimum order size is $2 in value. For a buy at 50 cents per share, that's at least 4 shares. For a buy at 10 cents per share, at least 20 shares. The minimum scales with the price so the total value stays at least $2.
 
 ### Choosing between them
 
 The simple version: limit orders give you control, market orders give you speed. For most trading on Outcome, limit orders are the better default because they let you control your entry price. Use market orders when you need certainty of fill more than certainty of price.
+
+1-Tap suits quick buys at amounts you use often. Scale suits building a position across a price range.

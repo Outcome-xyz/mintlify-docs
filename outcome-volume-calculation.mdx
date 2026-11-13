@@ -16,13 +16,14 @@ Each share pays \$1 if its side wins, so every share traded adds $1 to volume. T
 How it adds up:
 
 ```text
-Outcome volume = Yes volume + No volume
+Outcome volume = shares traded, counted once per trade
 
 Event volume = the sum of all its outcomes. For example, a "Champions League winner" event shows the combined volume of every team.
 ```
+
+Each matched trade counts once, whether it pairs a buyer and a seller of the same token or buyers of opposite sides.
 
 Where you see it:
 
 - Market pages and event cards show total volume since the market opened. Up or Down markets show cumulative volume where relevant; a 15 min contract will display the 24 hour volume of all the consecutive 15 min contracts.
 - Markets under $1,000 show a "New" tag instead of a figure.
-- stats.outcome.xyz uses the same method, so the numbers match across Outcome.

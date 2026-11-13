@@ -46,9 +46,15 @@ Beyond the best bid and ask, the rest of the book is **depth**. Depth tells you 
 
 ### Other prices you'll see
 
-Beyond the order book itself, market pages typically display two related prices:
+Outside the order book, Outcome shows one price for each side: the **best ask**. The odds and multipliers on market cards, on the [market page](/the-market-page) and in the trading panel are all based on it. It's the price you would pay to buy right now, so it can sit slightly above the midpoint of the bid and ask. See [How prediction markets work](/how-prediction-markets-work#odds-and-multipliers).
+
+Two related prices are still useful when you read the book:
 
 - **Mid price** is the midpoint between the best bid and the best ask. It's a convenient single-number reference for where the market is currently pricing the outcome.
 - **Last trade price** is the price of the most recent fill. It tells you what someone actually paid, which can be different from the current mid if the book has moved since the last trade.
 
-For a quick read of where a market is, the mid price is usually the best single number. For tracking activity, the last trade price tells you what's been happening.
+For tracking activity, the last trade price tells you what's been happening.
+
+### Grouping the book
+
+The order book can group nearby prices into one row, which makes a deep book easier to scan. The grouping step runs from 0.001 to 1 cent.

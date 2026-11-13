@@ -26,17 +26,29 @@ Most users never split or merge directly. They buy and sell tokens on the order 
 
 In multi-outcome markets, the outcomes of the same question are linked by additional protocol operations, so positions across outcomes stay consistent. One practical consequence: holding NO tokens across different outcomes of the same question is equivalent to a redeemable combination, and the protocol lets you redeem the corresponding USDC before the market settles.
 
+### Converting tokens yourself
+
+You can also split and merge on your own. **Convert**, in the trading panel's order menu, offers three actions without using the order book:
+
+- **Split** turns 1 USDC into one YES and one NO token of the same outcome.
+- **Merge** turns a YES and NO pair of the same outcome back into 1 USDC.
+- **Negate** turns NO shares of one outcome in a multi-outcome market into YES shares of every other outcome in that market. "I don't think this one wins" becomes "I think one of the others wins."
+
+See [Order types](/order-types#convert).
+
 ### Why prices sum to 1
 
 Because a YES and NO pair always merges back to 1 USDC, YES \+ NO ≈ 100 cents for every outcome at any time.
 
 For a multi-outcome market, exactly one outcome resolves YES, so a set containing the YES token of every outcome pays exactly 1 USDC at settlement. That anchors the sum of YES prices across the market to approximately 100 cents.
 
-The word "approximately" matters. In practice, prices sum to slightly less than 100 cents because of the spread (there's always a gap between the best bid and best ask on each side). But the bound is tight enough that the probability interpretation works.
+The word "approximately" matters. Because of the spread (there's always a gap between the best bid and best ask on each side), the best bids sum to slightly less than 100 cents and the best asks sum to slightly more. The odds Outcome shows come from the best ask, so they can add up to slightly more than 100%. The wider the spread, the further the total sits from 100. But in active markets the bound is tight enough that the probability interpretation works.
 
 ### Prices as probabilities
 
 Because the prices sum to approximately 100 cents, each price can be read as the market's implied probability for that specific outcome.
+
+Outcome shows each price as odds in percent and as a multiplier (1 ÷ the price). See [How prediction markets work](/how-prediction-markets-work#odds-and-multipliers).
 
 A YES at 40 cents means the market is collectively pricing the event at 40% likely. A NO at 60 cents means the market is pricing the event at 60% likely _not_ to happen. They sum to 100 cents, which corresponds to 100% probability that something happens.
 

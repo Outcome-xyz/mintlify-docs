@@ -43,6 +43,7 @@
               "how-prediction-markets-work",
               "outcome-and-hyperliquid",
               "outcome-tokens-and-pricing",
+              "outcome-volume-calculation",
               "market-types",
               "recurring-markets",
               {
@@ -58,8 +59,10 @@
             "group": "Trading",
             "icon": "arrow-left-right",
             "pages": [
+              "the-market-page",
               "reading-the-order-book",
               "order-types",
+              "scale-orders",
               "order-lifecycle",
               "managing-your-positions",
               "closing-a-position",

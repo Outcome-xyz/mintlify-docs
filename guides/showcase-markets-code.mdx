@@ -9,7 +9,7 @@ This page walks through [`examples/web-showcase`](https://github.com/Outcome-xyz
 <Steps>
   <Step title="Install the SDK">
     ```bash
-    pnpm add @outcome.xyz/hip4@beta
+    pnpm add @outcome.xyz/hip4
     ```
 
     ```typescript src/markets.ts
@@ -57,7 +57,7 @@ This page walks through [`examples/web-showcase`](https://github.com/Outcome-xyz
 
   <Step title="Assign categories">
     ```typescript src/markets.ts
-    export const CATEGORIES = ["sports", "crypto", "esports", "economics", "finance"];
+    export const CATEGORIES = ["sports", "crypto", "esports", "economics", "tradfi"];
 
     const ESPORTS = ["esport", "esports", "lol", "leagueoflegends", "dota", "dota2", "cs2", "csgo", "counterstrike"];
 
@@ -75,9 +75,9 @@ This page walks through [`examples/web-showcase`](https://github.com/Outcome-xyz
       const template = templates.find((t) => t.id === templateIdOfOutcome(event.name));
       const tag = template?.description.match(/metadata=category:(\w+)/)?.[1];
       if (tag && CATEGORIES.includes(tag)) return tag;
-      // A market on a Hyperliquid perp: BTC is crypto, xyz:GOLD (the xyz dex) is finance.
+      // A market on a Hyperliquid perp: BTC is crypto, xyz:GOLD (the xyz dex) is tradfi.
       const perp = keywords.perp ?? keywords.underlying;
-      if (perp?.startsWith("xyz:")) return "finance";
+      if (perp?.startsWith("xyz:")) return "tradfi";
       if (perp && !perp.includes(":")) return "crypto";
       return "all";
     }

@@ -7,13 +7,21 @@ You don't have to wait for a market to resolve to exit your position. As long as
 
 ### Close before settlement
 
-To exit before the market resolves, sell your tokens on the order book. Choose between a market order (sell immediately at the best available price) or a limit order (set the price you want and wait for someone to take it). When the sale fills, the proceeds return to your USDC balance.
+To exit before the market resolves, sell your tokens on the order book. In the trading panel, choose **Sell**. You always sell in shares: enter a number of shares, or use the quick buttons for 10%, 25%, 50% or Max of your position (on phones, 10%, 50% or Max). The panel shows **Est. Receive**, the amount you'd get from the sale.
+
+Choose between a market order (sell immediately at the best available price) or a limit order (set the price you want and wait for someone to take it). When the sale fills, the proceeds return to your USDC balance.
 
 Whether the close incurs a taker fee or a maker fee depends on which side your order ends up on. See [Order types](/order-types) for the maker/taker distinction, and [Fees](/fees) for current rates.
 
-### Closing all positions at once
+### Closing or cancelling everything at once
 
-If you have multiple open positions and want to exit them all at once, the Positions tab has a Close All function. This places market orders to close every open position simultaneously, at the best available price for each.
+If you have multiple open positions and want to exit them all at once, use **Close All**. A confirmation asks how to close: **Market Price** sends a market order for each position, at the best available price, and **Limit (Mid Price)** places a limit order for each position that rests on the order book until it fills. **Cancel All** cancels your open orders.
+
+Close All and Cancel All appear on the market page and on your own profile. On desktop they also appear on category tables, where they act only on that category.
+
+<Warning>
+  On the market page and on your profile, Close All and Cancel All act on your whole portfolio, not just the market you're viewing. A single confirmation submits orders for every open position or cancels every open order. A position closes only when its order fills, so a limit close can leave positions open.
+</Warning>
 
 ### Hold to settlement
 
