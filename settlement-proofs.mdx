@@ -1,10 +1,10 @@
 ---
 title: "Settlement proofs: how Chainlink CRE verifies Outcome price markets"
 sidebarTitle: "Settlement proofs"
-description: "How Outcome uses the Chainlink Runtime Environment (CRE) to independently recheck each settled price market and record a public proof of the result on Arbitrum One, and how you can look one up."
+description: "How Outcome uses the Chainlink Runtime Environment (CRE) to independently recheck each settled Price Binary and Price Touch market and record a public proof of the result on Arbitrum One, and how you can look one up."
 ---
 
-When an Outcome price market settles, you shouldn't have to take our word for the result. For every settled price market, a network of independent Chainlink nodes rechecks the market's rules and price data, recalculates the result, and records a signed proof of it on Arbitrum One. Anyone can look that proof up.
+When an Outcome price market settles, you shouldn't have to take our word for the result. For every settled Price Binary and Price Touch market, a network of independent Chainlink nodes rechecks the market's rules and price data, recalculates the result, and records a signed proof of it on Arbitrum One. Anyone can look that proof up.
 
 This page explains what a settlement proof is, how it is produced, and how to check one. It covers Outcome's use of CRE. To learn about CRE itself, see the [Chainlink CRE documentation](https://docs.chain.link/cre/overview).
 
@@ -67,7 +67,7 @@ Each proof records:
 
 <Steps>
   <Step title="Open a settled price market">
-    Go to any settled price market on [outcome.xyz](https://outcome.xyz).
+    Go to a settled Price Binary or Price Touch market on [outcome.xyz](https://outcome.xyz).
   </Step>
   <Step title="Open the resolution source">
     In the market's rules, select **Resolution Source**. On mobile, it is in the rules links. This opens the market's proof on the [Outcome proof explorer](https://proof-explorer.outcome.xyz).
@@ -81,9 +81,9 @@ Because the proof is stored on a public blockchain, you don't have to rely on th
 
 ## Which markets have proofs
 
-Settlement proofs cover Outcome's price markets: **Price Binary** and **Price Touch** markets deployed by Outcome. Markets that settle on real-world events, such as sports or economic data, don't have CRE proofs yet. See [Real-world events](/real-world-events) for how those resolve.
+Settlement proofs cover two price market types deployed by Outcome: **Price Binary** and **Price Touch**. Other price market types, such as Price Scalar and Price Range, and markets that settle on real-world events, such as sports or economic data, don't have CRE proofs yet. See [Real-world events](/real-world-events) for how those resolve.
 
-The **Resolution Source** link appears once a price market has ended. If a market has just settled, its proof can take a few minutes to appear.
+The **Resolution Source** link appears once a supported market has ended. If a market has just settled, its proof can take a few minutes to appear.
 
 ## What a proof does and doesn't do
 
