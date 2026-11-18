@@ -35,7 +35,7 @@ Settlement and the proof are two separate, parallel processes. Outcome settles t
     Each node looks up the settled market and checks that it is a genuine Outcome market: it was deployed by an approved Outcome deployer, and it uses a reviewed, approved market template. The strike, dates, and calculation rules all come from that verified market record.
   </Step>
   <Step title="The nodes recalculate the result">
-    Each node fetches the recorded HyperCore mark prices for the market's window and recalculates the result with the same rules described in [Resolution](/resolution). For Price Binary, that is the TWAP after expiry compared to the strike. For Price Touch, that is whether the TWAP reached the target before the deadline.
+    Each node fetches the recorded HyperCore mark prices for the market's window and recalculates the result with the same rules described in [Resolution](/resolution). For Price Binary, that is the TWAP ending at expiry compared to the strike. For Price Touch, that is whether the rolling TWAP reached the target before the deadline. See [TWAP calculation](/twap-calculation) for the formula and an example of the exact data each node collects.
   </Step>
   <Step title="The nodes must agree">
     The network compares the nodes' results. A result is accepted only when enough nodes return exactly the same answer. If the data isn't ready yet, a source is unavailable, or the nodes disagree, nothing is written and the check runs again later.

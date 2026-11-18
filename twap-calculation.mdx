@@ -1,0 +1,174 @@
+---
+title: "How the TWAP is calculated for Outcome price markets"
+sidebarTitle: "TWAP calculation"
+description: "The time-weighted average price (TWAP) formula behind Price Binary and Price Touch markets, with worked examples and the exact price data each Chainlink node collects to check a result."
+---
+
+Price markets on Outcome don't settle on a single price print. They settle on a **TWAP**, a time-weighted average price. This page walks through the formula, shows two worked examples, and shows exactly what data each Chainlink node pulls when it rechecks a result for a [settlement proof](/settlement-proofs).
+
+## Why a TWAP and not the last price
+
+A single print can be noisy. One quick wick, one thin moment in the book, and the "last price" can land somewhere the market barely traded. A TWAP smooths that out by averaging the price over a short window, so the result reflects where the market actually was, not where one trade happened to print.
+
+## The formula
+
+Each price counts for **how long it was active**, not how many times it shows up. When a new mark price comes in, it stays active until the next one replaces it.
+
+For a window that starts at `a` and ends at `b`:
+
+```text
+TWAP = sum(price × time that price was active inside the window) / (b − a)
+```
+
+A few details that matter:
+
+- **The start counts, the end doesn't.** The window is `[a, b)`. A price that arrives exactly at `b` shows the data reaches the end of the window, but it adds zero time to the average.
+- **The price going in counts.** The first price used is the last mark price at or before `a`, as long as it's no more than 10 minutes old.
+- **Mark price only.** Every market uses the HyperCore perpetual **mark price** (`markPx`) for its underlying. Never the oracle price, spot price, or an exchange close.
+- **Exact math.** Prices are converted to exact fractions and calculated with whole numbers, so there's no floating-point rounding and every node gets the same answer to the last digit.
+
+<Note>
+All times are in UTC.
+</Note>
+
+## Price Binary example
+
+A Price Binary market asks one question: **was the TWAP strictly above the strike?** The TWAP window is the last `W` seconds before expiry, so the window is `[expiry − W, expiry)`.
+
+Take this market:
+
+```text
+Underlying:    BTC perpetual on HyperCore
+Strike:        100,000
+TWAP window:   1 second
+Expiry:        2026-10-01 00:00:00 UTC
+Window:        [23:59:59.000, 00:00:00.000)
+```
+
+These are the mark prices inside the window:
+
+| Time into the window | Mark price | What happens |
+| ---: | ---: | --- |
+| 0 ms | 99,900 | Price at the start of the window |
+| 250 ms | 100,100 | Price ticks up |
+| 1,000 ms | 99,800 | Arrives exactly at expiry, so it has zero weight |
+
+Now weight each price by how long it was active:
+
+| Segment | Price | Time active | Price × time |
+| --- | ---: | ---: | ---: |
+| 0 to 250 ms | 99,900 | 250 ms | 24,975,000 |
+| 250 to 1,000 ms | 100,100 | 750 ms | 75,075,000 |
+| At 1,000 ms | 99,800 | 0 ms | 0 |
+
+```text
+TWAP = (99,900 × 250 + 100,100 × 750) / 1,000
+     = 100,050,000 / 1,000
+     = 100,050
+```
+
+100,050 is above 100,000, so the market settles **Yes**.
+
+Notice that a simple average of the three rows would give 99,933 and settle No. That's why time weighting matters: 100,100 was the price for three quarters of the window.
+
+### What happens at the strike
+
+The comparison is strict. Landing exactly on the strike is a No.
+
+| TWAP | Compared to 100,000 | Result |
+| ---: | --- | --- |
+| 100,050 | Above | Yes |
+| 100,000 | Equal | No |
+| 99,950 | Below | No |
+
+## Price Touch example
+
+A Price Touch market asks: **did a rolling TWAP reach the target at any point before the deadline?** Instead of one window at the end, the TWAP is recalculated continuously over a window that slides forward through the market's life, from the moment the market was registered to the deadline.
+
+Take this market:
+
+```text
+Underlying:       xyz:SP500 perpetual on HyperCore
+Target:           7,700
+Rolling window:   60 seconds
+```
+
+Say the mark price was 7,680 for the minute before the market was registered. Right at registration it jumps to 7,720 and stays there. As the window slides forward, more of it is filled by the new price:
+
+| Seconds after registration | Calculation | Rolling TWAP |
+| ---: | --- | ---: |
+| 0 | (7,680 × 60) / 60 | 7,680 |
+| 15 | (7,680 × 45 + 7,720 × 15) / 60 | 7,690 |
+| 30 | (7,680 × 30 + 7,720 × 30) / 60 | **7,700** |
+| 45 | (7,680 × 15 + 7,720 × 45) / 60 | 7,710 |
+| 60 | (7,720 × 60) / 60 | 7,720 |
+
+At 30 seconds the rolling TWAP reaches 7,700, so the market settles **Yes**. The mark price itself never printed 7,700. What counts is the rolling average, and the exact crossing moment is solved precisely, even when it falls between two price updates.
+
+The boundary rules:
+
+- A touch exactly at the registration time doesn't count. Any touch after it does.
+- A touch exactly at the deadline counts.
+- If the TWAP never reaches the target by the deadline, the market settles **No**.
+
+## What each node collects
+
+When a market settles, every Chainlink node in the network does this work on its own, then the network checks that they all agree. Here is what a node pulls and what it reports back, using the Price Binary example above.
+
+<Steps>
+  <Step title="It reads the market's rules">
+    The node looks up the settled market by its ID and reads the rules from the verified market record: underlying, strike, TWAP window, and expiry. Outcome only sends the market ID, never a price or a result.
+  </Step>
+  <Step title="It pulls the mark price history">
+    The node requests the accepted HyperCore mark prices for the window from Hydromancer, a Hyperliquid data service. Each row looks like this:
+
+```json
+[
+  { "time": 1790812799000, "blockNumber": 1130393771, "coin": "BTC", "dex": "hyperliquid", "markPx": "99900" },
+  { "time": 1790812799250, "blockNumber": 1130393772, "coin": "BTC", "dex": "hyperliquid", "markPx": "100100" },
+  { "time": 1790812800000, "blockNumber": 1130393775, "coin": "BTC", "dex": "hyperliquid", "markPx": "99800" }
+]
+```
+
+    Every row must match the market's exact coin and DEX, carry a real block number, and have a `markPx`. Two different prices at the same timestamp invalidate the data, and the node won't guess.
+  </Step>
+  <Step title="It calculates and reports">
+    The node runs the TWAP and sends back one result. Simplified, it looks like this:
+
+```json
+{
+  "status": "candidate",
+  "calculationType": "BINARY_PRICE",
+  "outcome": "YES",
+  "settlementPrice": "100050",
+  "windowStart": "2026-09-30T23:59:59.000Z",
+  "windowEnd": "2026-10-01T00:00:00.000Z",
+  "observationCount": 3,
+  "specHash": "0x95c0…0d71",
+  "evidenceHash": "0x3c44…294c"
+}
+```
+
+    `specHash` is a fingerprint of the market's rules. `evidenceHash` is a fingerprint of the exact market record and price rows the node used. If two nodes saw even slightly different data, their `evidenceHash` won't match.
+  </Step>
+  <Step title="The network compares results">
+    The network accepts a result only when enough nodes return exactly the same one, every field included. Then it signs the result and records it on Arbitrum One as the market's settlement proof.
+  </Step>
+</Steps>
+
+If the price data isn't fully available yet, a node reports "not ready" instead of a result, and nothing is recorded until a later check succeeds. Missing data never turns into a No.
+
+<Note>
+The values above are illustrative. The timestamps, block numbers, and hashes are shortened examples, not a real market.
+</Note>
+
+## Learn more
+
+<CardGroup cols={2}>
+  <Card title="Resolution" icon="scale" href="/resolution">
+    How each price market type resolves.
+  </Card>
+  <Card title="Settlement proofs" icon="shield-check" href="/settlement-proofs">
+    How Chainlink CRE records a public proof of each result.
+  </Card>
+</CardGroup>
