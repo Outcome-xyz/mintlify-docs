@@ -113,7 +113,7 @@ The boundary rules:
 
 ## What each node collects
 
-When a market settles, every Chainlink node in the network does this work on its own, then the network checks that they all agree. Here is what a node pulls and what it reports back, using the Price Binary example above.
+When a market settles, every Chainlink node in the network does this work on its own, then the network checks how many returned the same result. Here is what a node pulls and what it reports back, using the Price Binary example above.
 
 <Steps>
   <Step title="It reads the market's rules">
@@ -152,7 +152,7 @@ When a market settles, every Chainlink node in the network does this work on its
     `specHash` is a fingerprint of the market's rules. `evidenceHash` is a fingerprint of the exact market record and price rows the node used. If two nodes saw even slightly different data, their `evidenceHash` won't match.
   </Step>
   <Step title="The network compares results">
-    The network accepts a result only when enough nodes return exactly the same one, every field included. Then it signs the result and records it on Arbitrum One as the market's settlement proof.
+    The network accepts a result only when at least 4 of the 10 nodes return exactly the same one, every field included, and no other result reaches 4. Then it signs the result and records it on Arbitrum One as the market's settlement proof.
   </Step>
 </Steps>
 

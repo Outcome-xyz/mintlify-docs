@@ -1,25 +1,25 @@
 ---
 title: "Settlement proofs: how Chainlink CRE verifies Outcome price markets"
 sidebarTitle: "Settlement proofs"
-description: "How Outcome uses the Chainlink Runtime Environment (CRE) to independently recheck each settled Price Binary and Price Touch market and record a public proof of the result on Arbitrum One, and how you can look one up."
+description: "How Outcome uses the Chainlink Runtime Environment (CRE) to recheck each settled Price Binary and Price Touch market and record a public proof of the result on Arbitrum One, and how you can look one up."
 ---
 
-When an Outcome price market settles, you shouldn't have to take our word for the result. For every settled Price Binary and Price Touch market, a network of independent Chainlink nodes rechecks the market's rules and price data, recalculates the result, and records a signed proof of it on Arbitrum One. Anyone can look that proof up.
+When an Outcome price market settles, you shouldn't have to take our word for the result. For every settled Price Binary and Price Touch market, a Chainlink network of 10 nodes rechecks the market's rules and price data, recalculates the result, and records a signed proof of it on Arbitrum One. Anyone can look that proof up.
 
 This page explains what a settlement proof is, how it is produced, and how to check one. It covers Outcome's use of CRE. To learn about CRE itself, see the [Chainlink CRE documentation](https://docs.chain.link/cre/overview).
 
 ## What a settlement proof gives you
 
-- **An independent recheck.** The result is recalculated by Chainlink nodes from the market's published rules and recorded price data. Outcome does not supply the answer.
-- **Agreement before anything is recorded.** A proof is written only when the nodes reach the same result. If they don't, no proof is written.
+- **A separate recheck.** The result is recalculated by Chainlink nodes from the market's published rules and recorded price data. Outcome does not supply the answer.
+- **Agreement before anything is recorded.** A proof is written only when at least 4 of the 10 nodes return the exact same result. If they don't, no proof is written.
 - **A permanent public record.** Each proof lives on Arbitrum One, a public blockchain. Once stored, it can't be edited, replaced, or deleted.
 - **One proof per market.** The proof is tied to the market's exact ID. A second proof for the same market is rejected.
 
 ## What Chainlink CRE is
 
-The [Chainlink Runtime Environment (CRE)](https://docs.chain.link/cre/key-terms#chainlink-runtime-environment-cre) runs programs called [workflows](https://docs.chain.link/cre/key-terms#workflow) on a [Decentralized Oracle Network (DON)](https://docs.chain.link/cre/key-terms#decentralized-oracle-network-don), a group of independent Chainlink nodes. In Chainlink's words, each node "performs the requested task independently", and their results are "cryptographically verified and aggregated via a Byzantine Fault Tolerant (BFT) consensus protocol."
+The [Chainlink Runtime Environment (CRE)](https://docs.chain.link/cre/key-terms#chainlink-runtime-environment-cre) runs programs called [workflows](https://docs.chain.link/cre/key-terms#workflow) on a [Decentralized Oracle Network (DON)](https://docs.chain.link/cre/key-terms#decentralized-oracle-network-don), a group of Chainlink nodes. Every node runs the same workflow code and fetches its own data, then the network combines their results before anything is signed. Read more in Chainlink's [consensus computing](https://docs.chain.link/cre/concepts/consensus-computing) guide.
 
-In practice, this means no single server or company decides the result. Many nodes do the same work separately and must agree before a result is accepted. Read more in Chainlink's [consensus computing](https://docs.chain.link/cre/concepts/consensus-computing) guide.
+Outcome's workflow runs on a DON of 10 nodes. A result is accepted only when at least 4 nodes return the exact same result and no other result reaches 4. That means the answer doesn't rest on one server: one node with bad data or a bug can't produce a proof on its own.
 
 Outcome runs one CRE workflow for price markets. It is started by an [HTTP trigger](https://docs.chain.link/cre/guides/workflow/using-triggers/http-trigger/overview) when a market settles and writes its result to the blockchain using CRE's [onchain write](https://docs.chain.link/cre/guides/workflow/using-evm-client/onchain-write/overview) capability.
 
@@ -35,10 +35,10 @@ Settlement and the proof are two separate, parallel processes. Outcome settles t
     Each node looks up the settled market and checks that it is a genuine Outcome market: it was deployed by an approved Outcome deployer, and it uses a reviewed, approved market template. The strike, dates, and calculation rules all come from that verified market record.
   </Step>
   <Step title="The nodes recalculate the result">
-    Each node fetches the recorded HyperCore mark prices for the market's window and recalculates the result with the same rules described in [Resolution](/resolution). For Price Binary, that is the TWAP ending at expiry compared to the strike. For Price Touch, that is whether the rolling TWAP reached the target before the deadline. See [TWAP calculation](/twap-calculation) for the formula and an example of the exact data each node collects.
+    Each node fetches the recorded HyperCore mark prices for the market's window and recalculates the result with the same rules described in [Resolution](/resolution). For Price Binary, that is the TWAP over the seconds right before expiry compared to the strike. For Price Touch, that is whether the rolling TWAP reached the target before the deadline. See [TWAP calculation](/twap-calculation) for the formula and an example of the exact data each node collects.
   </Step>
   <Step title="The nodes must agree">
-    The network compares the nodes' results. A result is accepted only when enough nodes return exactly the same answer. If the data isn't ready yet, a source is unavailable, or the nodes disagree, nothing is written and the check runs again later.
+    The network compares the nodes' results. A result is accepted only when at least 4 of the 10 nodes return exactly the same answer and no other answer reaches 4. If the data isn't ready yet, a source is unavailable, or the nodes disagree, nothing is written and the check runs again later.
   </Step>
   <Step title="The proof is recorded">
     The network signs a report, and Chainlink delivers it to Outcome's proof contract on Arbitrum One. The contract only accepts reports from Outcome's approved CRE workflow, and only one per market.
@@ -87,7 +87,7 @@ The **Resolution Source** link appears once a supported market has ended. If a m
 
 ## What a proof does and doesn't do
 
-- **It confirms the result; it doesn't decide it.** Settlement on Hyperliquid is what pays out your position. The proof is an independent record that the result matches the market's rules.
+- **It confirms the result; it doesn't decide it.** Settlement on Hyperliquid is what pays out your position. The proof is a separate record that the result matches the market's rules.
 - **It checks the calculation, not the price feed.** All nodes read the same recorded HyperCore mark prices through the same data provider. The proof shows that the result was calculated correctly from that data, not that the data came from several independent price sources.
 - **No proof doesn't mean a wrong result.** If the workflow can't confirm a market, for example because data isn't available yet, it writes nothing rather than guess. Your settlement isn't affected.
 
