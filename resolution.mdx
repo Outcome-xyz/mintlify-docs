@@ -14,7 +14,7 @@ All price markets settle on one source: the HyperCore perpetual **<u>mark price<
 
 ### Price Binary
 
-Was the price above the strike at expiry? Outcome takes an X second TWAP that ends at expiry and compares it to the strike. X is set per contract and scales with the contract period. For the 15 minute Up/Down markets, it's 60 seconds.
+Was the price above the strike at expiry? Outcome averages the price over the last X seconds **before** expiry and compares that TWAP to the strike. Nothing after expiry is used. X is set per contract and scales with the contract period. For the 15 minute Up/Down markets, it's the 60 seconds right before expiry.
 
 - TWAP **strictly above** the strike: settles **Yes**.
 - TWAP **at or below** the strike: settles **No**. Landing exactly on the strike is a No.
@@ -27,7 +27,7 @@ Because the touch uses a TWAP, a quick wick that reverts within the same second 
 
 ### Price Scalar
 
-Instead of a straight Yes or No, a scalar market settles to a value inside a range. Each contract has a lower and an upper bound, and Outcome uses the same TWAP at expiry:
+Instead of a straight Yes or No, a scalar market settles to a value inside a range. Each contract has a lower and an upper bound, and Outcome uses the same TWAP over the seconds right before expiry:
 
 - At or below the lower bound: settles at 0.
 - At or above the upper bound: settles at 1.
