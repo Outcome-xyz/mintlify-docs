@@ -1,16 +1,18 @@
 ---
 title: "Settlement proofs: how Chainlink CRE verifies Outcome price markets"
 sidebarTitle: "Settlement proofs"
-description: "How Outcome uses the Chainlink Runtime Environment (CRE) to recheck each settled Price Binary and Price Touch market and record a public proof of the result on Arbitrum One, and how you can look one up."
+description: "How Outcome uses the Chainlink Runtime Environment (CRE) to record a public proof of each settled Price Binary and Price Touch result on Arbitrum One, what the nodes recalculate and what they attest, and how you can look a proof up."
 ---
 
-When an Outcome price market settles, you shouldn't have to take our word for the result. For every settled Price Binary and Price Touch market, a Chainlink network of 10 nodes rechecks the market's rules and price data, recalculates the result, and records a signed proof of it on Arbitrum One. Anyone can look that proof up.
+When an Outcome price market settles, you shouldn't have to take our word for the result. For every settled Price Binary and Price Touch market, a Chainlink network of 10 nodes checks the market and records a signed proof of the result on Arbitrum One. Anyone can look that proof up.
+
+For Price Binary markets, and for Price Touch markets that settle Yes, the nodes recalculate the result from the recorded price data. For Price Touch markets that settle No, the proof records Outcome's attestation that no touch happened; the nodes don't recheck the prices. See [What the nodes check](#what-the-nodes-check).
 
 This page explains what a settlement proof is, how it is produced, and how to check one. It covers Outcome's use of CRE. To learn about CRE itself, see the [Chainlink CRE documentation](https://docs.chain.link/cre/overview).
 
 ## What a settlement proof gives you
 
-- **A separate recheck.** The result is recalculated by Chainlink nodes from the market's published rules and recorded price data. Outcome does not supply the answer.
+- **A separate recheck.** For Price Binary and Price Touch Yes, the result is recalculated by Chainlink nodes from the market's published rules and recorded price data, and Outcome does not supply the answer.
 - **Agreement before anything is recorded.** A proof is written only when at least 4 of the 10 nodes return the exact same result. If they don't, no proof is written.
 - **A permanent public record.** Each proof lives on Arbitrum One, a public blockchain. Once stored, it can't be edited, replaced, or deleted.
 - **One proof per market.** The proof is tied to the market's exact ID. A second proof for the same market is rejected.
@@ -29,13 +31,13 @@ Settlement and the proof are two separate, parallel processes. Outcome settles t
 
 <Steps>
   <Step title="The market settles">
-    Outcome submits the market's settlement on Hyperliquid. At the same time, it sends the CRE workflow one signed request that contains only the market's ID. Outcome doesn't send a price, a result, or any other input.
+    Outcome submits the market's settlement on Hyperliquid. At the same time, it sends the CRE workflow one signed request with the market's ID. For Price Binary, that's all it sends: no price and no result. For Price Touch, it also sends its claim about the market: the time of the touch, that there was no touch, or that the market was delisted.
   </Step>
   <Step title="The nodes verify the market">
     Each node looks up the settled market and checks that it is a genuine Outcome market: it was deployed by an approved Outcome deployer, and it uses a reviewed, approved market template. The strike, dates, and calculation rules all come from that verified market record.
   </Step>
   <Step title="The nodes recalculate the result">
-    Each node fetches the recorded HyperCore mark prices for the market's window and recalculates the result with the same rules described in [Resolution](/resolution). For Price Binary, that is the TWAP over the seconds right before expiry compared to the strike. For Price Touch, that is whether the rolling TWAP reached the target before the deadline. See [TWAP calculation](/twap-calculation) for the formula and an example of the exact data each node collects.
+    Each node fetches the recorded HyperCore mark prices and recalculates the result with the same rules described in [Resolution](/resolution). For Price Binary, that is the TWAP over the seconds right before expiry compared to the strike. For a Price Touch Yes, that is the rolling TWAP around the claimed touch time, which must reach the target. A Price Touch No is the exception: see [What the nodes check](#what-the-nodes-check). See [TWAP calculation](/twap-calculation) for the formula and an example of the exact data each node collects.
   </Step>
   <Step title="The nodes must agree">
     The network compares the nodes' results. A result is accepted only when at least 4 of the 10 nodes return exactly the same answer and no other answer reaches 4. If the data isn't ready yet, a source is unavailable, or the nodes disagree, nothing is written and the check runs again later.
@@ -47,6 +49,25 @@ Settlement and the proof are two separate, parallel processes. Outcome settles t
 
 Settlement data usually takes a few minutes to become available after a market settles, so a proof typically appears a few minutes later.
 
+## What the nodes check
+
+Not every result is checked the same way. Proving that a price never touched a target means reading every price over a market's whole life, which can be weeks, and that doesn't fit in one CRE run today. So for Price Touch, the nodes check Outcome's claim rather than searching the full history themselves.
+
+| Market and result | What the nodes check | What the proof means |
+| --- | --- | --- |
+| Price Binary, Yes or No | The market record, the mark prices in the TWAP window, and the TWAP against the strike | The nodes recalculated the result |
+| Price Touch, Yes | The market record, the mark prices around the claimed touch time, and the rolling TWAP against the target | The nodes confirmed the touch |
+| Price Touch, No (no touch) | The market record, and that the deadline has passed | Outcome attests that no touch happened. The nodes don't recheck the prices |
+| Price Touch, No (delisted) | The market record, and that Hyperliquid lists the underlying as delisted | The nodes confirmed the delisting, not when it happened |
+
+In every case, the nodes confirm the market is a genuine Outcome market with approved rules, and only one proof can ever be recorded for it.
+
+You can tell an attested Price Touch No from a recalculated result in the proof itself: it records zero price observations and no touch time.
+
+<Note>
+We're working on letting the nodes verify Price Touch No results from price data too. This page will be updated when that ships.
+</Note>
+
 ## What's in a proof
 
 Each proof records:
@@ -57,7 +78,7 @@ Each proof records:
 | Market type | Price Binary or Price Touch. |
 | Result | Yes or No. |
 | Settlement price | For Price Binary, the exact calculated TWAP. For Price Touch, the target price. |
-| Settlement time | When the price used for the result was observed. |
+| Settlement time | When the price used for the result was observed. For a Price Touch No, the deadline. |
 | Recorded at | When the proof was written to Arbitrum One. |
 | Rules fingerprint | A hash of the market's rules, so the rules can't be swapped after the fact. |
 | Evidence fingerprint | A hash of the exact market record and price data the nodes used, so anyone with the same data can reproduce the result. |
@@ -88,6 +109,7 @@ The **Resolution Source** link appears once a supported market has ended. If a m
 ## What a proof does and doesn't do
 
 - **It confirms the result; it doesn't decide it.** Settlement on Hyperliquid is what pays out your position. The proof is a separate record that the result matches the market's rules.
+- **A Price Touch No is attested, not recalculated.** For that one case, the proof records Outcome's word that no touch happened, checked against the market record and the deadline only. See [What the nodes check](#what-the-nodes-check).
 - **It checks the calculation, not the price feed.** All nodes read the same recorded HyperCore mark prices through the same data provider. The proof shows that the result was calculated correctly from that data, not that the data came from several independent price sources.
 - **No proof doesn't mean a wrong result.** If the workflow can't confirm a market, for example because data isn't available yet, it writes nothing rather than guess. Your settlement isn't affected.
 
