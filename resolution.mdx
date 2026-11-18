@@ -14,7 +14,7 @@ All price markets settle on one source: the HyperCore perpetual **<u>mark price<
 
 ### Price Binary
 
-Was the price above the strike at expiry? Outcome takes an X second TWAP that ends at expiry and compares it to the strike. X is set per contract and scales with the contract period.
+Was the price above the strike at expiry? Outcome takes an X second TWAP that ends at expiry and compares it to the strike. X is set per contract and scales with the contract period. For the 15 minute Up/Down markets, it's 60 seconds.
 
 - TWAP **strictly above** the strike: settles **Yes**.
 - TWAP **at or below** the strike: settles **No**. Landing exactly on the strike is a No.

@@ -29,10 +29,10 @@ The fields:
 - `class`: the market type (`priceBinary` for binary price markets).
 - `underlying`: the underlying asset (e.g., BTC).
 - `expiry`: the settlement timestamp.
-- `targetPrice`: the price the underlying must be strictly above for the YES outcome to settle to 1.
+- `targetPrice`: the price the underlying must reach or exceed for the YES outcome to settle to 1.
 - `period`: the recurrence cadence (e.g., 1d for daily).
 
-The contract settles to YES only if the underlying's settlement price is strictly above the target price. A settlement price equal to or below the target settles to NO. The settlement price is computed using linear interpolation between the mark price updates immediately before and immediately after the settlement timestamp:
+The contract settles to YES if the underlying's settlement price is at or above the target price. The settlement price is computed using linear interpolation between the mark price updates immediately before and immediately after the settlement timestamp:
 
 $$
 \text{settlement price} = \text{markPrice}_0 + \frac{\text{settlementTime} - t_0}{t_1 - t_0} \times (\text{markPrice}_1 - \text{markPrice}_0)
@@ -40,7 +40,7 @@ $$
 
 Where $t_0$ and $t_1$ are the timestamps of the mark price updates immediately before and after the settlement time.
 
-Outcome's own Price Binary markets, such as the 15 minute Up/Down markets, settle differently: they compare a TWAP that ends at expiry against the strike, using the same strictly above rule. See [Resolution](/resolution) and [TWAP calculation](/twap-calculation).
+Outcome's own Price Binary markets, such as the 15 minute Up/Down markets, settle differently: Outcome settles them itself, comparing a TWAP that ends at expiry against the strike, and they settle YES only when the TWAP is strictly above it (a tie settles NO). See [Resolution](/resolution) and [TWAP calculation](/twap-calculation).
 
 ### Multi-outcome markets
 
