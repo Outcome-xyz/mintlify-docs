@@ -18,7 +18,7 @@ The choice between YES/NO and UP/DOWN framing is about clarity for the user. UP/
 
 ### Binary market specification
 
-For price-based binary markets, the contract specification follows the format:
+This section covers Hyperliquid's recurring price markets, such as the daily Up/Down markets. For these, the contract specification follows the format:
 
 ```text
 class:priceBinary|underlying:BTC|expiry:20260503-0600|targetPrice:78213|period:1d
@@ -39,6 +39,8 @@ $$
 $$
 
 Where $t_0$ and $t_1$ are the timestamps of the mark price updates immediately before and after the settlement time.
+
+Outcome's own Price Binary markets, such as the 15 minute Up/Down markets, settle differently: they compare a TWAP that ends at expiry against the strike, using the same strictly above rule. See [Resolution](/resolution) and [TWAP calculation](/twap-calculation).
 
 ### Multi-outcome markets
 
