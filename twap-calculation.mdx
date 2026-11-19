@@ -26,6 +26,7 @@ A few details that matter:
 - **The price going in counts.** The first price used is the last mark price at or before `a`, as long as it's no more than 10 minutes old.
 - **Mark price only.** Every market uses the HyperCore perpetual **mark price** (`markPx`) for its underlying. Never the oracle price, spot price, or an exchange close.
 - **Exact math.** Prices are converted to exact fractions and calculated with whole numbers, so there's no floating-point rounding and every node gets the same answer to the last digit.
+- **The window is set per contract.** Each contract's rules state its TWAP window, and new contracts may use a different one. Check the rules of the market you're trading. The examples below use the current windows for the 15 minute Up/Down and Hit Price markets.
 
 <Note>
 All times are in UTC.
@@ -40,30 +41,30 @@ Take this market:
 ```text
 Underlying:    BTC perpetual on HyperCore
 Strike:        100,000
-TWAP window:   1 second
+TWAP window:   60 seconds
 Expiry:        2026-10-01 00:00:00 UTC
-Window:        [23:59:59.000, 00:00:00.000)
+Window:        [23:59:00.000, 00:00:00.000)
 ```
 
 These are the mark prices inside the window:
 
 | Time into the window | Mark price | What happens |
 | ---: | ---: | --- |
-| 0 ms | 99,900 | Price at the start of the window |
-| 250 ms | 100,100 | Price ticks up |
-| 1,000 ms | 99,800 | Arrives exactly at expiry, so it has zero weight |
+| 0 s | 99,900 | Price at the start of the window |
+| 15 s | 100,100 | Price ticks up |
+| 60 s | 99,800 | Arrives exactly at expiry, so it has zero weight |
 
 Now weight each price by how long it was active:
 
 | Segment | Price | Time active | Price × time |
 | --- | ---: | ---: | ---: |
-| 0 to 250 ms | 99,900 | 250 ms | 24,975,000 |
-| 250 to 1,000 ms | 100,100 | 750 ms | 75,075,000 |
-| At 1,000 ms | 99,800 | 0 ms | 0 |
+| 0 to 15 s | 99,900 | 15 s | 1,498,500 |
+| 15 to 60 s | 100,100 | 45 s | 4,504,500 |
+| At 60 s | 99,800 | 0 s | 0 |
 
 ```text
-TWAP = (99,900 × 250 + 100,100 × 750) / 1,000
-     = 100,050,000 / 1,000
+TWAP = (99,900 × 15 + 100,100 × 45) / 60
+     = 6,003,000 / 60
      = 100,050
 ```
 
@@ -90,20 +91,20 @@ Take this market:
 ```text
 Underlying:       xyz:SP500 perpetual on HyperCore
 Target:           7,700
-Rolling window:   60 seconds
+Rolling window:   3 seconds
 ```
 
-Say the mark price was 7,680 for the minute before the market was registered. Right at registration it jumps to 7,720 and stays there. As the window slides forward, more of it is filled by the new price:
+Say the mark price was 7,680 for the 3 seconds before the market was registered. Right at registration it jumps to 7,720 and stays there. As the window slides forward, more of it is filled by the new price:
 
 | Seconds after registration | Calculation | Rolling TWAP |
 | ---: | --- | ---: |
-| 0 | (7,680 × 60) / 60 | 7,680 |
-| 15 | (7,680 × 45 + 7,720 × 15) / 60 | 7,690 |
-| 30 | (7,680 × 30 + 7,720 × 30) / 60 | **7,700** |
-| 45 | (7,680 × 15 + 7,720 × 45) / 60 | 7,710 |
-| 60 | (7,720 × 60) / 60 | 7,720 |
+| 0 | (7,680 × 3) / 3 | 7,680 |
+| 0.75 | (7,680 × 2.25 + 7,720 × 0.75) / 3 | 7,690 |
+| 1.5 | (7,680 × 1.5 + 7,720 × 1.5) / 3 | **7,700** |
+| 2.25 | (7,680 × 0.75 + 7,720 × 2.25) / 3 | 7,710 |
+| 3 | (7,720 × 3) / 3 | 7,720 |
 
-At 30 seconds the rolling TWAP reaches 7,700, so the market settles **Yes**. The mark price itself never printed 7,700. What counts is the rolling average, and the exact crossing moment is solved precisely, even when it falls between two price updates.
+At 1.5 seconds the rolling TWAP reaches 7,700, so the market settles **Yes**. The mark price itself never printed 7,700. What counts is the rolling average, and the exact crossing moment is solved precisely, even when it falls between two price updates.
 
 The boundary rules:
 
@@ -126,9 +127,9 @@ When a market settles, every Chainlink node in the network does this work on its
 
 ```json
 [
-  { "time": 1790812799000, "blockNumber": 1130393771, "coin": "BTC", "dex": "hyperliquid", "markPx": "99900" },
-  { "time": 1790812799250, "blockNumber": 1130393772, "coin": "BTC", "dex": "hyperliquid", "markPx": "100100" },
-  { "time": 1790812800000, "blockNumber": 1130393775, "coin": "BTC", "dex": "hyperliquid", "markPx": "99800" }
+  { "time": 1790812740000, "blockNumber": 1130393771, "coin": "BTC", "dex": "hyperliquid", "markPx": "99900" },
+  { "time": 1790812755000, "blockNumber": 1130393990, "coin": "BTC", "dex": "hyperliquid", "markPx": "100100" },
+  { "time": 1790812800000, "blockNumber": 1130394860, "coin": "BTC", "dex": "hyperliquid", "markPx": "99800" }
 ]
 ```
 
@@ -143,7 +144,7 @@ When a market settles, every Chainlink node in the network does this work on its
   "calculationType": "BINARY_PRICE",
   "outcome": "YES",
   "settlementPrice": "100050",
-  "windowStart": "2026-09-30T23:59:59.000Z",
+  "windowStart": "2026-09-30T23:59:00.000Z",
   "windowEnd": "2026-10-01T00:00:00.000Z",
   "observationCount": 3,
   "specHash": "0x95c0…0d71",

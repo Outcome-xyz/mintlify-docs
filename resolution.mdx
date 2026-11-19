@@ -14,24 +14,20 @@ All price markets settle on one source: the HyperCore perpetual **<u>mark price<
 
 ### Price Binary
 
-Was the price above the strike at expiry? Outcome averages the price over the last X seconds **before** expiry and compares that TWAP to the strike. Nothing after expiry is used. X is set per contract and scales with the contract period. For the 15 minute Up/Down markets, it's the 60 seconds right before expiry.
+Was the price above the strike at expiry? Outcome averages the price over a short window that ends at expiry, and compares that TWAP to the strike. Only the seconds **before** expiry count; nothing after expiry is used. Each contract's rules state its window. For example, the 15 minute Up/Down markets use the 60 seconds right before expiry.
 
 - TWAP **strictly above** the strike: settles **Yes**.
 - TWAP **at or below** the strike: settles **No**. Landing exactly on the strike is a No.
 
 ### Price Touch
 
-Did the price ever reach the strike while the market was open? Outcome watches a rolling 1 second TWAP of the underlying rather than raw prints. A touch registers when that TWAP trades at or through the strike. Once it does, the contract settles Yes right away and stays Yes, wherever the price goes next. If the TWAP never gets there before expiry, it settles No.
+Did the price ever reach the strike while the market was open? Outcome watches a rolling TWAP of the underlying rather than raw prints. Each contract's rules state the rolling window; Hit Price markets currently use 3 seconds. A touch registers when that TWAP trades at or through the strike. Once it does, the contract settles Yes right away and stays Yes, wherever the price goes next. If the TWAP never gets there before expiry, it settles No.
 
-Because the touch uses a TWAP, a quick wick that reverts within the same second won't necessarily count. What matters is whether the average across that second clears the strike, not whether any single print did.
+Because the touch uses a TWAP, a quick wick that reverts within a few seconds won't necessarily count. What matters is whether the average across the rolling window clears the strike, not whether any single print did.
 
-### Price Scalar
+### Price Range
 
-Instead of a straight Yes or No, a scalar market settles to a value inside a range. Each contract has a lower and an upper bound, and Outcome uses the same TWAP over the seconds right before expiry:
-
-- At or below the lower bound: settles at 0.
-- At or above the upper bound: settles at 1.
-- Anywhere in between: settles proportionally along the range.
+Price Range markets, where each outcome is a price bucket, aren't deployed by Outcome. Hyperliquid deploys and settles them under its own rules, so they don't have an Outcome settlement proof. See [Market types](/market-types).
 
 <Note>
 Resolution is currently in Beta. Markets settle with a short buffer while we check the data against the official sources listed in the rules. Once Outcome exits Beta, deployment and settlement will be fully automated, so markets deploy and resolve near instantly.
