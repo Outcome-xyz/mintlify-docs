@@ -1,0 +1,93 @@
+---
+title: "How deposits work: from any wallet, exchange or card to USDC on Hyperliquid"
+sidebarTitle: "How deposits work"
+description: "What happens behind the scenes when you deposit on Outcome: routing, quotes, deposit addresses, fees, the activation fee, and compliance checks."
+---
+
+For the steps to make a deposit, see [Funding your account](/funding-your-account). This page explains what happens in between.
+
+### The short version
+
+Outcome trades in USDC on [Hyperliquid](/outcome-and-hyperliquid). Most people don't hold USDC on Hyperliquid, so a deposit has to turn whatever you pay with into USDC and move it there. Outcome uses [fun.xyz](https://fun.xyz) for this. In one step, fun.xyz:
+
+1. takes your payment (a token in your wallet, a transfer to your deposit address, an exchange withdrawal, or a card or bank payment),
+2. swaps it to USDC if it isn't USDC already,
+3. bridges it from the chain it started on to Hyperliquid, and
+4. delivers it to your own account.
+
+You don't need to bridge, swap or buy USDC yourself first.
+
+### Your funds go straight to your account
+
+Deposits are delivered to your wallet's account on Hyperliquid, which the deposit window calls **Your Outcome account**. Outcome never holds your funds along the way, and neither does fun.xyz once the deposit lands. Your balance belongs to your wallet, and you can see and use it from any app built on Hyperliquid.
+
+Outcome counts a deposit as done only when the USDC has actually arrived in your account, not when the payment is sent. That's when you see **Funds received**.
+
+### Routing
+
+To move funds between chains, fun.xyz uses established bridging and swap providers. It compares routes for each deposit and picks one based on cost and speed. The route can change from one deposit to the next, and the quote reflects the route chosen.
+
+Very large deposits may be split and delivered in more than one transfer, to limit price impact. Your full amount still arrives.
+
+### Quotes
+
+**Paying from a wallet or exchange.** You see an exact quote: what you send and the USDC you receive. It's valid for a short time; when the timer runs out, the window fetches a new one.
+
+**Transferring to your deposit address.** The transfer happens in your own wallet or exchange, so the final amount is worked out when your funds arrive, at that moment's rates. The window shows an estimate.
+
+Prices can move between the quote and the moment your deposit is processed, especially for volatile tokens and large amounts. The window shows the slippage allowed for your deposit.
+
+### Your deposit address
+
+Your deposit address is permanent and personal: the same address every time, linked to your account. There's one address per network type: one for EVM chains (Ethereum, Base, Arbitrum and others), and one each for Solana, Bitcoin and Tron. Funds sent there from any wallet or exchange are converted and delivered to your account automatically.
+
+A few things to know:
+
+- Send only supported tokens on the network shown with the address. Sending to the address of another network type can't be undone.
+- A transfer below the minimum waits at the address until a top-up to the same address brings the total above it.
+- You don't need to keep the deposit window open. Funds sent later are still delivered.
+
+### Spot and perps balances
+
+Hyperliquid accounts can keep two balances, spot and perps. Most Outcome accounts use a single combined balance, so it doesn't matter where USDC lands: it's all available to trade. If your Hyperliquid account keeps the two separate, Outcome sends your deposit to the balance your Outcome trades use. You don't need to move anything yourself.
+
+### The one-time activation fee
+
+Hyperliquid charges a one-time fee of 1 USDC the first time a new account is used. This fee goes to Hyperliquid, not to Outcome or fun.xyz, and only applies to accounts that have never been used on Hyperliquid. Depending on the route, it's taken from your first deposit (so you receive 1 USDC less, once) or from your first withdrawal.
+
+<Note>
+**Right now, some first deposits pay this fee.** Some first deposits into a new Hyperliquid account currently have Hyperliquid's 1 USDC fee taken from them, so they arrive 1 USDC less than expected. We're working on a fix. If this happened to your deposit, contact us on [Discord](https://discord.com/invite/outcome) or through [Outcome support](/support) and we'll refund the 1 USDC.
+</Note>
+
+### Fees
+
+Deposit costs come out of the amount you send, and all of them are shown before you confirm. Outcome doesn't charge a deposit fee of its own. The costs are:
+
+- **Swap and bridge costs**, including any price impact.
+- **Network fees** on the chain you pay from.
+- **Payment fees** for card and bank payments, charged by the payment processor. Card payments usually cost more than bank transfers or crypto.
+- **The activation fee**, once, for a brand-new Hyperliquid account.
+
+Trading fees are separate. See [Fees](/fees).
+
+### Card and bank payments
+
+Card, Apple Pay, Google Pay, bank transfer and local payment method deposits are processed by [Swapped](https://swapped.com). The methods you see depend on your country, device and currency, which are detected automatically. Two costs apply: a payment fee (a percentage, plus a small flat fee for cards) and a currency conversion spread set by the payment provider. Both are included in the quote. Before your first payment you register with basic details (name, date of birth, address). Depending on your country and how much you buy, you may also be asked to verify your identity. In the European Economic Area, full verification happens at registration. These checks happen inside the payment window, and Outcome doesn't see or store your details. Your registration, verification and saved payment methods carry over to other apps that use fun.xyz, so you don't repeat them.
+
+### Compliance checks
+
+fun.xyz screens every deposit for sanctions and anti-money-laundering risk, including with Chainalysis, both when you connect a wallet and for each transaction. A flagged deposit is held while it's reviewed, usually from the same day to 48 hours, and fun.xyz support keeps you updated. The review ends one of three ways:
+
+- **Cleared.** The deposit completes as normal.
+- **Returned.** The most common outcome when a deposit doesn't pass. It's returned in its original form to a wallet you control, after you confirm ownership by sending it a tiny amount.
+- **Frozen.** Rare. Funds tied to sanctioned entities or theft are reported to the US Treasury's Office of Foreign Assets Control (OFAC) and not returned.
+
+Deposits aren't available in regions where Outcome is restricted (see [Risks](/risks#geographic-restrictions)), and fun.xyz blocks some additional countries.
+
+### Withdrawals
+
+Withdrawals don't go through fun.xyz. See [Withdrawing funds](/withdrawing-funds).
+
+### Getting help
+
+fun.xyz's support team handles deposit and payment issues around the clock. Click **Get help** in the deposit window, or visit [fun.xyz support](https://intercom.help/funxyz/en/articles/10732578-contact-us). For card and bank payments, you can also contact [Swapped support](https://swapped.com/support) directly. For anything else, including a deposit that shows as complete but isn't in your balance, contact [Outcome support](/support).
