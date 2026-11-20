@@ -4,7 +4,7 @@ sidebarTitle: "TWAP calculation"
 description: "The time-weighted average price (TWAP) formula behind Price Binary and Price Touch markets, with worked examples and the exact price data each Chainlink node collects to check a result."
 ---
 
-Price markets on Outcome don't settle on a single price print. They settle on a **TWAP**, a time-weighted average price. This page walks through the formula, shows two worked examples, and shows exactly what data each Chainlink node pulls when it rechecks a result for a [settlement proof](/settlement-proofs).
+Price markets that Outcome deploys don't settle on a single price print. They settle on a **TWAP**, a time-weighted average price. Markets that Hyperliquid deploys and settles, such as its daily Up/Down and Price Range markets, use Hyperliquid's own method instead (see [Market types](/market-types)). This page walks through the formula, shows two worked examples, and shows exactly what data each Chainlink node pulls when it rechecks a result for a [settlement proof](/settlement-proofs).
 
 ## Why a TWAP and not the last price
 
