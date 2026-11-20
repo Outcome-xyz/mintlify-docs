@@ -1,95 +1,83 @@
 ---
-title: "Settlement proofs: how Chainlink CRE verifies Outcome price markets"
+title: "Settlement proofs: how Chainlink CRE checks Outcome price markets"
 sidebarTitle: "Settlement proofs"
-description: "How Outcome uses the Chainlink Runtime Environment (CRE) to independently recheck each settled Price Binary and Price Touch market and record a public proof of the result on Arbitrum One, and how you can look one up."
+description: "How Outcome uses the Chainlink Runtime Environment (CRE) to check settled Price Binary and Price Touch markets and record a public proof of each result on Arbitrum One, and how to see that proof on a market."
 ---
 
-When an Outcome price market settles, you shouldn't have to take our word for the result. For every settled Price Binary and Price Touch market, a network of independent Chainlink nodes rechecks the market's rules and price data, recalculates the result, and records a signed proof of it on Arbitrum One. Anyone can look that proof up.
+When an Outcome price market settles, you shouldn't have to take our word for the result. A network of Chainlink computers checks it against the market's rules and records a proof on Arbitrum One, a public blockchain. Anyone can look it up, and nobody can change it afterwards.
 
-This page explains what a settlement proof is, how it is produced, and how to check one. It covers Outcome's use of CRE. To learn about CRE itself, see the [Chainlink CRE documentation](https://docs.chain.link/cre/overview).
-
-## What a settlement proof gives you
-
-- **An independent recheck.** The result is recalculated by Chainlink nodes from the market's published rules and recorded price data. Outcome does not supply the answer.
-- **Agreement before anything is recorded.** A proof is written only when the nodes reach the same result. If they don't, no proof is written.
-- **A permanent public record.** Each proof lives on Arbitrum One, a public blockchain. Once stored, it can't be edited, replaced, or deleted.
-- **One proof per market.** The proof is tied to the market's exact ID. A second proof for the same market is rejected.
+Settlement proofs cover the two price market types Outcome deploys: **Price Binary** (including Up/Down markets) and **Price Touch** (Hit Price markets).
 
 ## What Chainlink CRE is
 
-The [Chainlink Runtime Environment (CRE)](https://docs.chain.link/cre/key-terms#chainlink-runtime-environment-cre) runs programs called [workflows](https://docs.chain.link/cre/key-terms#workflow) on a [Decentralized Oracle Network (DON)](https://docs.chain.link/cre/key-terms#decentralized-oracle-network-don), a group of independent Chainlink nodes. In Chainlink's words, each node "performs the requested task independently", and their results are "cryptographically verified and aggregated via a Byzantine Fault Tolerant (BFT) consensus protocol."
+The [Chainlink Runtime Environment (CRE)](https://docs.chain.link/cre/key-terms#chainlink-runtime-environment-cre) runs small programs, called [workflows](https://docs.chain.link/cre/key-terms#workflow), on a [Decentralized Oracle Network (DON)](https://docs.chain.link/cre/key-terms#decentralized-oracle-network-don): a group of computers called **nodes**. Every node runs the same program and gets its own copy of the data, and the network only accepts an answer that enough nodes agree on.
 
-In practice, this means no single server or company decides the result. Many nodes do the same work separately and must agree before a result is accepted. Read more in Chainlink's [consensus computing](https://docs.chain.link/cre/concepts/consensus-computing) guide.
+Outcome's workflow runs on 10 nodes. A result needs at least 4 of them to come back with exactly the same answer, so one node with bad data or a bug can't produce a proof on its own.
 
-Outcome runs one CRE workflow for price markets. It is started by an [HTTP trigger](https://docs.chain.link/cre/guides/workflow/using-triggers/http-trigger/overview) when a market settles and writes its result to the blockchain using CRE's [onchain write](https://docs.chain.link/cre/guides/workflow/using-evm-client/onchain-write/overview) capability.
+## How a proof is made
 
-## How a proof is produced
-
-Settlement and the proof are two separate, parallel processes. Outcome settles the market on Hyperliquid through HIP-4, as described in [Resolution and settlement](/resolution-and-settlement). At the same time, Outcome asks the CRE workflow to check that market. The proof never delays, changes, or blocks your payout.
+Settlement and the proof run side by side. Your market settles on Hyperliquid as usual (see [Resolution and settlement](/resolution-and-settlement)), and the proof never delays or changes your payout.
 
 <Steps>
   <Step title="The market settles">
-    Outcome submits the market's settlement on Hyperliquid. At the same time, it sends the CRE workflow one signed request that contains only the market's ID. Outcome doesn't send a price, a result, or any other input.
+    Outcome settles the market on Hyperliquid and asks the CRE workflow to check it. For a Price Binary market, Outcome sends only the market's ID: no price and no result. For a Price Touch market, it also sends what it found: when the touch happened, or that there was none.
   </Step>
-  <Step title="The nodes verify the market">
-    Each node looks up the settled market and checks that it is a genuine Outcome market: it was deployed by an approved Outcome deployer, and it uses a reviewed, approved market template. The strike, dates, and calculation rules all come from that verified market record.
+  <Step title="Each node looks up the market and the prices">
+    Each node reads the market's rules (strike, expiry, TWAP window) from the market's own record and confirms it's a genuine Outcome market. Then it fetches the recorded HyperCore mark prices from Hydromancer, a Hyperliquid data service.
+
+    All nodes use that same price source. So the proof shows the result was **calculated correctly from the recorded prices**. It doesn't show that several independent sources agreed on the price.
   </Step>
-  <Step title="The nodes recalculate the result">
-    Each node fetches the recorded HyperCore mark prices for the market's window and recalculates the result with the same rules described in [Resolution](/resolution). For Price Binary, that is the TWAP after expiry compared to the strike. For Price Touch, that is whether the TWAP reached the target before the deadline.
+  <Step title="Each node works out the result">
+    For **Price Binary**, the node calculates the TWAP over the seconds before expiry and compares it to the strike. For a **Price Touch Yes**, it recalculates the rolling TWAP around the reported touch and checks that it reached the target. A **Price Touch No** isn't recalculated yet: see [What gets checked](#what-gets-checked).
+
+    [TWAP calculation](/twap-calculation) walks through the math with an example.
   </Step>
-  <Step title="The nodes must agree">
-    The network compares the nodes' results. A result is accepted only when enough nodes return exactly the same answer. If the data isn't ready yet, a source is unavailable, or the nodes disagree, nothing is written and the check runs again later.
+  <Step title="The nodes compare answers">
+    Each node's answer is a complete record: the result, the settlement price, the time window, and fingerprints of the rules and price data it used. The network accepts it only when at least 4 nodes return **exactly** the same record, every field included, and no other record gets 4.
+
+    If the prices aren't available yet or the nodes don't match, nothing is recorded and the check runs again later. A missing proof means the check hasn't finished, not that the result was wrong. Your settlement isn't affected either way.
   </Step>
   <Step title="The proof is recorded">
-    The network signs a report, and Chainlink delivers it to Outcome's proof contract on Arbitrum One. The contract only accepts reports from Outcome's approved CRE workflow, and only one per market.
+    The network signs the agreed record, and Chainlink saves it to Outcome's proof contract on Arbitrum One. The contract only accepts records from Outcome's approved workflow, and only one per market. A proof usually appears a few minutes after the market settles.
   </Step>
 </Steps>
 
-Settlement data usually takes a few minutes to become available after a market settles, so a proof typically appears a few minutes later.
+## What gets checked
+
+| Market and result | What the nodes check |
+| --- | --- |
+| Price Binary, either side | Recalculate the TWAP from the recorded prices and compare it to the strike |
+| Price Touch, Yes | Recalculate the rolling TWAP around the reported touch and confirm it reached the target |
+| Price Touch, No | Confirm the market is genuine and the deadline has passed. The prices aren't rechecked: the proof records Outcome's statement that no touch happened |
+
+Checking that a price **never** reached a target means reading every price over a market's whole life, which can be weeks. That doesn't fit in one CRE run today, so for now a Price Touch No is Outcome's word, recorded publicly. We're working on having the nodes check it from the prices too.
+
+## See a proof
+
+On a settled Price Binary or Price Touch market on [outcome.xyz](https://outcome.xyz), open **Settlement Proof** under the market's rules. On mobile, it's a row below the rules.
+
+The popup has two tabs:
+
+- **Calculations** shows the result, the settlement rule, the TWAP window, and the exact TWAP or touch time.
+- **Proof details** shows the proof's identifiers and fingerprints, with a link to the **Settlement transaction** on [Arbiscan](https://arbiscan.io), Arbitrum's public block explorer. Follow it to see the proof on the blockchain itself, without relying on Outcome.
 
 ## What's in a proof
 
-Each proof records:
-
 | Field | What it means |
 | --- | --- |
-| Market ID | The HIP-4 ID of the settled market. |
+| Outcome | The side the market settled on: Yes or No, shown with the market's own labels (for example Up or Down). |
 | Market type | Price Binary or Price Touch. |
-| Result | Yes or No. |
-| Settlement price | For Price Binary, the exact calculated TWAP. For Price Touch, the target price. |
-| Settlement time | When the price used for the result was observed. |
-| Recorded at | When the proof was written to Arbitrum One. |
-| Rules fingerprint | A hash of the market's rules, so the rules can't be swapped after the fact. |
-| Evidence fingerprint | A hash of the exact market record and price data the nodes used, so anyone with the same data can reproduce the result. |
-| Workflow ID | The CRE workflow that produced the proof. |
-
-## Check a proof yourself
-
-<Steps>
-  <Step title="Open a settled price market">
-    Go to a settled Price Binary or Price Touch market on [outcome.xyz](https://outcome.xyz).
-  </Step>
-  <Step title="Open the resolution source">
-    In the market's rules, select **Resolution Source**. On mobile, it is in the rules links. This opens the market's proof on the [Outcome proof explorer](https://proof-explorer.outcome.xyz).
-  </Step>
-  <Step title="Compare the result">
-    The proof explorer shows the proof recorded for that market. Check that its result matches the result shown on the market page.
-  </Step>
-</Steps>
-
-Because the proof is stored on a public blockchain, you don't have to rely on the proof explorer. You can read it directly from the proof contract on [Arbiscan](https://arbiscan.io), the Arbitrum One block explorer, using the market's ID.
+| Settlement price | For Price Binary, the exact TWAP that was compared to the strike. For Price Touch, the target price. A Yes means the TWAP reached it: on "Will HYPE hit $80 by the end of November?", a 3 second TWAP at or above 80.000 settles Yes, and a target that's never reached settles No. |
+| Settlement time | When the price used for the result was observed. For a Price Touch No, the deadline. |
+| Rules fingerprint | A hash of the market's rules, so they can't be swapped after the fact. |
+| Evidence fingerprint | A hash of the exact market record and prices the nodes used, so anyone with the same data can reproduce the result. |
+| Workflow | The CRE workflow that produced the proof. |
 
 ## Which markets have proofs
 
-Settlement proofs cover two price market types deployed by Outcome: **Price Binary** and **Price Touch**. Other price market types, such as Price Scalar and Price Range, and markets that settle on real-world events, such as sports or economic data, don't have CRE proofs yet. See [Real-world events](/real-world-events) for how those resolve.
-
-The **Resolution Source** link appears once a supported market has ended. If a market has just settled, its proof can take a few minutes to appear.
-
-## What a proof does and doesn't do
-
-- **It confirms the result; it doesn't decide it.** Settlement on Hyperliquid is what pays out your position. The proof is an independent record that the result matches the market's rules.
-- **It checks the calculation, not the price feed.** All nodes read the same recorded HyperCore mark prices through the same data provider. The proof shows that the result was calculated correctly from that data, not that the data came from several independent price sources.
-- **No proof doesn't mean a wrong result.** If the workflow can't confirm a market, for example because data isn't available yet, it writes nothing rather than guess. Your settlement isn't affected.
+- **Price Binary** and **Price Touch** markets that Outcome deploys.
+- Not **Price Range** markets: Hyperliquid deploys and settles those, so they have no Outcome proof.
+- Not yet **real-world event** markets, such as sports or economic data. See [Real-world events](/real-world-events) for how those resolve.
 
 ## Learn more
 
@@ -97,13 +85,13 @@ The **Resolution Source** link appears once a supported market has ended. If a m
   <Card title="Resolution" icon="scale" href="/resolution">
     How each price market type resolves.
   </Card>
-  <Card title="Resolution and settlement" icon="circle-check" href="/resolution-and-settlement">
-    What happens to your positions when a market settles.
+  <Card title="TWAP calculation" icon="calculator" href="/twap-calculation">
+    The formula, with worked examples.
   </Card>
   <Card title="About Chainlink CRE" icon="link" href="https://docs.chain.link/cre/overview">
-    Chainlink's overview of the runtime that produces Outcome's proofs.
+    Chainlink's overview of the runtime behind Outcome's proofs.
   </Card>
   <Card title="Key terms and concepts" icon="book-open" href="https://docs.chain.link/cre/key-terms">
-    Workflows, triggers, capabilities, and DONs explained by Chainlink.
+    Workflows, triggers, and DONs explained by Chainlink.
   </Card>
 </CardGroup>

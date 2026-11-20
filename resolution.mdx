@@ -2,31 +2,40 @@
 sidebarTitle: "Overview"
 ---
 
-Outcome runs a proprietary resolution system, developed in collaboration with established oracle and resolution partners. Every settled Price Binary and Price Touch market is also independently rechecked by a network of Chainlink nodes, which records a public proof of the result on Arbitrum One. See [Settlement proofs](/settlement-proofs).
+Every market on Outcome ends with an answer. Here's how we get to it.
 
-For real-world events, the aim during mainnet rollout is to resolve within 4 hours of official settlement against authoritative sources, with the target of bringing this down to seconds over time.
+Outcome runs its own resolution system, built with established oracle and resolution partners. And you don't have to take our word for it: every settled Price Binary and Price Touch market gets a public proof on Arbitrum One, recorded by a Chainlink network of 10 nodes. The nodes recalculate Price Binary results and Price Touch Yes results from price data. A Price Touch No is recorded as Outcome's attestation for now. See [Settlement proofs](/settlement-proofs).
+
+For real-world events, the goal during mainnet rollout is to resolve within 4 hours of the official result from authoritative sources, and to bring that down to seconds over time.
+
+## Price markets
+
+Price markets that Outcome deploys settle on one source: the HyperCore perpetual **<u>mark price</u>** for the market's underlying. Instead of a single price print, they use a **TWAP** (time-weighted average price), so one stray trade can't swing the result. Markets that Hyperliquid deploys and settles, such as its daily Up/Down and Price Range markets, follow Hyperliquid's own rules instead (see [Market types](/market-types)). Want the math? [TWAP calculation](/twap-calculation) walks through it with real numbers.
 
 ### Price Binary
 
-Resolves on the price at expiry. Outcome takes an X second TWAP immediately after expiry and compares it to the strike, where X is set per contract and scales with the contract period. Settles Yes if the TWAP is at or above the strike, No otherwise.
+Was the price above the strike at expiry? Outcome averages the price over a short window that ends at expiry, and compares that TWAP to the strike. Only the seconds **before** expiry count; nothing after expiry is used. Each contract's rules state its window. For example, the 15 minute Up/Down markets use the 60 seconds right before expiry.
+
+- TWAP **strictly above** the strike: settles **Yes**.
+- TWAP **at or below** the strike: settles **No**. Landing exactly on the strike is a No.
 
 ### Price Touch
 
-Resolves on whether the price ever reaches the strike during the contract's life. Outcome evaluates the underlying on a rolling 1 second TWAP rather than raw prints, so a touch registers when that TWAP trades at or through the strike. Once it does, the contract settles Yes immediately and stays Yes regardless of where price goes afterward. If the TWAP never reaches the strike before expiry, it settles No.
+Did the price ever reach the strike while the market was open? Outcome watches a rolling TWAP of the underlying rather than raw prints. Each contract's rules state the rolling window; Hit Price markets currently use 3 seconds. A touch registers when that TWAP trades at or through the strike. Once it does, the contract settles Yes right away and stays Yes, wherever the price goes next. If the TWAP never gets there before expiry, it settles No.
 
-Using the TWAP for the touch trigger means a single wick that reverts inside the same second won't necessarily register. What matters is whether the average across that second clears the strike, not whether any individual print did.
+Because the touch uses a TWAP, a quick wick that reverts within a few seconds won't necessarily count. What matters is whether the average across the rolling window clears the strike, not whether any single print did.
 
-### Price Scalar
+### Price Range
 
-Resolves to a value inside a range instead of a straight Yes or No. Each contract has a lower and upper bound. Outcome takes the same 1 second TWAP after expiry: at or below the lower bound settles at 0, at or above the upper bound settles at 1, and anything in between settles proportionally along the range.
-
-All price markets settle against a single oracle source: the HyperCore perpetual **<u>mark price</u>** for the underlying asset that the market is written on.
+Price Range markets, where each outcome is a price bucket, aren't deployed by Outcome. Hyperliquid deploys and settles them under its own rules, so they don't have an Outcome settlement proof. See [Market types](/market-types).
 
 <Note>
-Resolution is currently in Beta. Markets settle with a short buffer while we verify the data against the official sources listed in the rules. Once Outcome exits Beta, deployment and settlement will be fully automated, so markets deploy and resolve near instantly.
+Resolution is currently in Beta. Markets settle with a short buffer while we check the data against the official sources listed in the rules. Once Outcome exits Beta, deployment and settlement will be fully automated, so markets deploy and resolve near instantly.
 </Note>
 
-Backing it all: a 500K HYPE bond posted by Outcome, keeping incentives aligned with accurate, good-faith outcomes.
+## Who stands behind it
+
+Outcome has posted a 500K HYPE bond, so getting results right and settling them in good faith is in our own interest.
 
 <Note>
 All resolution dates and times are in UTC.

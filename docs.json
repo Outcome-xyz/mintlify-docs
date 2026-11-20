@@ -50,6 +50,7 @@
                 "group": "Resolution",
                 "pages": [
                   "resolution",
+                  "twap-calculation",
                   "settlement-proofs",
                   "real-world-events"
                 ]
