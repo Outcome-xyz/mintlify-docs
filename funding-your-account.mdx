@@ -1,44 +1,78 @@
 ---
 title: "Funding your Outcome account with USDC"
 sidebarTitle: "Funding your account"
+description: "Deposit from a crypto wallet, any exchange, or a card or bank account. Everything arrives as USDC in your account, ready to trade."
 ---
 
-This page covers how to fund your Outcome account, what to expect during deposits, and what to do if something goes wrong.
+This page covers how to fund your Outcome account, what to expect during a deposit, and what to do if something goes wrong.
 
-Outcome settles in USDC. How you deposit depends on what you're starting with: if you already hold USDC, you bridge it in directly; if you're starting from another asset, it's converted to USDC on the way in.
+Outcome settles in USDC. Whatever you pay with (USDC, another token on another chain, or a card or bank account), it arrives as USDC in your account. Deposits run through [fun.xyz](https://fun.xyz), a payment provider that handles the swap and bridging for you. To learn what happens behind the scenes, see [How deposits work](/how-deposits-work).
 
-To deposit:
+### Make a deposit
 
-1. Open the Deposit panel in [outcome.xyz](http://outcome.xyz).
-2. Select the chain you're depositing from.
-3. Choose the asset you want to send.
-4. Enter the amount.
-5. Confirm the transaction in your wallet.
+<Steps>
+  <Step title="Open the deposit window">
+    Click **Deposit** in the top bar on [outcome.xyz](https://outcome.xyz). If your balance is too low for a trade, the trade button turns into **Deposit** and opens the same window.
+  </Step>
+  <Step title="Choose how to pay">
+    Pick **Crypto** or **Cash** at the top of the window, then choose a method. The methods are described below.
+  </Step>
+  <Step title="Enter the amount in dollars">
+    The window shows what you send, the USDC you receive, the fees and how long it takes. Amounts below the minimum can't continue.
+  </Step>
+  <Step title="Confirm">
+    Approve the payment in your wallet, or complete the card or bank payment. The window shows progress until your USDC arrives.
+  </Step>
+</Steps>
 
-### Depositing USDC
+When the deposit lands, you see **Funds received** and your balance updates. You can close the window while a deposit is processing: it keeps going and your balance updates when the USDC arrives. To make another deposit right away, click **New deposit**.
 
-If you already hold USDC, you deposit it through Circle's Cross-Chain Transfer Protocol (CCTP), which moves native USDC across chains. Open the Deposit panel in [outcome.xyz](http://outcome.xyz), select the chain your USDC is on, enter the amount, and confirm in your wallet. Your USDC is bridged to Hyperliquid, ready to trade.
+### Ways to pay
 
-### Depositing other assets
+**From your connected wallet.** Pay from the wallet you use on Outcome with USDC or another supported token on a supported EVM chain, such as Ethereum, Base, Arbitrum, Optimism, Polygon, BNB Chain or HyperEVM. A token other than USDC is swapped to USDC on the way in. You get an exact quote with a short timer before you confirm. To deposit from Solana, Bitcoin or Tron, use **Transfer crypto**.
 
-If you're starting from a non-USDC asset, Outcome routes the deposit through [Across](https://across.to/), which converts it to USDC on the way in. Open the Deposit panel, select the chain and asset you're sending, enter the amount, and confirm. The asset is converted to USDC when it arrives. You don't need to acquire USDC ahead of time or manage the conversion yourself.
+**Transfer crypto (deposit address).** Send crypto from any wallet or exchange to your personal deposit address. You get one address per network type (EVM chains, Solana, Bitcoin and Tron). It's permanent, so you can save it and reuse it. The amount you receive is set when your funds arrive, so the window shows an estimate.
 
-### Fees and timing
+<Warning>
+Send only supported tokens on the network shown with the address, and at or above the minimum. Funds sent on the wrong network, or to the address of a different network type, may be lost.
+</Warning>
 
-**Fees.** CCTP deposits incur network costs. Across deposits incur an Across bridge fee, set by Across and varying by source chain and asset. Either way, the cost is shown in the deposit interface before you confirm.
+**Connect an exchange.** Fund directly from a supported exchange account. The window lists the exchanges you can connect.
 
-**Timing.** Most deposits arrive within a few minutes. Larger amounts or less common routes may take longer.
+**Cash.** Pay by card, Apple Pay, Google Pay, bank transfer or a local payment method. The window shows only the methods available in your country. Card and bank payments are processed by [Swapped](https://swapped.com). The first time, you register with basic details, and depending on your country and how much you buy you may be asked to verify your identity. Outcome doesn't see or store these details.
+
+### Minimums, fees and timing
+
+**Minimums.** Most crypto deposits need at least about $3. The minimum is higher on some chains, such as Ethereum (gas costs more) and Bitcoin. Card and bank payments have their own minimum. The window always shows the minimum for what you chose.
+
+**Fees.** Every cost is shown before you confirm and comes out of the amount you send: swap and bridge costs, network fees and, for card and bank payments, the payment fee and a currency conversion spread. What you see as **You receive** is what lands in your account. Outcome doesn't charge a deposit fee of its own. Card payments usually cost more than crypto or bank transfers, and a flat part of the card fee makes small card payments relatively more expensive. If your Hyperliquid account is new, Hyperliquid also charges a one-time 1 USDC activation fee (see [How deposits work](/how-deposits-work#the-one-time-activation-fee)).
+
+**Timing.** Most deposits arrive in under 10 seconds. If yours hasn't arrived within a minute, contact [Outcome support](/support). Card and bank payments can take longer.
+
+<Note>
+**Temporary: 1 USDC taken from some first deposits.** While we finish a routing change, some first deposits into a brand-new Hyperliquid account arrive 1 USDC short, because Hyperliquid takes its one-time activation fee from the deposit. If this happens to you, contact us on [Discord](https://discord.com/invite/outcome) or through [Outcome support](/support) and we'll refund it. This will be fixed soon.
+</Note>
 
 ### Where deposits appear
 
-Funds arrive as USDC in your account. You'll see the balance in your portfolio on [outcome.xyz](http://outcome.xyz), ready to trade.
+Funds arrive as USDC in your account, shown in the deposit window as **Your Outcome account**. You see the balance on [outcome.xyz](https://outcome.xyz), ready to trade, and each deposit in the **Deposits & Withdrawals** tab on your profile.
 
-There is no separate "Outcome account." Your balance is tied to the wallet you connected, not to any specific app interface.
+Your account is your wallet's account on Hyperliquid. Your balance is tied to the wallet you connected, not to Outcome. See [Outcome and Hyperliquid](/outcome-and-hyperliquid).
 
 ### Common issues
 
-**Deposit taking longer than expected.** Cross-chain transfers can occasionally experience delays due to network congestion. Check the transaction status on the source chain's block explorer to confirm it was processed.
+**Deposit taking longer than expected.** Most deposits arrive in under 10 seconds. If yours hasn't arrived within a minute, check its status in the deposit window and contact [Outcome support](/support). Your funds aren't lost while a deposit is processing, and most delays clear within minutes to a few hours.
 
-**Transaction failed on the source chain.** Your funds remain there and no bridge fee is charged. Try again.
+**Sent less than the minimum to your deposit address.** The deposit isn't processed until you send more to the same address. Once the total reaches the minimum, it goes through.
 
-**Anything else.** Save the source transaction hash before reaching out for help. It's the first thing needed to investigate any deposit issue.
+**Transaction failed in your wallet.** Your funds stay where they were. Try again.
+
+**Card or bank payment won't load or is declined.** Turn off ad blockers and VPNs, try another browser, or clear your cache. For a charge you don't recognize or a payment that hasn't arrived, contact [Swapped support](https://swapped.com/support) with the order reference, amount, payment method and a receipt screenshot. These cases involve the payment provider and often your bank, so they can take 3 to 5 business days, and refunds up to about 5 business days.
+
+**Sent an unsupported token, or on the wrong network.** The funds can't be forwarded automatically. fun.xyz support can try to recover them, which can take days to weeks and isn't always possible. Funds sent to an address other than the one shown in the deposit window usually can't be recovered.
+
+**Deposit held for review.** Deposits are screened for compliance, and a flagged deposit is held while it's reviewed, usually for up to 48 hours. If it doesn't pass, it's returned to you in its original form. fun.xyz support contacts you throughout.
+
+**Deposit isn't available.** Deposits are unavailable in regions where Outcome is restricted, and fun.xyz blocks a few additional countries.
+
+**Getting help.** For a deposit or payment issue, click **Get help** in the deposit window to reach fun.xyz's support team, available around the clock. If the deposit shows as complete but your balance is missing, contact [Outcome support](/support). Keep your transaction hash, or the deposit details from the window, ready either way: it's the first thing support asks for.
