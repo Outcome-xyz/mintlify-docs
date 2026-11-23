@@ -4,17 +4,17 @@ sidebarTitle: "Real world events"
 description: "How Outcome resolves real world event markets, which markets get deployed, and the fixed templates every market's rules come from."
 ---
 
-Outcome resolves real world event markets against authoritative official sources, targeting resolution within 4 hours of official settlement at mainnet rollout. Markets are chosen by Outcome's own selection algorithm, capped at 100 live markets at a time and 500 new markets per day. Every market's rules come from a fixed template defined on Hyperliquid, and Outcome only fills in the inputs.
+Outcome resolves real world event markets against authoritative official sources, targeting resolution within ~2 hours of official settlement at mainnet rollout. Markets are chosen by Outcome's own selection algorithm, capped at 200 live markets at a time and 1000 new markets per day. Every market's rules come from a fixed template defined on Hyperliquid, and Outcome only fills in the inputs.
 
 ### Quick reference
 
 | Item | Current |
 | --- | --- |
-| Resolution target | Within 4 hours of official settlement |
-| Long term target | Seconds |
-| Live markets | 100 at any given time |
-| New markets | 500 per day |
-| Single contest deployment | Roughly 24 hours before start |
+| Resolution target | Within 2 hours of official settlement |
+| Long term target | Minutes |
+| Live markets | 200 at any given time |
+| New markets | 1000 per day |
+| Single contest deployment | Roughly 24-72 hours before start |
 | Prop and tournament deployment | Roughly weeks before start |
 | Prop and tournament field | Top six prospects at deployment |
 | Template control | Hyperliquid defines the template, Outcome fills the inputs |
@@ -27,17 +27,17 @@ If the official source has not published a result, independent reputable reporti
 
 ### How fast are markets resolved?
 
-At mainnet rollout, Outcome aims to resolve real world event markets within 4 hours of official settlement. The target is to bring that down to seconds over time.
+At mainnet rollout, Outcome aims to resolve real world event markets within ~2 hours of official settlement. The target is to bring that down to minutes over time.
 
 ### How does Outcome choose which markets to deploy?
 
-Outcome uses its own market selection algorithm to decide which games go live. Current limits are 100 markets live at any given time and 500 new markets per day.
+Outcome uses its own market selection algorithm to decide which games go live. Current limits are 200 markets live at any given time and 1000 new markets per day.
 
-That means Outcome will not deploy every market you want, or every market Outcome wants. These limits expand over time.
+That means Outcome will not deploy every market you want, or every market Outcome wants. These HIP-4 limits are set by Hyperliquid  and will expand over time as Hyperliquid raises them.
 
 ### When do markets go live?
 
-- Single contests: the algorithm signals roughly 24 hours before the event starts
+- Single contests: the algorithm signals roughly 24-72 hours before the event starts
 - Props and tournaments: roughly weeks before the event starts
 
 ### How many participants does a prop or tournament market list?
