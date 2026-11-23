@@ -25,8 +25,10 @@ The builder code fee is currently set to **zero**. This may change in the future
 
 When a market resolves and your position settles, a settlement fee is deducted from the payout. The exact fee is shown in the market spec.
 
-### Bridging fees
+### Deposit fees
 
-Depositing USDC uses Circle's CCTP, and depositing another asset routes through Across, which charges a bridge fee that varies by source chain and asset. Either way, the cost is shown in the deposit interface before you confirm.
+Deposits run through [fun.xyz](https://fun.xyz), and Outcome doesn't charge a deposit fee of its own. Deposit costs come out of the amount you deposit and are shown before you confirm: swap and bridge costs, network fees and, for card and bank payments, a payment fee and a currency conversion spread. If your Hyperliquid account is brand new, Hyperliquid also charges a one-time 1 USDC activation fee, taken from your first deposit or your first withdrawal. Deposit fees are separate from trading fees. See [Funding your account](/funding-your-account) and [How deposits work](/how-deposits-work).
 
-Withdrawing USDC also uses CCTP, with network costs shown before you confirm. See [Funding your account](/funding-your-account) and [Withdrawing funds](/withdrawing-funds) for details.
+### Withdrawal fees
+
+Withdrawing USDC uses Circle's CCTP, with network costs shown before you confirm. See [Withdrawing funds](/withdrawing-funds).
