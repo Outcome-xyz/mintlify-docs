@@ -19,7 +19,7 @@ For these markets, the settlement price is computed using linear interpolation b
 
 Whoever performs the resolution, settlement is executed natively within Hyperliquid. Price-based markets read HyperCore's own mark prices. Validator-deployed markets are settled by the same validator set that secures the network. There is no separate settlement layer, no dispute token, and no claims process on another chain.
 
-For Price Binary and Price Touch markets Outcome deploys, Chainlink CRE separately rechecks the result and records a proof of it on Arbitrum One. That proof is a public record you can check, not part of settlement: it never changes or delays your payout. See [Settlement proofs](/settlement-proofs).
+For Price Binary and Price Touch markets Outcome deploys, Chainlink CRE separately checks the result and records a proof of it on Arbitrum One. That proof is a public record you can check, not part of settlement: it never changes or delays your payout. See [Settlement proofs](/settlement-proofs).
 
 For the markets Outcome deploys, Outcome's own capital backs the resolution. HIP-4 deployment requires a 500,000 HYPE stake, which validators can slash if a market is poorly defined or settled incorrectly, and which cannot be withdrawn until every outstanding market is settled. See [Outcome architecture](/outcome-architecture) for how the bond works, and [Resolution](/resolution) for the mechanics of each market type.
 
