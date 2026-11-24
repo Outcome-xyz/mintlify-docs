@@ -27,6 +27,19 @@ When a recurring market reaches its expiry time:
 
 The cycle continues for as long as the recurring market is enabled at the protocol level.
 
+### How the next strike is set
+
+For Outcome's own Up/Down series, such as the 15 minute markets, the next instance's strike (the "price to beat") comes from the settlement TWAP of the instance that just closed. It isn't the exact TWAP: the TWAP is rounded half-up to the series' price precision, and that rounded value becomes the next strike. For BTC the precision is one whole dollar:
+
+| Settlement TWAP | Settles against 60,000 | Next strike |
+| ---: | --- | ---: |
+| 60,000.01 | Up | 60,000 |
+| 60,000.49 | Up | 60,000 |
+| 60,000.50 | Up | 60,001 |
+| 60,001.49 | Up | 60,001 |
+
+Rounding only sets the next strike. The settlement itself always uses the exact, unrounded TWAP, so 60,000.01 against a strike of 60,000 settles **Up**. See [TWAP calculation](/twap-calculation).
+
 ### Positions don't carry over
 
 Each instance of a recurring market is its own separate market with its own tokens. When today's BTC daily binary settles, that day's YES and NO tokens redeem at 1 or 0 USDC and the position is closed out.

@@ -167,6 +167,23 @@ If the price data isn't fully available yet, a node reports "not ready" instead 
 The values above are illustrative. The timestamps, block numbers, and hashes are shortened examples, not a real market.
 </Note>
 
+## Common questions
+
+<AccordionGroup>
+  <Accordion title="Why doesn't my TradingView number match the settlement price?">
+    TradingView charts are built from last-traded prices, not the Hyperliquid mark price that Outcome settles on. Candles also don't capture every mark price update inside a minute, and a simple average of closes isn't time weighted. Any of these can move your number away from the settlement TWAP. To reproduce a result exactly, use the HyperCore `markPx` updates for the market's underlying, weight each one by how long it was active, and use the window from the contract's rules, as in the [Price Binary example](#price-binary-example).
+  </Accordion>
+  <Accordion title="Does a price at the exact expiry time count?">
+    No. The window ends at expiry and excludes it. For a 15 minute market expiring at 00:15:00 with a 60 second window, only mark prices active from 00:14:00 up to, but not including, 00:15:00 count.
+  </Accordion>
+  <Accordion title="What happens if the TWAP lands exactly on the price to beat?">
+    It settles **Down** (No). Only a TWAP strictly above the price to beat settles **Up** (Yes). See [What happens at the strike](#what-happens-at-the-strike).
+  </Accordion>
+  <Accordion title="Is the next market's price to beat the same as the last settlement price?">
+    Almost. The next price to beat is the settlement TWAP rounded half-up to the series' price precision, so a BTC TWAP of 60,001.49 sets a next strike of 60,001 and 60,001.50 sets 60,002. The settlement itself uses the exact TWAP. See [Recurring markets](/recurring-markets#how-the-next-strike-is-set).
+  </Accordion>
+</AccordionGroup>
+
 ## Learn more
 
 <CardGroup cols={2}>
