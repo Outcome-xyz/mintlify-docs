@@ -23,7 +23,7 @@ TWAP = sum(price × time that price was active inside the window) / (b − a)
 A few details that matter:
 
 - **The start counts, the end doesn't.** The window is `[a, b)`. A price that arrives exactly at `b` shows the data reaches the end of the window, but it adds zero time to the average.
-- **The price going in counts.** The first price used is the last mark price at or before `a`, as long as it's no more than 10 minutes old.
+- **The window starts with the price already in effect.** Mark prices update every few seconds, so a window rarely opens exactly on a new update. The price that counts from the first moment of the window is the most recent update before it opens, or exactly at that moment. It stays in the average until the next update replaces it. If there has been no update in the 10 minutes before the window opens, the node doesn't guess: it reports "not ready" and checks again later.
 - **Mark price only.** Every market uses the HyperCore perpetual **mark price** (`markPx`) for its underlying. Never the oracle price, spot price, or an exchange close.
 - **Exact math.** Prices are converted to exact fractions and calculated with whole numbers, so there's no floating-point rounding and every node gets the same answer to the last digit.
 - **The window is set per contract.** Each contract's rules state its TWAP window, and new contracts may use a different one. Check the rules of the market you're trading. The examples below use the current windows for the 15 minute Up/Down and Hit Price markets.
@@ -50,7 +50,7 @@ These are the mark prices inside the window:
 
 | Time into the window | Mark price | What happens |
 | ---: | ---: | --- |
-| 0 s | 99,900 | Price at the start of the window |
+| 0 s | 99,900 | Most recent price when the window opens (23:59:00) |
 | 15 s | 100,100 | Price ticks up |
 | 60 s | 99,800 | Arrives exactly at expiry, so it has zero weight |
 
@@ -108,7 +108,9 @@ At 1.5 seconds the rolling TWAP reaches 7,700, so the market settles **Yes**. Th
 
 The boundary rules:
 
-- A touch exactly at the registration time doesn't count. Any touch after it does.
+- **The market opens at its registration time**, the moment it was created on Hyperliquid. The window before that only fills the first rolling average; touches only count after it.
+- **A touch means the rolling TWAP reaches the target after the market opens**, by landing on it or by crossing it from either side. Its value at the exact moment the market opens doesn't count, even if it equals the target.
+- So if the TWAP is already past the target when the market opens and never comes back to it, there's no touch, and the market settles **No**. This is rare, because targets are set away from the current price.
 - A touch exactly at the deadline counts.
 - If the TWAP never reaches the target by the deadline, the market settles **No**.
 

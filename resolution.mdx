@@ -21,7 +21,7 @@ Was the price above the strike at expiry? Outcome averages the price over a shor
 
 ### Price Touch
 
-Did the price ever reach the strike while the market was open? Outcome watches a rolling TWAP of the underlying rather than raw prints. Each contract's rules state the rolling window; Hit Price markets currently use 3 seconds. A touch registers when that TWAP trades at or through the strike. Once it does, the contract settles Yes right away and stays Yes, wherever the price goes next. If the TWAP never gets there before expiry, it settles No.
+Did the price ever reach the strike while the market was open? Outcome watches a rolling TWAP of the underlying rather than raw prints. Each contract's rules state the rolling window; Hit Price markets currently use 3 seconds. A touch registers when that TWAP trades at or through the strike. A touch only counts after the market opens; the TWAP has to reach the strike after that moment (see [TWAP calculation](/twap-calculation#price-touch-example)). Once it does, the contract settles Yes right away and stays Yes, wherever the price goes next. If the TWAP never gets there before expiry, it settles No.
 
 Because the touch uses a TWAP, a quick wick that reverts within a few seconds won't necessarily count. What matters is whether the average across the rolling window clears the strike, not whether any single print did.
 
