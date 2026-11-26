@@ -19,6 +19,8 @@ Was the price above the strike at expiry? Outcome averages the price over a shor
 - TWAP **strictly above** the strike: settles **Yes**.
 - TWAP **at or below** the strike: settles **No**. Landing exactly on the strike is a No.
 
+On Up/Down markets, **Up** is the Yes side and **Down** is the No side: above the price to beat settles Up, equal to or below settles Down.
+
 ### Price Touch
 
 Did the price ever reach the strike while the market was open? Outcome watches a rolling TWAP of the underlying rather than raw prints. Each contract's rules state the rolling window; Hit Price markets currently use 3 seconds. A touch registers when that TWAP trades at or through the strike. A touch only counts after the market opens; the TWAP has to reach the strike after that moment (see [TWAP calculation](/twap-calculation#price-touch-example)). Once it does, the contract settles Yes right away and stays Yes, wherever the price goes next. If the TWAP never gets there before expiry, it settles No.
