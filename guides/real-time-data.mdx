@@ -72,6 +72,31 @@ unsub();
 
 The WebSocket reconnects automatically if the connection drops. The retry schedule uses exponential backoff starting at 1 second, capped at 30 seconds, with a maximum of 10 attempts. Once reconnected, all active subscriptions are restored without any action on your part.
 
+### Connection events
+
+Pass `onConnectionEvent` to `createHIP4Adapter` to find out when the feed fails. Without it, a dropped connection only shows up as a feed that goes quiet.
+
+```typescript
+const hip4 = createHIP4Adapter({
+  testnet: true,
+  onConnectionEvent: ({ reason, code, attempts }) => {
+    if (reason === "closed" && attempts > 0) return; // retries of the same outage
+    console.warn("hip4 ws", reason, code);
+  },
+});
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `reason` | `"closed" \| "max_reconnect"` | `closed`: the socket dropped while subscriptions were live. `max_reconnect`: the SDK gave up after 10 retries. |
+| `code` | `number \| undefined` | WebSocket close code, on `closed` only. `1006` is an abnormal drop; `1001` usually means the page is navigating away. |
+| `attempts` | `number` | Retries so far. `0` marks the first drop of an outage, and it resets on every successful reconnect. |
+
+- The SDK never sends an event for your own teardown (`closeWs()` or the last unsubscribe).
+- When the SDK gives up, `max_reconnect` follows the last `closed` (attempts `10`). Count one of them per give-up, not both.
+- After a give-up, the next subscription that opens a connection starts again from `attempts: 0` with a full retry budget.
+- The callback runs synchronously. If it throws or returns a rejected promise, the SDK swallows the error and keeps reconnecting.
+
 ## Create a price feed for charting
 
 `createPriceFeed` merges historical candles with live price ticks into a single continuously-updating snapshot. It's designed to power live charts without you needing to stitch together the initial fetch and the real-time stream yourself.
