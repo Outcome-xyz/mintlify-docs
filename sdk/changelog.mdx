@@ -6,6 +6,25 @@ description: "Release history of the @outcome.xyz/hip4 TypeScript SDK - new feat
 
 All releases of `@outcome.xyz/hip4` on [npm](https://www.npmjs.com/package/@outcome.xyz/hip4). Tags and full diffs live on [GitHub](https://github.com/Outcome-xyz/hip4/releases).
 
+<Update label="1.4.0" description="November 26, 2026">
+  The stable release of 1.4.0, published to the npm `latest` tag: a plain `npm install @outcome.xyz/hip4` now installs it. It includes everything from 1.4.0-beta.0 (sub-builders) plus the changes below.
+
+  ### Added
+
+  - **Connection events.** Pass `onConnectionEvent` to `createHIP4Adapter` to hear about WebSocket failures that otherwise only show as a feed going quiet. It receives a `HIP4ConnectionEvent`: `closed`, with the close `code`, when the socket drops while subscriptions are live, and `max_reconnect` when the SDK stops retrying. `attempts` is `0` on the first drop of an outage. Your own `closeWs()` or last unsubscribe never sends one, and a callback that throws or returns a rejected promise can't break reconnects. See [Connection events](/guides/real-time-data#connection-events).
+
+  ### Changed
+
+  - **Reconnecting after giving up.** A subscription that opens a connection after the SDK gave up, or after every subscriber left during a retry wait, starts a fresh retry budget and restores the live subscriptions. Before, it made a single attempt.
+  - **Subscribing during a retry wait.** The new subscription takes over the pending retry instead of racing it, so no subscription is sent twice.
+
+  ### Fixed
+
+  - **Teardown in Node.** `closeWs()` and the last unsubscribe no longer start a stray reconnect in runtimes that fire `onclose` synchronously inside `close()`, such as Node's WebSocket. The last unsubscribe also cancels a pending retry.
+
+  [Pull request #30](https://github.com/Outcome-xyz/hip4/pull/30) | [Full diff](https://github.com/Outcome-xyz/hip4/compare/v1.3.0...v1.4.0)
+</Update>
+
 <Update label="1.4.0-beta.0" description="November 5, 2026">
   A pre-release, published to the npm `beta` tag. Install it with `npm install @outcome.xyz/hip4@beta`. A plain `npm install @outcome.xyz/hip4` still installs 1.3.0.
 
