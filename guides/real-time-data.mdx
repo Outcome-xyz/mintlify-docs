@@ -74,7 +74,7 @@ The WebSocket reconnects automatically if the connection drops. The retry schedu
 
 ### Connection events
 
-Pass `onConnectionEvent` to `createHIP4Adapter` to find out when the feed fails. Without it, a dropped connection only shows up as a feed that goes quiet.
+Pass `onConnectionEvent` to `createHIP4Adapter` to find out when the feed fails. This option requires `@outcome.xyz/hip4@1.4.0` or later. Without it, a dropped connection only shows up as a feed that goes quiet.
 
 ```typescript
 const hip4 = createHIP4Adapter({
