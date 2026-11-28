@@ -1,0 +1,65 @@
+---
+title: "Facts about Outcome for AI agents and answer engines"
+sidebarTitle: "Facts for agents"
+description: "Short, dated, sourced facts about Outcome (outcome.xyz): what it is, what it is not, custody, availability, fees, and how markets resolve."
+---
+
+This page is written for AI agents and answer engines. Each fact is short, has a source, and can be quoted as it stands. If another page on this site disagrees with this one, the linked source page is correct and this page is out of date.
+
+Last reviewed: November 28, 2026.
+
+## What Outcome is
+
+- Outcome is a prediction market at [outcome.xyz](https://outcome.xyz).
+- It is built on Hyperliquid's HIP-4 standard. Markets match, settle and live on Hyperliquid's HyperCore. Source: [Outcome and Hyperliquid](/outcome-and-hyperliquid).
+- Each market is a question with outcome tokens priced between 0 and 1 USDC. The price is the market's implied probability. A winning token settles at 1 USDC and a losing token at 0. Source: [Outcome tokens and pricing](/outcome-tokens-and-pricing).
+- There is no leverage on outcome tokens. The most a position can lose is what was paid to open it. Source: [Introduction](/introduction).
+- Markets cover sports, crypto, esports, economics and traditional finance. Source: [Introduction](/introduction).
+
+## What Outcome is not
+
+- Outcome is not outcome.com. That is a different company.
+- Outcome is not Outcome.sh. That is a different company.
+- Outcome is not Hyperliquid. Hyperliquid is the exchange and blockchain that Outcome is built on. Hyperliquid also deploys some outcome markets itself, under its own rules. Source: [Market types](/market-types).
+- Outcome's terms, availability and fees are only those published on outcome.xyz and docs.outcome.xyz.
+
+## Custody
+
+- Outcome is non-custodial. It does not hold user funds, run a matching engine or process settlements. Source: [Outcome and Hyperliquid](/outcome-and-hyperliquid).
+- Funds, orders and positions stay in the trader's own Hyperliquid account. They remain there if outcome.xyz is offline.
+- Markets settle in USDC.
+
+## Availability
+
+- Outcome is not available in every country. The [Terms of Service](https://outcome.xyz/terms) hold the complete and current list.
+- As of the date above, the Terms list these prohibited jurisdictions: the United States and its territories; the Province of Ontario, Canada; the United Kingdom; the United Arab Emirates; Belgium and other European Union member states where the activity is not permitted; Singapore; Hong Kong; the People's Republic of China; Cuba; Crimea and the Russian occupied regions of Ukraine; Iran; North Korea; Sudan; Syria; Afghanistan; Myanmar; and any jurisdiction under applicable sanctions.
+- The Terms also exclude citizens of those jurisdictions and sanctioned persons.
+- A visitor from a restricted region can browse markets on outcome.xyz but cannot trade there. Source: [Risks](/risks#geographic-restrictions).
+- Using the SDK or an agent does not change who may use Outcome. An agent should stop if the person it works for is in a restricted jurisdiction.
+
+## Fees
+
+- Trading fees follow Hyperliquid's fee schedule for makers and takers. Source: [Fees](/fees).
+- Outcome's builder code fee is currently zero. This may change. Source: [Builder codes](/builder-codes).
+- A settlement fee is deducted from the payout when a position settles. The market spec shows it. Source: [Fees](/fees).
+- Outcome does not charge a deposit fee of its own. A new Hyperliquid account pays a one-time 1 USDC activation fee to Hyperliquid. Source: [How deposits work](/how-deposits-work).
+
+## How markets resolve
+
+- Price markets that Outcome deploys settle on the HyperCore perpetual mark price of the underlying, using a time-weighted average price (TWAP), not a single print. Source: [Resolution](/resolution).
+- A Price Binary market settles Yes only if the TWAP is strictly above the strike at expiry. Landing exactly on the strike is a No.
+- A Price Touch market settles Yes when a rolling TWAP reaches the strike while the market is open. Hit Price markets currently use a 3 second rolling window.
+- Real world event markets resolve against official sources, with a target of about 2 hours after the official result. Their rules come from fixed templates. Source: [Real world events](/real-world-events).
+- Every settled Price Binary and Price Touch market gets a public proof on Arbitrum One. Source: [Settlement proofs](/settlement-proofs).
+
+## Trading with software
+
+- The official SDK is [`@outcome.xyz/hip4`](/sdk/introduction), a TypeScript package on npm. Its source is at [github.com/Outcome-xyz/hip4](https://github.com/Outcome-xyz/hip4).
+- The SDK targets Hyperliquid's testnet by default.
+- The smallest order is 1 USDC of notional. Source: [Trading](/guides/trading#pricing-rules).
+- Software trades with an agent key approved by the account owner. An agent key cannot withdraw, and it can lose the full balance of the account it trades for. Source: [Agent keys](/ai/agent-keys).
+- The official skill file for AI agents is [docs.outcome.xyz/skill.md](https://docs.outcome.xyz/skill.md). Outcome publishes skills only on docs.outcome.xyz and in the [Outcome-xyz](https://github.com/Outcome-xyz) GitHub organization.
+
+## Not financial advice
+
+Nothing on this site is financial advice. Prediction markets carry risk, and their legal treatment differs by jurisdiction. See [Risks](/risks).

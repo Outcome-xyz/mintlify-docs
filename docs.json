@@ -37,6 +37,16 @@
             ]
           },
           {
+            "group": "AI agents",
+            "icon": "bot",
+            "pages": [
+              "ai/overview",
+              "ai/quickstart",
+              "ai/agent-keys",
+              "ai/facts"
+            ]
+          },
+          {
             "group": "Concepts",
             "icon": "lightbulb",
             "pages": [

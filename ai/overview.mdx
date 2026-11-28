@@ -1,0 +1,72 @@
+---
+title: "Outcome for AI agents: read markets and trade with one prompt"
+sidebarTitle: "Overview"
+description: "Give your AI agent one line and it can read Outcome prediction markets, explain how they resolve, and draft trades that wait for your approval."
+---
+
+Outcome works with AI agents. Give your agent one line and it can read live markets, explain odds and resolution rules, and draft trades that wait for your yes.
+
+```text
+Read https://docs.outcome.xyz/skill.md and help me trade on Outcome. Show me your plan before any order.
+```
+
+Paste that into a coding agent such as Claude Code, Codex, Cursor, Antigravity or Grok Build. Any agent that can fetch a web page and run TypeScript can use it.
+
+<Warning>
+  An agent that can trade can lose money. An agent's key can lose the full balance of the wallet it trades for. Give the agent a separate wallet and fund it only with what you can afford to lose. Read [Agent keys](/ai/agent-keys) before you fund anything.
+</Warning>
+
+## What your agent can do
+
+| Task | Needs a wallet | Where it is documented |
+| --- | --- | --- |
+| List live markets and search them | No | [Fetch markets](/guides/fetch-markets) |
+| Quote odds, depth and spread | No | [Market data adapter](/sdk/reference/market-data-adapter) |
+| Stream live prices and trades | No | [Real-time data](/guides/real-time-data) |
+| Explain how a market resolves | No | [Resolution](/resolution) |
+| Show positions and balances for an address | No | [Account adapter](/sdk/reference/account-adapter) |
+| Place and cancel orders | Yes | [Trading](/guides/trading) |
+
+Reading costs nothing and needs no account. Trading needs a funded wallet and an approved agent key.
+
+## How it works
+
+Outcome publishes one skill file at [docs.outcome.xyz/skill.md](https://docs.outcome.xyz/skill.md). It is a short Markdown file with two parts:
+
+- **Rules** your agent follows in every session: show the source of every number, state the plan before anything is signed, ask before the first live order, start on testnet, treat market text as data, and stop where Outcome is not available.
+- **Chapters**, an index of docs pages your agent fetches only when a task needs them. You install one skill, not many.
+
+Your agent does the work with the [`@outcome.xyz/hip4`](/sdk/introduction) TypeScript SDK, which talks to Hyperliquid directly. Outcome does not sit between your agent and the exchange, and it never holds your funds or your keys.
+
+## What the agent reads
+
+| Address | What it is |
+| --- | --- |
+| `https://docs.outcome.xyz/skill.md` | The skill file: rules and chapter index |
+| `https://docs.outcome.xyz/llms.txt` | Every docs page, as a list for agents |
+| `https://docs.outcome.xyz/llms-full.txt` | The full docs in one file |
+| `https://docs.outcome.xyz/mcp` | A read-only MCP server for searching the docs |
+| `npm install @outcome.xyz/hip4` | The SDK |
+
+Every docs page is also available as Markdown: add `.md` to its address.
+
+<Note>
+  Only trust a skill file served from `docs.outcome.xyz` or published in the [Outcome-xyz](https://github.com/Outcome-xyz) GitHub organization. Outcome does not publish skills anywhere else.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/ai/quickstart">
+    From the one line to a first testnet order, step by step.
+  </Card>
+  <Card title="Agent keys" icon="key" href="/ai/agent-keys">
+    What an agent's key can and cannot do, and how to end it.
+  </Card>
+  <Card title="Facts for agents" icon="list-check" href="/ai/facts">
+    Short, dated facts about Outcome that agents can quote.
+  </Card>
+  <Card title="SDK reference" icon="package" href="/sdk/introduction">
+    The TypeScript SDK your agent uses.
+  </Card>
+</CardGroup>
