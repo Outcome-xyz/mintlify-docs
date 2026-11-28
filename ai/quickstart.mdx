@@ -1,0 +1,83 @@
+---
+title: "Agent quickstart: from one prompt to a first order"
+sidebarTitle: "Quickstart"
+description: "Set up an AI agent to read Outcome markets, practise on testnet, fund a separate wallet, and place a first order that waits for your approval."
+---
+
+This page takes you from one line of text to a first order placed by your agent. The first two steps need no wallet and cost nothing.
+
+<Steps>
+  <Step title="Paste the line">
+    Open your agent in an empty folder and paste:
+
+    ```text
+    Read https://docs.outcome.xyz/skill.md and help me trade on Outcome. Show me your plan before any order.
+    ```
+
+    Your agent fetches the skill file, reads its rules, and loads further pages only when it needs them.
+  </Step>
+  <Step title="Read markets">
+    Ask for anything you would look up on [outcome.xyz](https://outcome.xyz). For example:
+
+    ```text
+    Show me the most active markets on Outcome.
+    ```
+
+    ```text
+    Explain how the 2026/27 English Premier League winner market resolves, quoting its rules.
+    ```
+
+    ```text
+    Give me the odds, depth and spread on the BTC Up or Down Daily market.
+    ```
+
+    Your agent installs the SDK, reads live data from Hyperliquid, and answers with the market link and the time it read each price.
+  </Step>
+  <Step title="Practise on testnet">
+    The SDK targets Hyperliquid's testnet by default, so nothing your agent does here uses real funds. Ask it to place and cancel a small order on testnet and to show you its plan first. Testnet needs test funds from Hyperliquid's testnet.
+  </Step>
+  <Step title="Fund a separate wallet">
+    For real trading, create a wallet only for the agent. See [Fund the wallet](#fund-the-wallet) below.
+  </Step>
+  <Step title="Trade">
+    Ask for a trade in plain words. Your agent states the market, side, price, size, cost and the most the order can lose, then waits. Nothing is signed until you say yes.
+
+    ```text
+    Buy 10 shares of Liverpool in the Premier League winner market at 0.13 or better.
+    ```
+  </Step>
+</Steps>
+
+## Fund the wallet
+
+<Warning>
+  Use a wallet created only for the agent. Never give an agent the private key or seed phrase of your main wallet.
+</Warning>
+
+1. **Create the wallet.** Your agent can generate a new key on your machine and show you its address. Keep the key in a local environment file or a secret manager. It should never appear in chat, in code or in a repository.
+2. **Send USDC to Hyperliquid.** Outcome trades settle in USDC on Hyperliquid. Hyperliquid's bridge takes native USDC from Arbitrum. The minimum is 5 USDC, and a smaller deposit is not credited. A new Hyperliquid account pays a one-time 1 USDC activation fee. You can also sign in to [outcome.xyz](https://outcome.xyz) with the agent's wallet and use the deposit window described in [Funding your account](/funding-your-account).
+3. **Move USDC to spot if needed.** On a standard Hyperliquid account, deposits land in the perps balance and Outcome orders spend the spot balance. The agent's wallet signs the transfer. See [Fund your spot balance](/sdk/reference/wallet-adapter#fund-your-spot-balance).
+4. **Approve an agent key.** The wallet signs one approval for a fresh signing key, and the SDK uses that key for orders. See [Authentication](/sdk/concepts/authentication).
+5. **Approve Outcome's builder address.** Orders that carry Outcome's [builder code](/builder-codes) count for [liquidity rewards](/outcome-liquidity-rewards). See [Builder fee approval](/sdk/reference/auth-adapter#builder-fee-approval).
+
+The smallest order is 1 USDC of notional.
+
+## Prompts for quoting both sides
+
+If you run a quoting strategy, give the agent hard numbers and keep it on testnet until it behaves:
+
+```text
+Read https://docs.outcome.xyz/skill.md. On testnet, quote both sides of [market] with [size] per side and stop if losses reach [max loss]. Show me your plan before any order.
+```
+
+A limit written in a prompt is an instruction to the agent, not a control on the key. Size the wallet to the most you are willing to lose.
+
+## What to expect from the agent
+
+- It shows the source and the time for every price it quotes.
+- It asks before the first live order. If you later turn confirmations off, it says so at the start of every session.
+- It prefers limit orders and checks depth before a market order.
+- It backs off when Hyperliquid rate limits it.
+- It stops and tells you if you are in a region where Outcome is not available. See [Facts for agents](/ai/facts#availability).
+
+If your agent does something else, stop it and [tell us](/support).

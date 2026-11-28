@@ -1,0 +1,72 @@
+---
+title: "Agent keys: what a trading key can and cannot do"
+sidebarTitle: "Agent keys"
+description: "How Hyperliquid agent keys let an AI agent or bot trade on Outcome, what they can lose, how to end one, and why a separate wallet is the recommended setup."
+---
+
+An agent key is how software trades on your behalf without holding your wallet. This page explains what a key can do, what it can lose, and how to set one up for an AI agent or a bot.
+
+<Warning>
+  An agent key cannot withdraw. That does not make it safe. It can place any order on any Hyperliquid market, so it can lose the full balance of the account it trades for.
+</Warning>
+
+## What an agent key is
+
+A Hyperliquid agent key, also called an API wallet, is a signing key that an account owner registers with one signature. After that, orders signed by the key are treated as orders from the account.
+
+| An agent key can | An agent key cannot |
+| --- | --- |
+| Place, modify and cancel orders for the account | Withdraw funds |
+| Trade any Hyperliquid market, including perpetuals | Send funds to another address |
+| Convert outcome shares (split, merge, negate) | Approve other keys |
+
+The key holds no funds of its own. Outcome does not issue it, cannot see it, and cannot block or end it. It is an arrangement between your account and Hyperliquid.
+
+## What it can lose
+
+A key that cannot withdraw can still empty an account by trading badly:
+
+- It can buy at any price. A market order on a thin book fills far from the last traded price.
+- It is not limited to Outcome markets. The same key can open leveraged perpetual positions on Hyperliquid.
+- A budget, a size cap or a loss limit written in a prompt is an instruction to the agent. Nothing on the exchange enforces it.
+
+So size the account to the loss you accept, not the key.
+
+## Recommended: a separate wallet for the agent
+
+Create a wallet used only by the agent and fund it with an amount you can afford to lose. The agent's wallet is its own Hyperliquid account. It approves its own agent key, and your main wallet is never involved.
+
+- The most the agent can lose is what you sent to that wallet.
+- Positions and history stay separate from your own trading.
+- To stop the agent, revoke its key, then cancel its open orders and close or keep its positions yourself. Withdrawing the balance limits what a running agent can still spend, but only revoking the key ends its access.
+
+[Agent quickstart](/ai/quickstart#fund-the-wallet) walks through this setup.
+
+## Not recommended: a key on your main account
+
+You can approve an agent's key on your main account, so that the agent trades your existing balance. Your wallet signs the approval described in [Authentication](/sdk/concepts/authentication), for a key address the agent generated.
+
+Do this only if you understand that the agent can then trade your whole balance on any Hyperliquid market. There is no page on outcome.xyz for approving an outside agent's key yet.
+
+## Ending a key
+
+A key stops working when any of these happens:
+
+- You revoke it. The Hyperliquid app lists an account's API wallets on its API page, where you can remove one.
+- You approve a new key under the same name, which replaces the old one.
+- It reaches the expiry set when it was approved, if one was set.
+
+Stopping your agent or deleting its files does not end the key. If the key file still exists somewhere, the key still works until you revoke it.
+
+## Key limits
+
+Hyperliquid limits how many named keys one account can hold, and a new account can hold only a few. Outcome's web app uses a named key for each device you sign in on.
+
+If your account is at its limit and you approve trading on a new device at outcome.xyz, the app frees a slot by replacing an existing key, and it picks keys from other apps first. An agent that shares your main account can lose its key this way. This is one more reason to give the agent its own wallet.
+
+## Rules for handling keys
+
+- Never give an agent the private key or seed phrase of your main wallet. An agent that follows Outcome's skill will refuse it.
+- Keep the agent wallet's key and the agent key in a local environment file or a secret manager. Never paste them into chat, commit them to a repository, or store them in a shared document.
+- Generate a new agent key when you move the agent to another machine, and revoke the old one.
+- Check the account from time to time in the Hyperliquid app. Open orders and positions there are the truth, whatever the agent reports.
