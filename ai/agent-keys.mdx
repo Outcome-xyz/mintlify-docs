@@ -38,7 +38,7 @@ Create a wallet used only by the agent and fund it with an amount you can afford
 
 - The most the agent can lose is what you sent to that wallet.
 - Positions and history stay separate from your own trading.
-- To stop the agent, withdraw the balance or stop funding it.
+- To stop the agent, revoke its key, then cancel its open orders and close or keep its positions yourself. Withdrawing the balance limits what a running agent can still spend, but only revoking the key ends its access.
 
 [Agent quickstart](/ai/quickstart#fund-the-wallet) walks through this setup.
 

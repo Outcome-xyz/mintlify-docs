@@ -64,15 +64,21 @@ npm install @outcome.xyz/hip4
 
 ```typescript
 import { createHIP4Adapter } from "@outcome.xyz/hip4";
+import type { HIP4Market } from "@outcome.xyz/hip4";
 
 // testnet: true is the default. Pass false to read live mainnet markets.
 const hip4 = createHIP4Adapter({ testnet: false });
 await hip4.initialize();
 
-const markets = await hip4.events.fetchMarkets({ type: "defaultBinary" });
+// Other deployers publish on Hyperliquid too. Outcome's markets have venue "out".
+const all = (await hip4.events.fetchMarkets()) as HIP4Market[];
+const markets = all.filter((market) => market.raw.venue === "out");
+
 const price = await hip4.marketData.fetchPrice(String(markets[0].outcomeId));
 const book = await hip4.marketData.fetchOrderBook(String(markets[0].outcomeId));
 ```
+
+Only call a market an Outcome market if its `raw.venue` is `"out"`. Skip markets whose `expiry` has passed: a recurring market stays in the list until it settles.
 
 When you report a market, give: the question, each outcome with its price as a percentage, the best bid and ask, the volume if you have it, how it resolves in one line, the link, and the time you read it.
 
